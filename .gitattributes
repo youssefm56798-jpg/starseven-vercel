@@ -1,0 +1,6 @@
+# Keep LF in the repository and in working copies. tests/ asserts that
+# db/seed.sql uses LF endings, so a CRLF checkout on Windows would fail it.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.webp binary

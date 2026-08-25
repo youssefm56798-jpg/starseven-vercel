@@ -1,0 +1,198 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
+
+/*
+ * Admin styling, ported from admin/auth.php.
+ *
+ * Everything is scoped under .s7admin so the storefront's own global stylesheet
+ * (loaded by the root layout, and Arabic/RTL) cannot leak into the panel and the
+ * panel cannot leak out. The wrapper carries dir="ltr" for the same reason.
+ */
+
+.s7admin {
+  --paper: #FFFDF8;
+  --paper2: #F5F2EA;
+  --ink: #12100B;
+  --grey: #6E6A60;
+  --red: #D7291D;
+  --line: rgba(18, 16, 11, .13);
+  --green: #5E9C2B;
+
+  background: var(--paper2);
+  color: var(--ink);
+  font-family: 'Cairo', sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  min-height: 100vh;
+  text-align: left;
+}
+
+.s7admin * { margin: 0; padding: 0; box-sizing: border-box; }
+.s7admin a { color: inherit; }
+
+/* ------------------------------------------------------------- top bar */
+
+.s7admin header.bar {
+  background: var(--ink); color: var(--paper); padding: 0 20px;
+  display: flex; align-items: center; gap: 22px; height: 60px;
+  position: sticky; top: 0; z-index: 20; flex-wrap: wrap;
+}
+.s7admin .brand { font-weight: 900; font-size: 17px; white-space: nowrap; }
+.s7admin .brand i { color: var(--red); font-style: normal; }
+.s7admin nav.tabs { display: flex; gap: 4px; margin-inline-start: auto; flex-wrap: wrap; align-items: center; }
+.s7admin nav.tabs a,
+.s7admin nav.tabs button.tablink {
+  padding: 8px 15px; border-radius: 99px; font-weight: 800; font-size: 13.5px;
+  color: #B9B4A8; text-decoration: none; white-space: nowrap;
+  background: none; border: none; font-family: inherit; cursor: pointer;
+}
+.s7admin nav.tabs a:hover,
+.s7admin nav.tabs button.tablink:hover { background: rgba(255, 253, 248, .1); color: #fff; }
+.s7admin nav.tabs a.on { background: var(--red); color: #fff; }
+
+/* --------------------------------------------------------------- page */
+
+.s7admin .wrap { max-width: 1180px; margin: 0 auto; padding: 26px 20px 60px; }
+.s7admin h1 { font-size: 26px; font-weight: 900; margin-bottom: 4px; }
+.s7admin .sub { color: var(--grey); font-size: 14px; margin-bottom: 22px; }
+.s7admin code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; }
+
+.s7admin .flash {
+  padding: 13px 18px; border-radius: 12px; font-weight: 800; font-size: 14px;
+  margin-bottom: 20px; border: 1.5px solid;
+}
+.s7admin .flash.ok { background: #EEF6E8; border-color: var(--green); color: #33600F; }
+.s7admin .flash.err { background: #FDECEA; border-color: var(--red); color: #8E1409; }
+
+.s7admin .cards {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px; margin-bottom: 28px;
+}
+.s7admin .kpi { background: #fff; border: 1.5px solid var(--line); border-radius: 14px; padding: 18px 20px; }
+.s7admin .kpi b { display: block; font-size: 30px; font-weight: 900; line-height: 1.15; }
+.s7admin .kpi span {
+  font-size: 12.5px; color: var(--grey); font-weight: 700;
+  text-transform: uppercase; letter-spacing: .06em;
+}
+.s7admin .kpi.hot b { color: var(--red); }
+
+.s7admin .panel {
+  background: #fff; border: 1.5px solid var(--line); border-radius: 16px;
+  overflow: hidden; margin-bottom: 24px;
+}
+.s7admin .panel > h2 {
+  font-size: 15px; font-weight: 900; padding: 15px 20px; border-bottom: 1.5px solid var(--line);
+  background: var(--paper); display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+.s7admin .panel > h2 .right { margin-inline-start: auto; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+.s7admin table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.s7admin th {
+  text-align: start; font-size: 11.5px; text-transform: uppercase; letter-spacing: .07em;
+  color: var(--grey); padding: 11px 16px; border-bottom: 1.5px solid var(--line);
+  background: var(--paper); white-space: nowrap;
+}
+.s7admin td { padding: 12px 16px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.s7admin tr:last-child td { border-bottom: none; }
+.s7admin tr:hover td { background: #FCFAF4; }
+.s7admin .muted { color: var(--grey); font-size: 13px; }
+
+.s7admin .pill {
+  display: inline-block; padding: 3px 11px; border-radius: 99px; font-size: 11.5px;
+  font-weight: 900; border: 1.5px solid var(--line); white-space: nowrap;
+}
+.s7admin .pill.new { background: #FDECEA; border-color: var(--red); color: #8E1409; }
+.s7admin .pill.confirmed { background: #FFF6E0; border-color: #D9A81E; color: #7A5B00; }
+.s7admin .pill.shipped { background: #E9F0FD; border-color: #2A6DE8; color: #12408F; }
+.s7admin .pill.delivered,
+.s7admin .pill.active { background: #EEF6E8; border-color: var(--green); color: #33600F; }
+.s7admin .pill.cancelled,
+.s7admin .pill.unsubscribed { background: #F1EFE9; color: var(--grey); }
+.s7admin .pill.pending,
+.s7admin .pill.bounced { background: #FFF6E0; border-color: #D9A81E; color: #7A5B00; }
+
+.s7admin .btn {
+  display: inline-flex; align-items: center; gap: 7px; border: none;
+  background: var(--ink); color: var(--paper); font-family: inherit; font-weight: 900;
+  font-size: 13px; padding: 9px 17px; border-radius: 99px; cursor: pointer;
+  text-decoration: none; white-space: nowrap;
+}
+.s7admin .btn:hover { background: var(--red); }
+.s7admin .btn.red { background: var(--red); }
+.s7admin .btn.red:hover { background: var(--ink); }
+.s7admin .btn.ghost { background: none; border: 1.5px solid var(--ink); color: var(--ink); }
+.s7admin .btn.ghost:hover { background: var(--ink); color: var(--paper); }
+.s7admin .btn.sm { font-size: 12px; padding: 6px 13px; }
+
+.s7admin input,
+.s7admin select,
+.s7admin textarea {
+  font-family: inherit; font-size: 14px; width: 100%; padding: 11px 13px;
+  border: 1.5px solid var(--line); border-radius: 10px; background: #fff; color: var(--ink);
+}
+.s7admin input:focus,
+.s7admin select:focus,
+.s7admin textarea:focus { outline: none; border-color: var(--ink); }
+.s7admin label {
+  display: block; font-size: 12px; font-weight: 900; text-transform: uppercase;
+  letter-spacing: .06em; color: var(--grey); margin-bottom: 6px;
+}
+.s7admin .field { margin-bottom: 15px; }
+.s7admin .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+.s7admin .pad { padding: 20px; }
+.s7admin .empty { padding: 40px 20px; text-align: center; color: var(--grey); font-weight: 700; }
+.s7admin .bar-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+.s7admin .barchart { display: flex; flex-direction: column; gap: 9px; }
+.s7admin .barchart .row {
+  display: grid; grid-template-columns: 130px 1fr 92px; gap: 10px;
+  align-items: center; font-size: 13px;
+}
+.s7admin .barchart .track { height: 11px; background: var(--paper2); border-radius: 99px; overflow: hidden; }
+.s7admin .barchart .fill { height: 100%; border-radius: 99px; background: var(--red); }
+
+.s7admin .prod-grid { display: grid; grid-template-columns: 110px 1fr; gap: 22px; align-items: start; }
+.s7admin .prod-grid img { width: 110px; border-radius: 12px; background: #F5F2EA; }
+
+/* ------------------------------------------------------------ log in */
+
+.s7login {
+  min-height: 100vh; display: grid; place-items: center; background: #12100B;
+  color: #FFFDF8; font-family: 'Cairo', sans-serif; padding: 24px;
+}
+.s7login .box { width: 100%; max-width: 390px; }
+.s7login .logo { font-size: 19px; font-weight: 900; margin-bottom: 26px; text-align: center; }
+.s7login .logo i { color: #D7291D; font-style: normal; }
+.s7login .card { background: #FFFDF8; color: #12100B; border-radius: 18px; padding: 30px 26px; }
+.s7login h1 { font-size: 21px; font-weight: 900; margin-bottom: 22px; }
+.s7login label {
+  display: block; font-size: 11.5px; font-weight: 900; text-transform: uppercase;
+  letter-spacing: .07em; color: #6E6A60; margin-bottom: 6px;
+}
+.s7login input {
+  width: 100%; font-family: inherit; font-size: 15px; padding: 12px 14px; margin-bottom: 16px;
+  border: 1.5px solid rgba(18, 16, 11, .15); border-radius: 10px; background: #fff; color: #12100B;
+}
+.s7login input:focus { outline: none; border-color: #12100B; }
+.s7login button {
+  width: 100%; border: none; background: #D7291D; color: #fff; font-family: inherit;
+  font-weight: 900; font-size: 15px; padding: 14px; border-radius: 99px; cursor: pointer;
+}
+.s7login button:hover { background: #12100B; }
+.s7login .err {
+  background: #FDECEA; border: 1.5px solid #D7291D; color: #8E1409; font-weight: 800;
+  font-size: 13.5px; padding: 11px 14px; border-radius: 10px; margin-bottom: 18px;
+}
+.s7login .ok {
+  background: #EEF6E8; border: 1.5px solid #5E9C2B; color: #33600F; font-weight: 800;
+  font-size: 13.5px; padding: 11px 14px; border-radius: 10px; margin-bottom: 18px;
+}
+
+@media (max-width: 760px) {
+  .s7admin header.bar { height: auto; padding: 12px 16px; }
+  .s7admin nav.tabs { margin-inline-start: 0; width: 100%; }
+  .s7admin .grid2 { grid-template-columns: 1fr; }
+  .s7admin table { font-size: 13px; }
+  .s7admin th, .s7admin td { padding: 10px 12px; }
+  .s7admin .prod-grid { grid-template-columns: 1fr; }
+  .s7admin .table-scroll { overflow-x: auto; }
+}

@@ -1,0 +1,174 @@
+import Link from 'next/link';
+import { redirect } from 'next/navigation';
+import { csrfOk, csrfToken } from '../../../../lib/auth.js';
+import { sql } from '../../../../lib/db.js';
+import { bySlug } from '../../../../lib/hairtypes.js';
+import ConfirmButton from '../../_lib/confirm-button.js';
+import { requireAdmin } from '../../_lib/guard.js';
+import { day, Flash } from '../../_lib/ui.js';
+
+export const dynamic = 'force-dynamic';
+export const metadata = { title: 'Subscribers — Star Seven admin' };
+
+const STATUSES = ['active', 'pending', 'unsubscribed', 'bounced'];
+const title = s => s.charAt(0).toUpperCase() + s.slice(1);
+
+function backTo(status, q, msg) {
+  const p = new URLSearchParams();
+  if (STATUSES.includes(status)) p.set('status', status);
+  if (q) p.set('q', q);
+  if (msg) p.set('m', msg);
+  const s = p.toString();
+  return `/admin/subscribers${s ? `?${s}` : ''}`;
+}
+
+async function subAction(formData) {
+  'use server';
+  await requireAdmin();
+
+  const fStatus = String(formData.get('f_status') || '');
+  const fQ = String(formData.get('q_back') || '').slice(0, 80);
+  const id = Number(formData.get('id'));
+  const act = String(formData.get('act') || '');
+
+  if (!(await csrfOk(formData.get('_csrf')))) redirect(backTo(fStatus, fQ, 'csrf'));
+  if (!Number.isInteger(id) || id <= 0) redirect(backTo(fStatus, fQ, 'bad_input'));
+
+  if (act === 'activate') {
+    await sql`UPDATE subscribers SET status = 'active', confirmed_at = now() WHERE id = ${id}`;
+    redirect(backTo(fStatus, fQ, 'sub_confirmed'));
+  }
+  if (act === 'unsub') {
+    await sql`UPDATE subscribers SET status = 'unsubscribed' WHERE id = ${id}`;
+    redirect(backTo(fStatus, fQ, 'sub_unsubbed'));
+  }
+  if (act === 'delete') {
+    await sql`DELETE FROM subscribers WHERE id = ${id}`;
+    redirect(backTo(fStatus, fQ, 'sub_deleted'));
+  }
+  redirect(backTo(fStatus, fQ, 'bad_input'));
+}
+
+export default async function SubscribersPage({ searchParams }) {
+  await requireAdmin();
+  const sp = await searchParams;
+  const token = await csrfToken();
+
+  const status = STATUSES.includes(String(sp?.status || '')) ? String(sp.status) : '';
+  const q = String(sp?.q || '').trim().slice(0, 80);
+  const like = `%${q}%`;
+
+  let subs;
+  if (status && q) {
+    subs = await sql`
+      SELECT * FROM subscribers
+       WHERE status = ${status}
+         AND (email ILIKE ${like} OR name ILIKE ${like} OR phone ILIKE ${like})
+       ORDER BY id DESC LIMIT 500`;
+  } else if (status) {
+    subs = await sql`SELECT * FROM subscribers WHERE status = ${status} ORDER BY id DESC LIMIT 500`;
+  } else if (q) {
+    subs = await sql`
+      SELECT * FROM subscribers
+       WHERE email ILIKE ${like} OR name ILIKE ${like} OR phone ILIKE ${like}
+       ORDER BY id DESC LIMIT 500`;
+  } else {
+    subs = await sql`SELECT * FROM subscribers ORDER BY id DESC LIMIT 500`;
+  }
+
+  const countRows = await sql`SELECT status, COUNT(*) AS c FROM subscribers GROUP BY status`;
+  const counts = {};
+  let total = 0;
+  for (const r of countRows) {
+    counts[r.status] = Number(r.c);
+    total += Number(r.c);
+  }
+
+  return (
+    <>
+      <h1>Subscribers</h1>
+      <p className="sub">The sale list. Double opt-in — only <b>active</b> rows receive broadcasts.</p>
+
+      <Flash code={sp?.m} />
+
+      <div className="cards">
+        <div className="kpi"><b>{counts.active || 0}</b><span>Active</span></div>
+        <div className="kpi"><b>{counts.pending || 0}</b><span>Pending</span></div>
+        <div className="kpi"><b>{counts.unsubscribed || 0}</b><span>Unsubscribed</span></div>
+        <div className="kpi"><b>{total}</b><span>Total</span></div>
+      </div>
+
+      <div className="panel">
+        <h2>
+          List
+          <span className="right">
+            <form method="get" className="bar-row">
+              <input name="q" defaultValue={q} placeholder="Email, name or phone" style={{ width: '200px' }} />
+              <select name="status" defaultValue={status} style={{ width: '150px' }}>
+                <option value="">All</option>
+                {STATUSES.map(s => <option key={s} value={s}>{title(s)}</option>)}
+              </select>
+              <button className="btn sm" type="submit">Apply</button>
+            </form>
+            <a className="btn sm ghost" href="/admin/subscribers/export">Export CSV</a>
+            <Link className="btn sm red" href="/admin/offers">Send an offer</Link>
+          </span>
+        </h2>
+
+        {subs.length === 0 ? (
+          <div className="empty">No subscribers match that yet.</div>
+        ) : (
+          <div className="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Email</th><th>Name / phone</th><th>Hair type</th>
+                  <th>Lang</th><th>Status</th><th>Joined</th><th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {subs.map(s => {
+                  const tile = s.hair_type ? bySlug(s.hair_type) : null;
+                  return (
+                    <tr key={s.id}>
+                      <td dir="ltr">{s.email}<div className="muted">{s.source}</div></td>
+                      <td>
+                        {s.name || <span className="muted">—</span>}
+                        {s.phone ? <div className="muted" dir="ltr">{s.phone}</div> : null}
+                      </td>
+                      <td className="muted">{s.hair_type ? (tile ? tile.en.name : s.hair_type) : '—'}</td>
+                      <td className="muted">{String(s.lang || '').toUpperCase()}</td>
+                      <td><span className={`pill ${s.status}`}>{s.status}</span></td>
+                      <td className="muted">{day(s.created_at)}</td>
+                      <td>
+                        <form action={subAction} className="bar-row">
+                          <input type="hidden" name="_csrf" value={token} />
+                          <input type="hidden" name="id" value={s.id} />
+                          <input type="hidden" name="f_status" value={status} />
+                          <input type="hidden" name="q_back" value={q} />
+                          {s.status !== 'active' && (
+                            <button className="btn sm ghost" type="submit" name="act" value="activate">Confirm</button>
+                          )}
+                          {s.status !== 'unsubscribed' && (
+                            <button className="btn sm ghost" type="submit" name="act" value="unsub">Unsubscribe</button>
+                          )}
+                          <ConfirmButton
+                            name="act"
+                            value="delete"
+                            message="Delete this subscriber permanently?"
+                          >
+                            Delete
+                          </ConfirmButton>
+                        </form>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
