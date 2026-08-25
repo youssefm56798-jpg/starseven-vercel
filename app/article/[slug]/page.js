@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { sql } from '../../../lib/db.js';
 import { site } from '../../../lib/config.js';
+import { currencyLabel, whole } from '../../../lib/money.js';
 import { renderMarkdown } from '../../../lib/markdown.js';
 import { Dir, Nav, Footer, Crumb } from '../../_components/Chrome.js';
 
@@ -123,7 +124,7 @@ export default async function ArticlePage({ params }) {
               <div className="t">
                 <h4>{ar ? prod.name_ar : prod.name_en}</h4>
                 <p>
-                  {ar ? prod.sub_ar : prod.sub_en} · {Math.round(Number(prod.price))} {site.currency}
+                  {ar ? prod.sub_ar : prod.sub_en} · {whole(prod.price)} {currencyLabel(lang)}
                 </p>
               </div>
               <Link className="btn btn-red" href={`/product/${prod.slug}${ar ? '' : '?lang=en'}`}>

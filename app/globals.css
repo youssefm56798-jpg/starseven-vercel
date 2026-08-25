@@ -76,9 +76,15 @@ button{font:inherit;cursor:pointer}
 .card h3{font-size:16.5px;font-weight:900;line-height:1.35}
 .card .sub{color:var(--grey);font-size:12.5px;font-weight:600;margin-bottom:12px}
 .card .foot{margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:8px}
-.price{font-family:'Anton','Cairo',sans-serif;font-size:22px}
+/* Flex, not inline text. "45 EGP" and a struck-through "55" are two Latin
+   runs; inline they merge into one bidi run inside the Arabic page and the
+   margin lands on the wrong side, printing "EGP55". As flex items each keeps
+   its own box and the gap is real. */
+.price{font-family:'Anton','Cairo',sans-serif;font-size:22px;display:flex;align-items:baseline;gap:8px}
 .price small{font-size:12px;color:var(--grey);font-family:'Cairo',sans-serif;font-weight:700}
-.price .was{font-size:13px;color:var(--grey);text-decoration:line-through;margin-inline-start:6px;font-family:'Cairo',sans-serif}
+.price .was{font-size:13px;color:var(--grey);text-decoration:line-through;font-family:'Cairo',sans-serif}
+.price .save{font-size:11px;font-weight:900;color:#33600F;background:#EEF6E8;border:1.2px solid var(--green);
+  border-radius:99px;padding:1px 7px;font-family:'Cairo',sans-serif;white-space:nowrap}
 .card .buy{background:var(--ink);color:var(--paper);border:none;font-weight:900;font-size:12.5px;
   padding:9px 16px;border-radius:99px;transition:.2s}
 .card .buy:hover{background:var(--c);color:#fff}

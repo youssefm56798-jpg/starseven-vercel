@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { sql } from '../../../lib/db.js';
 import { site } from '../../../lib/config.js';
+import { currencyLabel, whole, discountPercent } from '../../../lib/money.js';
 import { bySlug } from '../../../lib/hairtypes.js';
 import { Dir, Nav, Footer, Crumb } from '../../_components/Chrome.js';
 import AddButton from '../../_components/AddButton.js';
@@ -109,15 +110,15 @@ export default async function ProductPage({ params, searchParams }) {
             <div className="sub">{sub}</div>
 
             <div className="pdp-price">
-              <div className="p">
-                {Math.round(Number(p.price))} <small>{site.currency}</small>
-              </div>
+              <bdi className="p">
+                {whole(p.price)} <small>{currencyLabel(lang)}</small>
+              </bdi>
               {p.compare_at != null && (
                 <>
-                  <span className="was">{Math.round(Number(p.compare_at))}</span>
-                  <span className="save">
-                    −{Math.round(100 - (Number(p.price) / Number(p.compare_at)) * 100)}%
-                  </span>
+                  <bdi className="was">{whole(p.compare_at)}</bdi>
+                  {/* dir="ltr": the minus sign is bidi-neutral and would drift
+                      to the end of an Arabic line, reading "18%-". */}
+                  <span className="save" dir="ltr">−{discountPercent(p.price, p.compare_at)}%</span>
                 </>
               )}
             </div>

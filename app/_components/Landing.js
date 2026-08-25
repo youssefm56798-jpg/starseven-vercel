@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { addToCart, readCart, setQty as writeQty } from '../../lib/cart.js';
 import { cartTotals } from '../../lib/pricing.js';
 import { rankProducts } from '../../lib/hairtypes.js';
+import { currencyLabel, whole, discountPercent } from '../../lib/money.js';
 
 /**
  * The landing page.
@@ -35,10 +36,11 @@ const T = {
     hair_k: 'اختيارك', hair_pick: 'الاختيار الصح لشعرك', hair_alt: 'كمان يناسبك:',
     hold_a: 'اختار', hold_b: 'تثبيتك',
     hold_p: 'مش عارف تبدأ منين؟ دوس على اللي يناسبك وهنوريك منتجاته.',
+    hold_tab: 'تثبيت', clear: 'شيل الفلتر',
     holds: [
-      { en: 'GEL', h: 'جل بريميوم', lvl: 3, p: 'لمعة ويت لوك وتحكم يومي. للشغل والجامعة — يتغسل بسهولة.', go: 'شوف الجل ←', filter: 'gel', c: 'var(--blue)' },
-      { en: 'CREAM', h: 'كريم جل', lvl: 4, p: 'تحكم + ترطيب في نفس الوقت. اختيار الحلاقين للاستخدام اليومي.', go: 'شوف التشكيلة ←', filter: 'all', c: 'var(--green)' },
-      { en: 'WAX', h: 'واكس بريميوم', lvl: 5, p: 'ميجا هولد. الستايل بيقعد مكانه مهما اليوم طال — شيا، أرجان، أو برو إكس.', go: 'شوف الواكس ←', filter: 'wax', c: 'var(--red-ui)' },
+      { en: 'GEL', h: 'جل بريميوم', lvl: 3, p: 'لمعة ويت لوك وتحكم يومي. للشغل والجامعة — يتغسل بسهولة.', go: 'شوف المنتجات ←', pick: 'gel', c: 'var(--blue)' },
+      { en: 'WAX', h: 'واكس مغذي', lvl: 4, p: 'تثبيت قوي مع ترطيب — زبدة الشيا وزيت الأرجان. للاستخدام اليومي.', go: 'شوف المنتجات ←', pick: 'hold:4', c: 'var(--green)' },
+      { en: 'MEGA', h: 'ميجا هولد', lvl: 5, p: 'أقوى تثبيت عندنا. الستايل بيقعد مكانه مهما اليوم طال.', go: 'شوف المنتجات ←', pick: 'hold:5', c: 'var(--red-ui)' },
     ],
     or_h: 'اطلب في', or_h_red: 'دقيقة',
     or_p: 'من غير تسجيل حساب ومن غير تعقيد. اختار منتجك، ضيفه للسلة، واكمل الأوردر — الدفع عند الاستلام.',
@@ -73,10 +75,11 @@ const T = {
     hair_k: 'Your type', hair_pick: 'The right one for you', hair_alt: 'Also works for you:',
     hold_a: 'PICK', hold_b: 'YOUR HOLD',
     hold_p: 'Not sure where to start? Tap the one that fits and we’ll show you its products.',
+    hold_tab: 'Hold', clear: 'Clear filter',
     holds: [
-      { en: 'GEL', h: 'Premium Gel', lvl: 3, p: 'Wet-look shine and daily control. For work and campus — washes out easy.', go: 'See gels →', filter: 'gel', c: 'var(--blue)' },
-      { en: 'CREAM', h: 'Cream Gel', lvl: 4, p: 'Control + conditioning at once. The barber’s pick for daily use.', go: 'See the range →', filter: 'all', c: 'var(--green)' },
-      { en: 'WAX', h: 'Premium Wax', lvl: 5, p: 'Mega hold. The style stays put no matter how long the day runs — Shea, Argan or Pro X.', go: 'See waxes →', filter: 'wax', c: 'var(--red-ui)' },
+      { en: 'GEL', h: 'Premium Gel', lvl: 3, p: 'Wet-look shine and daily control. For work and campus — washes out easy.', go: 'See the products →', pick: 'gel', c: 'var(--blue)' },
+      { en: 'WAX', h: 'Nourishing Wax', lvl: 4, p: 'Strong hold with conditioning — shea butter and argan oil. Made for daily use.', go: 'See the products →', pick: 'hold:4', c: 'var(--green)' },
+      { en: 'MEGA', h: 'Mega Hold', lvl: 5, p: 'The strongest we make. The style stays put no matter how long the day runs.', go: 'See the products →', pick: 'hold:5', c: 'var(--red-ui)' },
     ],
     or_h: 'Order in', or_h_red: 'one minute',
     or_p: 'No account, no maze. Pick your product, add it to the cart, and finish checkout — cash on delivery.',
@@ -100,6 +103,7 @@ function Card({ p, lang, d, q, onAdd }) {
   const [added, setAdded] = useState(false);
   const t = p[lang];
   const out = p.stock <= 0;
+  const off = discountPercent(p.price, p.compare_at);
 
   return (
     <div className="card" style={{ '--c': p.color }}>
@@ -110,7 +114,15 @@ function Card({ p, lang, d, q, onAdd }) {
         <div className="sub">{t.sub}</div>
       </Link>
       <div className="row">
-        <div className="price">{p.price} <small>{d.egp}</small></div>
+        <div className="price">
+          <bdi>{whole(p.price)} <small>{d.egp}</small></bdi>
+          {off != null && (
+            <>
+              <bdi className="was">{whole(p.compare_at)}</bdi>
+              <span className="save" dir="ltr">−{off}%</span>
+            </>
+          )}
+        </div>
         <button
           className="buy"
           style={{ '--c': p.color }}
@@ -276,7 +288,21 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
     })
     .filter(Boolean);
 
-  const shown = products.filter(p => filter === 'all' || p.kind === filter);
+  // A filter is either 'all', a product kind, or 'hold:N'. The hold picker
+  // uses the last form so it can offer real strength bands instead of
+  // categories the catalogue does not stock.
+  const inFilter = (f, p) =>
+    f === 'all' || (f.startsWith('hold:') ? p.hold === Number(f.slice(5)) : p.kind === f);
+
+  const shown = products.filter(p => inFilter(filter, p));
+
+  // Only offer a band that has something in it — the old picker advertised a
+  // "cream" line with no SKUs behind it and quietly showed the whole shop.
+  const holdTiles = d.holds
+    .map(h => ({ ...h, n: products.filter(p => inFilter(h.pick, p)).length }))
+    .filter(h => h.n > 0);
+
+  const holdFilter = filter.startsWith('hold:') ? filter.slice(5) : null;
   const hero = products.find(p => p.sku === 'S7-WAX-RED') || products[0];
 
   const tile = hairTypes.find(t => t.slug === hair) || hairTypes[0];
@@ -373,8 +399,10 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
 
       <div className="ticker" aria-hidden="true">
         <div className="ticker-track">
+          {/* dir="ltr": every phrase here is Latin. In the Arabic page they
+              would otherwise read back to front — "120 ML" became "ML 120". */}
           {[0, 1].map(k => (
-            <span key={k}>
+            <span key={k} dir="ltr">
               <span>MEGA HOLD</span><span>WAVE &amp; GROOM</span><span>VITAMIN E</span>
               <span>120 ML</span><span>PREMIUM PRO X</span><span>NEW STAR SEVEN</span>
             </span>
@@ -398,6 +426,11 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
                 {label}
               </button>
             ))}
+            {holdFilter && (
+              <button className="tab on" onClick={() => setFilter('all')} title={d.clear}>
+                {d.hold_tab} <span dir="ltr">{holdFilter}/5</span> ×
+              </button>
+            )}
           </div>
 
           {shown.length === 0 ? (
@@ -529,8 +562,8 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
             <p>{d.hold_p}</p>
           </div>
           <div className="hold-grid">
-            {d.holds.map(h => (
-              <button className="hcard" key={h.en} style={{ '--c': h.c }} onClick={() => pickHold(h.filter)}>
+            {holdTiles.map(h => (
+              <button className="hcard" key={h.en} style={{ '--c': h.c }} onClick={() => pickHold(h.pick)}>
                 <div className="en">{h.en}</div>
                 <h3>{h.h}</h3>
                 <div className="lvl" aria-hidden="true">

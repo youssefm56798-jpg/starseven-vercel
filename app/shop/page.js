@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { sql } from '../../lib/db.js';
 import { site } from '../../lib/config.js';
+import { currencyLabel, whole } from '../../lib/money.js';
 import { Dir, Nav, Footer, Crumb } from '../_components/Chrome.js';
 import AddButton from '../_components/AddButton.js';
 
@@ -107,10 +108,8 @@ export default async function ShopPage({ searchParams }) {
                   </Link>
                   <div className="foot">
                     <div className="price">
-                      {Math.round(Number(p.price))} <small>{site.currency}</small>
-                      {p.compare_at != null && (
-                        <span className="was">{Math.round(Number(p.compare_at))}</span>
-                      )}
+                      <bdi className="now">{whole(p.price)} <small>{currencyLabel(lang)}</small></bdi>
+                      {p.compare_at != null && <bdi className="was">{whole(p.compare_at)}</bdi>}
                     </div>
                     <AddButton sku={p.sku} label={ar ? 'ضيف للسلة' : 'Add'} />
                   </div>
