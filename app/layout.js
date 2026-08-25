@@ -34,11 +34,15 @@ export const viewport = {
 };
 
 export default function RootLayout({ children }) {
-  // Arabic is the default. A layout cannot read `?lang=`, so each storefront
-  // page states its own direction on the <Dir> wrapper it renders; that is what
-  // actually flips the page for English visitors.
+  // No `dir` here, deliberately. A layout cannot read `?lang=`, so each
+  // storefront page states its own direction on the <Dir> wrapper it renders.
+  // Asserting dir="rtl" on <html> as well looked harmless but was not: <html>
+  // is an ancestor of everything, so every `[dir="rtl"] ...` rule in the
+  // stylesheets kept matching on English pages — which is how the English hero
+  // lost Anton and fell back to Cairo Black. The wrapper is the only place the
+  // direction is declared.
   return (
-    <html lang="ar" dir="rtl">
+    <html lang="ar">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

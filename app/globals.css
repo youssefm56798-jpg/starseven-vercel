@@ -9,7 +9,12 @@
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:var(--paper);color:var(--ink);font-family:'Cairo',sans-serif;font-size:16px;
   line-height:1.7;-webkit-font-smoothing:antialiased;overflow-x:hidden}
-[dir="rtl"] body *{letter-spacing:0}
+/* Arabic is never letter-spaced. Was `[dir="rtl"] body *`, which only
+   worked while <html> carried the direction; the wrapper carries it now. */
+/* Arabic is never letter-spaced. Was `[dir="rtl"] body *`, which only worked
+   while <html> carried the direction. `body [dir="rtl"] *` keeps the exact
+   same specificity (0,1,1) so nothing else in the cascade shifts. */
+body [dir="rtl"],body [dir="rtl"] *{letter-spacing:0}
 a{color:inherit;text-decoration:none}
 img{max-width:100%;display:block}
 button{font:inherit;cursor:pointer}
