@@ -1,5 +1,6 @@
 import { sql, hasDb } from '../lib/db.js';
 import { site } from '../lib/config.js';
+import { HAIR_TYPES } from '../lib/hairtypes.js';
 
 /**
  * sitemap.xml, generated from the live catalogue and published articles so it
@@ -9,9 +10,23 @@ export default async function sitemap() {
   const base = site.url.replace(/\/$/, '');
   const now = new Date();
 
+  // The hair-type pages are built from lib/hairtypes.js rather than the
+  // database, so they belong with the static entries: they are listed even on
+  // a build with no database, and adding a seventh tile lists itself.
+  const hairTypes = [
+    { url: `${base}/hair-types`, lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
+    ...HAIR_TYPES.map(t => ({
+      url: `${base}/hair-types/${t.slug}`,
+      lastModified: now,
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    })),
+  ];
+
   const staticPages = [
     { url: `${base}/`,        lastModified: now, changeFrequency: 'daily',   priority: 1.0 },
     { url: `${base}/shop`,    lastModified: now, changeFrequency: 'daily',   priority: 0.9 },
+    ...hairTypes,
     { url: `${base}/blog`,    lastModified: now, changeFrequency: 'daily',   priority: 0.7 },
     { url: `${base}/privacy`, lastModified: now, changeFrequency: 'yearly',  priority: 0.3 },
     { url: `${base}/terms`,   lastModified: now, changeFrequency: 'yearly',  priority: 0.3 },

@@ -45,9 +45,35 @@ export function Nav({ lang = 'ar', path = '' }) {
           <img src="/assets/logo-s7.png" alt="New Star Seven" width="120" height="30" />
         </Link>
 
+        {/* Shop carries a submenu because the two formats are the split
+            customers actually shop by. CSS-only: :hover for pointers,
+            :focus-within so it opens from the keyboard too. */}
         <div className="nav-links">
-          <Link href={`/shop${q}`}>{ar ? 'المنتجات' : 'Shop'}</Link>
-          <Link href={`/blog${q}`}>{ar ? 'مقالات' : 'Articles'}</Link>
+          <div className="nav-item has-sub">
+            <Link href={`/shop${q}`} className={path.startsWith('shop') ? 'on' : ''}>
+              {ar ? 'المنتجات' : 'Shop'}
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden="true">
+                <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </Link>
+            <div className="nav-sub">
+              <Link href={`/shop${q}`}>{ar ? 'كل التشكيلة' : 'The full line'}</Link>
+              <Link href={`/shop?kind=wax${ar ? '' : '&lang=en'}`}>{ar ? 'واكس' : 'Wax'}</Link>
+              <Link href={`/shop?kind=gel${ar ? '' : '&lang=en'}`}>{ar ? 'جل' : 'Gel'}</Link>
+            </div>
+          </div>
+
+          <div className="nav-item">
+            <Link href={`/hair-types${q}`} className={path.startsWith('hair-types') ? 'on' : ''}>
+              {ar ? 'نوع شعرك' : 'Hair types'}
+            </Link>
+          </div>
+
+          <div className="nav-item">
+            <Link href={`/blog${q}`} className={path.startsWith('blog') || path.startsWith('article') ? 'on' : ''}>
+              {ar ? 'مقالات' : 'Articles'}
+            </Link>
+          </div>
         </div>
 
         <div className="nav-right">

@@ -6,6 +6,7 @@ import { addToCart, readCart, setQty as writeQty } from '../../lib/cart.js';
 import { cartTotals } from '../../lib/pricing.js';
 import { rankProducts } from '../../lib/hairtypes.js';
 import { currencyLabel, whole, discountPercent } from '../../lib/money.js';
+import { runDir } from '../hair-types/lib.js';
 
 /**
  * The landing page.
@@ -493,7 +494,9 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
                   onClick={() => pickHair(x.slug)}
                   aria-pressed={x.slug === tile.slug}
                 >
-                  <span className="walker" dir="ltr">{ar ? x.walker : x.walkerEn}</span>
+                  <span className="walker" dir={runDir(ar ? x.walker : x.walkerEn)}>
+                    {ar ? x.walker : x.walkerEn}
+                  </span>
                   <span className="medal">
                     <img src={`/${x.icon}`} alt="" loading="lazy" width="76" height="76" />
                   </span>
@@ -508,7 +511,7 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
             <div className="hres-in">
               <div>
                 <div className="k">
-                  {d.hair_k} <i>{copy.name}</i> <i dir="ltr">{ar ? tile.walker : tile.walkerEn}</i>
+                  {d.hair_k} <i>{copy.name}</i> <i dir={runDir(ar ? tile.walker : tile.walkerEn)}>{ar ? tile.walker : tile.walkerEn}</i>
                 </div>
                 <h3>{copy.short}</h3>
                 <p className="prob">{copy.problem}</p>

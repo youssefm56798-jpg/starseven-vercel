@@ -213,8 +213,10 @@ export default async function ProductPage({ params, searchParams }) {
                 <span className="hairnote-txt">
                   <b>{ar ? `الأنسب لشعر ${hair.ar.name}` : `Best for ${hair.en.name}`}</b>
                   <span className="hairnote-sub">{ar ? hair.ar.short : hair.en.short}</span>
-                  <Link href={ar ? '/#hair' : '/?lang=en#hair'}>
-                    {ar ? 'اعرف نوع شعرك ←' : 'Find your hair type →'}
+                  {/* Was '/#hair', a scroll position on another page. There
+                      is a real page for this type now. */}
+                  <Link href={`/hair-types/${hair.slug}${q}`}>
+                    {ar ? `كل حاجة عن الشعر ال${hair.ar.name} ←` : `More on ${hair.en.name.toLowerCase()} hair →`}
                   </Link>
                 </span>
               </div>

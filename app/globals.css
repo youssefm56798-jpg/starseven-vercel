@@ -22,9 +22,31 @@ button{font:inherit;cursor:pointer}
 .s7nav{position:sticky;top:0;z-index:100;background:var(--paper);border-bottom:1.5px solid var(--ink)}
 .s7nav .inner{display:flex;align-items:center;justify-content:space-between;height:66px;gap:16px;flex-wrap:nowrap}
 .s7nav .logo img{height:30px;width:auto}
-.nav-links{display:flex;gap:24px;font-size:14.5px;font-weight:800;white-space:nowrap}
-.nav-links a{color:var(--grey);transition:.2s}
-.nav-links a:hover{color:var(--ink)}
+.nav-links{display:flex;gap:6px;font-size:14.5px;font-weight:800;white-space:nowrap}
+.nav-item{position:relative}
+.nav-links a{color:var(--grey);transition:.2s;display:inline-flex;align-items:center;gap:5px;
+  padding:8px 12px;border-radius:99px}
+.nav-links a:hover{color:var(--ink);background:var(--paper-2)}
+.nav-links a.on{color:var(--ink)}
+.nav-links a.on::after{content:"";position:absolute;bottom:-2px;inset-inline-start:12px;width:18px;height:2.5px;
+  background:var(--red-ui);border-radius:2px}
+.nav-item.has-sub > a svg{width:13px;height:13px;transition:transform .2s}
+.nav-item.has-sub:hover > a svg,.nav-item.has-sub:focus-within > a svg{transform:rotate(180deg)}
+
+/* Submenu. CSS-only so it works before hydration and from the keyboard.
+   `inset-inline-start` rather than `left` — in Arabic the menu hangs the
+   other way. The gap between trigger and panel is bridged by padding-top on
+   the panel, so the pointer never crosses dead space and closes it. */
+.nav-sub{position:absolute;top:100%;inset-inline-start:0;padding-top:10px;min-width:190px;
+  opacity:0;visibility:hidden;transform:translateY(-6px);transition:opacity .18s,transform .18s,visibility .18s;
+  z-index:120}
+.nav-item.has-sub:hover .nav-sub,.nav-item.has-sub:focus-within .nav-sub{
+  opacity:1;visibility:visible;transform:none}
+.nav-sub > a{display:block;background:var(--paper);color:var(--grey);padding:11px 16px;border-radius:0}
+.nav-sub > a:first-child{border:1.5px solid var(--ink);border-bottom:0;border-radius:12px 12px 0 0}
+.nav-sub > a:not(:first-child){border-inline:1.5px solid var(--ink);border-bottom:1.5px solid var(--ink)}
+.nav-sub > a:last-child{border-radius:0 0 12px 12px}
+.nav-sub > a:hover{background:var(--ink);color:var(--paper)}
 .nav-right{display:flex;align-items:center;gap:12px}
 .lang-btn{border:1.5px solid var(--ink);color:var(--ink);padding:5px 14px;border-radius:99px;
   font-weight:800;font-size:12.5px;transition:.2s}
@@ -228,7 +250,19 @@ button{font:inherit;cursor:pointer}
   .co-side{position:static}
 }
 @media(max-width:720px){
-  .nav-links{display:none}
+  /* The links used to be display:none here, which left phones with no way to
+     reach Shop or Articles at all. They become a scrollable strip under the
+     logo row instead — no burger, no JavaScript. */
+  .s7nav .inner{flex-wrap:wrap;height:auto;padding-top:12px;padding-bottom:0;row-gap:10px}
+  .s7nav .logo{order:1}
+  .nav-right{order:2;margin-inline-start:auto}
+  .nav-links{order:3;flex-basis:100%;gap:2px;overflow-x:auto;padding-bottom:8px;
+    scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .nav-links::-webkit-scrollbar{display:none}
+  .nav-links a{padding:7px 12px;font-size:13.5px}
+  /* A hover submenu is meaningless on touch; the strip shows the top level and
+     the shop page has its own filter chips. */
+  .nav-item.has-sub > a svg,.nav-sub{display:none}
   .s7foot .fgrid{grid-template-columns:1fr}
 }
 @media(max-width:560px){

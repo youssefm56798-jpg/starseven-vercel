@@ -1,5 +1,7 @@
+import { Suspense } from 'react';
 import './globals.css';
 import { site } from '../lib/config.js';
+import PageWipe from './_components/PageWipe.js';
 
 /**
  * Root layout for the storefront.
@@ -45,7 +47,12 @@ export default function RootLayout({ children }) {
           rel="stylesheet"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        {/* The wipe reads the current route, and useSearchParams needs a
+            Suspense boundary when it is used this high in the tree. */}
+        <Suspense fallback={null}><PageWipe /></Suspense>
+        {children}
+      </body>
     </html>
   );
 }

@@ -1,0 +1,314 @@
+/* NEW STAR SEVEN — /hair-types index and the six type pages.
+   Scoped under .ht so nothing here can reach the shop, the PDP or the landing.
+
+   Every directional value is a logical property (inline-start/end, margin-inline,
+   text-align:start). The site is Arabic-first and flips to LTR on ?lang=en, so a
+   single `left` or `right` in this file would be wrong in one of the two. */
+
+.ht { padding-bottom: 80px; }
+.ht section { margin-top: 46px; }
+.ht h2 {
+  font-size: clamp(21px, 3vw, 30px);
+  font-weight: 900;
+  line-height: 1.2;
+  margin-bottom: 14px;
+}
+.ht h3 { font-size: 17px; font-weight: 900; line-height: 1.35; }
+.ht p { font-size: 15px; }
+.ht .ht-lead { color: var(--grey); font-weight: 600; max-width: 70ch; margin-bottom: 18px; }
+
+/* ------------------------------------------------------- why type matters */
+
+.ht-why { margin-top: 30px; }
+.ht-why > p { color: var(--grey); font-weight: 600; max-width: 72ch; margin-bottom: 14px; }
+
+.ht-honest {
+  background: var(--paper-2);
+  border-inline-start: 4px solid var(--red-ui);
+  border-radius: 0 16px 16px 0;
+  padding: 22px 24px;
+  margin-top: 22px;
+  max-width: 76ch;
+}
+/* The rounded corners have to follow the text direction too. */
+[dir="rtl"] .ht-honest { border-radius: 16px 0 0 16px; }
+.ht-honest h3 { margin-bottom: 10px; }
+.ht-honest p { color: var(--grey); font-weight: 600; }
+.ht-honest p + p { margin-top: 12px; }
+
+/* --------------------------------------------------------- the six cards */
+
+.ht-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+
+.ht-card {
+  --c: var(--red);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: color-mix(in srgb, var(--c) 6%, #fff);
+  border: 1.5px solid color-mix(in srgb, var(--c) 30%, transparent);
+  border-radius: 18px;
+  padding: 22px;
+  transition: border-color .2s, box-shadow .2s;
+}
+.ht-card:hover {
+  border-color: var(--c);
+  box-shadow: 0 18px 38px -20px color-mix(in srgb, var(--c) 60%, transparent);
+}
+
+.ht-card-head { display: flex; gap: 14px; align-items: flex-start; }
+.ht-card-head h3 { margin-bottom: 6px; }
+.ht-card-head h3 a:hover { color: var(--c); }
+
+.ht-medal {
+  flex: none;
+  width: 76px; height: 76px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  background: color-mix(in srgb, var(--c) 12%, #FFFDF8);
+  border: 1.5px solid color-mix(in srgb, var(--c) 40%, transparent);
+  overflow: hidden;
+}
+.ht-medal img { width: 100%; height: 100%; object-fit: contain; padding: 16%; }
+.ht-medal-lg { width: 118px; height: 118px; }
+
+.ht-range {
+  display: inline-block;
+  font-size: 10.5px; font-weight: 900; letter-spacing: .05em;
+  background: color-mix(in srgb, var(--c) 16%, transparent);
+  color: color-mix(in srgb, var(--c) 78%, var(--ink));
+  padding: 3px 10px; border-radius: 99px;
+}
+.ht-short { color: var(--grey); font-weight: 700; font-size: 13px; margin-top: 7px; }
+
+.ht-prob { color: var(--grey); font-weight: 600; }
+.ht-ans {
+  border-inline-start: 3px solid var(--c);
+  padding-inline-start: 14px;
+  font-weight: 700;
+}
+.ht-ans-big { font-size: 16px; padding-block: 2px; }
+
+.ht-avoid {
+  display: flex; gap: 9px; align-items: flex-start;
+  color: var(--grey); font-weight: 600; font-size: 13.5px;
+}
+.ht-avoid svg { width: 16px; height: 16px; flex: none; margin-top: 3px; stroke: var(--c); }
+
+.ht-gapnote {
+  background: color-mix(in srgb, var(--yellow) 13%, transparent);
+  border: 1px dashed color-mix(in srgb, var(--yellow) 62%, transparent);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 13px; font-weight: 600; color: #6B5A16;
+}
+
+.ht-empty {
+  border: 1px dashed var(--line);
+  border-radius: 12px; padding: 14px;
+  color: var(--grey); font-weight: 700; font-size: 13.5px;
+}
+
+.ht-pick { margin-top: auto; display: flex; flex-direction: column; gap: 10px; }
+.ht-pick-main {
+  display: flex; gap: 14px; align-items: center;
+  background: #fff;
+  border: 1.5px solid color-mix(in srgb, var(--c) 26%, transparent);
+  border-radius: 14px; padding: 12px 14px;
+  transition: border-color .2s;
+}
+.ht-pick-main:hover { border-color: var(--c); }
+.ht-pick-main img { flex: none; width: 74px; height: 74px; object-fit: contain; }
+.ht-pick-main > span { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ht-pick-lbl {
+  font-size: 10px; font-weight: 900; letter-spacing: .1em;
+  color: color-mix(in srgb, var(--c) 80%, var(--ink));
+}
+.ht-pick-name { font-size: 14.5px; font-weight: 900; line-height: 1.3; }
+.ht-pick-price { font-size: 18px; font-weight: 900; }
+.ht-pick-price small { font-size: 11px; color: var(--grey); font-weight: 700; }
+
+.ht-alts { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; font-size: 12.5px; }
+.ht-alts > span { color: var(--grey); font-weight: 700; }
+.ht-alts a {
+  border: 1px solid var(--line); border-radius: 99px;
+  padding: 4px 11px; font-weight: 800;
+  transition: border-color .2s, color .2s;
+}
+.ht-alts a:hover { border-color: var(--c); color: var(--c); }
+
+.ht-more { font-weight: 900; font-size: 13.5px; color: var(--red-ui); }
+.ht-more:hover { text-decoration: underline; }
+
+/* ------------------------------------------------------------- formats */
+
+.ht-tablewrap { overflow-x: auto; border: 1.5px solid var(--line); border-radius: 16px; }
+.ht-table { width: 100%; min-width: 700px; border-collapse: collapse; font-size: 13.5px; }
+.ht-table th, .ht-table td { text-align: start; padding: 12px 14px; vertical-align: top; }
+.ht-table thead th {
+  background: var(--paper-2);
+  font-weight: 900; font-size: 12px; letter-spacing: .04em;
+  white-space: nowrap;
+}
+.ht-table tbody tr + tr th, .ht-table tbody tr + tr td { border-top: 1px solid var(--line); }
+.ht-table tbody th { font-weight: 900; white-space: nowrap; }
+.ht-table td { color: var(--grey); font-weight: 600; }
+.ht-yes { color: var(--green); font-weight: 900; white-space: nowrap; }
+.ht-no { color: var(--grey); font-weight: 800; }
+
+/* ---------------------------------------------------------------- gaps */
+
+.ht-gaplist { list-style: none; display: grid; gap: 10px; max-width: 76ch; margin-bottom: 22px; }
+.ht-gaplist li {
+  position: relative;
+  padding-inline-start: 26px;
+  color: var(--grey); font-weight: 600; font-size: 14.5px;
+}
+.ht-gaplist li::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  top: .62em;
+  width: 9px; height: 9px; border-radius: 50%;
+  background: var(--red-ui);
+}
+
+/* ------------------------------------------------------- one type page */
+
+.ht-one { --c: var(--red); }
+
+.ht-hero {
+  display: flex; gap: 22px; align-items: center;
+  padding: 8px 0 4px;
+}
+.ht-hero h1 {
+  font-size: clamp(28px, 4.6vw, 46px);
+  font-weight: 900; line-height: 1.1;
+  margin-top: 8px;
+}
+.ht-hero .ht-short { font-size: 15px; }
+
+.ht-cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, .6fr);
+  gap: 34px;
+  align-items: start;
+  margin-top: 26px;
+}
+.ht-main .ht-sec { margin-top: 30px; }
+.ht-main .ht-sec:first-child { margin-top: 0; }
+.ht-main .ht-sec h2 { font-size: 20px; margin-bottom: 10px; }
+.ht-main .ht-sec > p { color: var(--grey); font-weight: 600; max-width: 68ch; }
+.ht-main .ht-ans-big { color: var(--ink); }
+
+.ht-faq details { border-bottom: 1px solid var(--line); }
+.ht-faq summary {
+  cursor: pointer; list-style: none;
+  padding: 14px 0; font-weight: 900; font-size: 14.5px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.ht-faq summary::-webkit-details-marker { display: none; }
+.ht-faq summary::after {
+  content: "+";
+  font-weight: 900; color: var(--c); flex: none;
+}
+.ht-faq details[open] summary::after { content: "−"; }
+.ht-faq details > div { padding-bottom: 14px; color: var(--grey); font-weight: 600; font-size: 14px; }
+
+/* the recommendation rail */
+
+.ht-rail { position: sticky; top: 84px; display: flex; flex-direction: column; gap: 14px; }
+.ht-rec {
+  background:
+    radial-gradient(ellipse 80% 90% at 50% 0%, color-mix(in srgb, var(--c) 34%, transparent), transparent 70%),
+    #12100B;
+  border: 1px solid var(--line-invert);
+  color: var(--paper);
+  border-radius: 20px;
+  padding: 22px;
+  text-align: center;
+}
+.ht-rec-badge {
+  display: inline-block;
+  background: var(--c); color: #fff;
+  font-size: 10.5px; font-weight: 900; letter-spacing: .1em;
+  padding: 4px 12px; border-radius: 99px; margin-bottom: 14px;
+}
+.ht-rec img { height: 168px; width: auto; margin: 0 auto 12px; object-fit: contain;
+  filter: drop-shadow(0 16px 20px rgba(0,0,0,.5)); }
+.ht-rec h3 { color: var(--paper); }
+.ht-rec h3 a:hover { color: var(--c); }
+.ht-rec-sub { color: #8B867B; font-size: 12.5px; font-weight: 600; margin-top: 4px; }
+.ht-rec-price {
+  display: block;
+  font-size: 27px; font-weight: 900; margin: 12px 0 4px;
+}
+.ht-rec-price small { font-size: 12px; color: #8B867B; font-weight: 700; }
+
+.ht-rec-spec {
+  display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;
+  margin: 12px 0 16px;
+}
+.ht-rec-spec span {
+  display: flex; flex-direction: column; gap: 2px;
+  background: rgba(255,253,248,.06);
+  border: 1px solid var(--line-invert);
+  border-radius: 12px;
+  padding: 8px 14px;
+  font-size: 11px; font-weight: 700; color: #8B867B;
+}
+.ht-rec-spec b { font-size: 15px; font-weight: 900; color: var(--paper); }
+
+.ht-rec .btn-full { justify-content: center; }
+.ht-rec-link { display: inline-block; margin-top: 12px; font-size: 13px; font-weight: 800; color: #B9B4A8; }
+.ht-rec-link:hover { color: var(--paper); }
+
+.ht-rec-alts {
+  margin-top: 18px; padding-top: 16px;
+  border-top: 1px solid var(--line-invert);
+  display: flex; flex-direction: column; gap: 8px;
+}
+.ht-rec-alts > span { font-size: 11.5px; font-weight: 800; color: #8B867B; }
+.ht-rec-alts a {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  border: 1px solid var(--line-invert); border-radius: 12px;
+  padding: 9px 12px;
+  font-size: 12.5px; text-align: start;
+  transition: border-color .2s;
+}
+.ht-rec-alts a:hover { border-color: var(--c); }
+.ht-rec-alts a b { font-weight: 800; }
+.ht-rec-alts a bdi { font-weight: 900; white-space: nowrap; }
+.ht-rec-alts a small { font-size: 10.5px; color: #8B867B; font-weight: 700; }
+
+.ht-rec-empty { text-align: start; }
+.ht-rec-empty p { color: #B9B4A8; font-weight: 600; font-size: 14px; margin-bottom: 16px; }
+
+.ht-back { display: flex; flex-direction: column; gap: 8px; font-size: 13.5px; font-weight: 800; }
+.ht-back a { color: var(--grey); }
+.ht-back a:hover { color: var(--red-ui); }
+
+/* ---------------------------------------------------------- responsive */
+
+@media (max-width: 1020px) {
+  .ht-grid { grid-template-columns: 1fr; }
+  .ht-cols { grid-template-columns: 1fr; gap: 26px; }
+  .ht-rail { position: static; order: -1; }
+  .ht-rec img { height: 150px; }
+}
+
+@media (max-width: 620px) {
+  .ht { padding-bottom: 56px; }
+  .ht section { margin-top: 34px; }
+  .ht-card { padding: 18px; }
+  .ht-honest { padding: 18px; }
+  .ht-hero { flex-direction: column; align-items: flex-start; gap: 14px; }
+  .ht-medal-lg { width: 92px; height: 92px; }
+  .ht-pick-main { flex-direction: column; align-items: flex-start; }
+  .ht-pick-main img { width: 88px; height: 88px; }
+}
+
+@media (max-width: 380px) {
+  .ht-card-head { flex-direction: column; }
+  .ht-medal { width: 64px; height: 64px; }
+}

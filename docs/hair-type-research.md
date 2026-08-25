@@ -83,7 +83,7 @@ touching code.
 
 | Tile | Internal (Walker) | The real problem | Primary SKU | Why |
 |---|---|---|---|---|
-| **ناعم مفرود** / Straight | 1A–1C | Style drops; scalp oils fastest; won't hold a shape | **Premium Gel — Blue / Green** (`S7-GEL-BLU`, `S7-GEL-GRN`) | Gel is the only format with hold high enough to hold a shape on hair that resists holding one. Wet-look finish suits a side part. Zero added weight. |
+| **ناعم مفرود** / Straight | 1A–1C | Style drops; scalp oils fastest; won't hold a shape | **any Premium Gel** — Golden ships first (`S7-GEL-YEL`), then Green and Blue | Gel is the only format with hold high enough to hold a shape on hair that resists holding one. Wet-look finish suits a side part. Zero added weight. **See the note below: which gel leads is currently an accident, not a decision.** |
 | **متموج** / Wavy | 2A–2C | Resists styling; frizz; wants the wave *kept*, not flattened | **Premium Wax Pro X** (`S7-WAX-RED`) | Medium-high hold with low/natural shine — defines the S-pattern instead of gluing it flat. The Wave & Groom formula is literally built for this tile; it is also the hero SKU, so the highest-traffic tile points at it. |
 | **كيرلي** / Curly | 3A–3C | Dryness + needing definition at the same time | **Premium Wax Argan** (`S7-WAX-BLU`) | Argan softens coarse curls and adds shine without weight, and curly hair skews low-porosity so light beats heavy. Explicitly **not** a clay — clay is too drying here. |
 | **خشن / أفرو** / Coily | 4A–4C | Driest and most fragile; needs moisture sealed in | **Premium Wax Shea Butter** (`S7-WAX-PUR`) | Shea seals moisture on coarse, coily strands and is the standard recommendation for thick/coarse/curly. Soft touch, no drying agents. |
@@ -92,6 +92,25 @@ touching code.
 
 Secondary matches are also stored in the CSV so each tile can show a first and
 second choice (e.g. coily → Shea first, Argan second).
+
+### Open: which gel leads the Straight tile
+
+All three gels carry `straight` at position 0 of their `hair_types` CSV and all
+three are `hold_level = 3`, so `rankProducts` cannot separate them on merit and
+falls through to the `sort` column. Golden wins by being listed first, and that
+is what the finder, the product pages and `/hair-types` all display today.
+
+An earlier draft of this table named Blue and Green. Neither the data nor the
+copy justifies that: the three gels differ only in finish and scent (Golden =
+wet look, Green = clean scent, Blue = all-day), and the rationale above — the
+wet-look finish — actually argues for Golden.
+
+This is a merchandising decision, not a technical one: it chooses which SKU the
+largest hair-type segment is pushed toward. Until the owner picks, the ordering
+is decided by whatever `sort` happens to be, which means reordering products in
+the admin would silently change the recommendation. To fix it, put the chosen
+SKU's `hair_types` as `straight` and demote the other two to a later position
+in their own CSV.
 
 ### Gaps this exposes in the current range
 
