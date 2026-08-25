@@ -48,18 +48,33 @@ Copy `.env.example` and fill it in. Every variable must exist in **Production**,
 `SESSION_SECRET` and `ADMIN_SETUP_KEY` are secrets: never commit them, and never
 reuse the values between Preview and Production.
 
-## 4. Create the tables and load the seed data
+## 4. The tables create themselves
 
-Run this from your machine, once, with `DATABASE_URL` pointing at the Neon
-database:
+There is no manual migration step. `package.json` defines
+
+```
+"vercel-build": "node scripts/setup-db.mjs && next build"
+```
+
+so every deployment applies `db/schema.sql` then `db/seed.sql` before building.
+Both are safe to re-run:
+
+- the schema is all `CREATE ... IF NOT EXISTS` plus `ALTER ... ADD COLUMN IF NOT
+  EXISTS`, so new columns reach existing databases automatically;
+- the seed is `INSERT ... ON CONFLICT DO NOTHING`. It is **initial data only**.
+  Once a product exists, the shop owner owns it — a deploy will never revert a
+  price, stock level or description edited in the admin.
+- the one exception is the long-form product copy at the end of `seed.sql`,
+  which fills `long_*`, `howto_*` and `highlights_*` **only where they are still
+  empty**. To restore the original wording for a product, blank the field in the
+  admin and redeploy.
+
+If the database is unreachable, the build fails rather than shipping a site
+that cannot read its own catalogue. You can still run it by hand:
 
 ```bash
 npm run db:setup
 ```
-
-It applies `db/schema.sql` then `db/seed.sql`. Both are written to be safe to
-re-run — the schema uses `IF NOT EXISTS`, and every seed row upserts on its
-natural key, so running it twice will not duplicate products or articles.
 
 ## 5. Create the admin login
 

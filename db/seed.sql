@@ -3,6 +3,12 @@
 --  Run AFTER schema.sql:   npm run db:setup
 --  Safe to re-run: every statement upserts on its natural key.
 --
+--  These are INSERT ... ON CONFLICT DO NOTHING, not upserts. The seed is
+--  initial data only: once a row exists, the shop owner owns it. An upsert
+--  here would silently revert prices, stock and wording edited in the admin
+--  every time the project is deployed. New long-form copy still lands, via
+--  the guarded UPDATE at the end of this file, but only into empty fields.
+--
 --  Ported from the MySQL seeds of the PHP build:
 --    ON DUPLICATE KEY UPDATE -> ON CONFLICT (key) DO UPDATE SET ... EXCLUDED
 --    SET NAMES utf8mb4       -> dropped (Postgres is UTF-8 already)
@@ -65,23 +71,7 @@ VALUES
    'طول اليوم · 250 مل','All day · 250ml',
    'كلاسيك','Classic',
    40.00, NULL, '#2A6DE8', 'assets/gel-blue.webp', 250, 3, 'straight', 200, TRUE, 8)
-ON CONFLICT (sku) DO UPDATE SET
-  slug       = EXCLUDED.slug,
-  kind       = EXCLUDED.kind,
-  name_ar    = EXCLUDED.name_ar,
-  name_en    = EXCLUDED.name_en,
-  sub_ar     = EXCLUDED.sub_ar,
-  sub_en     = EXCLUDED.sub_en,
-  chip_ar    = EXCLUDED.chip_ar,
-  chip_en    = EXCLUDED.chip_en,
-  price      = EXCLUDED.price,
-  compare_at = EXCLUDED.compare_at,
-  color      = EXCLUDED.color,
-  image      = EXCLUDED.image,
-  size_ml    = EXCLUDED.size_ml,
-  hold_level = EXCLUDED.hold_level,
-  hair_types = EXCLUDED.hair_types,
-  sort       = EXCLUDED.sort;
+ON CONFLICT (sku) DO NOTHING;
 
 -- A first live offer so the newsletter section has something to show.
 -- offers.code is unique only where it is non-empty (partial index), so the
@@ -94,15 +84,7 @@ VALUES
    'اشترك في النشرة واستلم كود خصم 10% على أول أوردر — والعروض توصلك قبل ما تنزل للناس.',
    'Subscribe and get 10% off your first order - plus every sale before it goes public.',
    'STAR10','percent',10,80, now(), now() + interval '365 days', TRUE)
-ON CONFLICT (code) WHERE code <> '' DO UPDATE SET
-  title_ar       = EXCLUDED.title_ar,
-  title_en       = EXCLUDED.title_en,
-  body_ar        = EXCLUDED.body_ar,
-  body_en        = EXCLUDED.body_en,
-  discount_type  = EXCLUDED.discount_type,
-  discount_value = EXCLUDED.discount_value,
-  min_total      = EXCLUDED.min_total,
-  active         = EXCLUDED.active;
+ON CONFLICT (code) WHERE code <> '' DO NOTHING;
 
 -- Starter articles. group_key pairs the Arabic and English versions of the
 -- same piece so each page can advertise the other with hreflang.
@@ -199,19 +181,7 @@ A level-3 gel is plenty for the office. A full day of heat and movement wants a 
  '', '',
  'thick', 'S7-WAX-YEL', 'published', '2026-08-18 10:00:00'
 )
-ON CONFLICT (slug) DO UPDATE SET
-  lang         = EXCLUDED.lang,
-  group_key    = EXCLUDED.group_key,
-  title        = EXCLUDED.title,
-  excerpt      = EXCLUDED.excerpt,
-  body         = EXCLUDED.body,
-  cover        = EXCLUDED.cover,
-  cover_alt    = EXCLUDED.cover_alt,
-  hair_type    = EXCLUDED.hair_type,
-  sku          = EXCLUDED.sku,
-  status       = EXCLUDED.status,
-  published_at = EXCLUDED.published_at,
-  updated_at   = now();
+ON CONFLICT (slug) DO NOTHING;
 
 
 -- ---------------------------------------------------------------------------
