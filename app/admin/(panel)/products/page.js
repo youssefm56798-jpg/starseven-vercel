@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { csrfOk, csrfToken } from '../../../../lib/auth.js';
 import { sql } from '../../../../lib/db.js';
 import { bySlug, HAIR_TYPES } from '../../../../lib/hairtypes.js';
+import { normaliseLines, normaliseLongText } from '../../../../lib/product-copy.js';
 import { requireAdmin } from '../../_lib/guard.js';
 import { Flash, imgSrc } from '../../_lib/ui.js';
 
@@ -49,10 +50,23 @@ async function saveProduct(formData) {
   // Order is the priority, so keep exactly what was typed minus the nonsense.
   const hair = cleanHairTypes(formData.get('hair_types')).join(',');
 
+  // Product-page copy. The columns are NOT NULL DEFAULT '', so every field is
+  // normalised to a string — an untouched textarea saves an empty string, never
+  // null. See lib/product-copy.js for the trimming and the length caps.
+  const longAr = normaliseLongText(formData.get('long_ar'));
+  const longEn = normaliseLongText(formData.get('long_en'));
+  const howtoAr = normaliseLines(formData.get('howto_ar'));
+  const howtoEn = normaliseLines(formData.get('howto_en'));
+  const highlightsAr = normaliseLines(formData.get('highlights_ar'));
+  const highlightsEn = normaliseLines(formData.get('highlights_en'));
+
   await sql`
     UPDATE products
        SET price = ${price}, compare_at = ${compareAt}, stock = ${stock},
-           hold_level = ${hold}, hair_types = ${hair}, sort = ${sort}
+           hold_level = ${hold}, hair_types = ${hair}, sort = ${sort},
+           long_ar = ${longAr}, long_en = ${longEn},
+           howto_ar = ${howtoAr}, howto_en = ${howtoEn},
+           highlights_ar = ${highlightsAr}, highlights_en = ${highlightsEn}
      WHERE id = ${id}`;
 
   redirect('/admin/products?m=product_saved');
@@ -154,6 +168,61 @@ export default async function ProductsPage({ searchParams }) {
                           ))}
                         </div>
                       )}
+                    </div>
+
+                    <h3 style={{ fontSize: '14px', fontWeight: 900, margin: '22px 0 12px' }}>
+                      Product page copy
+                    </h3>
+
+                    <div className="grid2">
+                      <div className="field">
+                        <label htmlFor={`long-ar-${p.id}`}>Full description (Arabic)</label>
+                        <textarea id={`long-ar-${p.id}`} name="long_ar" rows={5} dir="rtl"
+                                  defaultValue={p.long_ar || ''} />
+                      </div>
+                      <div className="field">
+                        <label htmlFor={`long-en-${p.id}`}>Full description (English)</label>
+                        <textarea id={`long-en-${p.id}`} name="long_en" rows={5}
+                                  defaultValue={p.long_en || ''} />
+                      </div>
+                    </div>
+                    <div className="muted" style={{ margin: '-8px 0 15px', fontSize: '12.5px' }}>
+                      Leave a blank line between paragraphs. <code>**bold**</code>, <code>## heading</code>{' '}
+                      and <code>- bullet</code> work. Up to 4000 characters each.
+                    </div>
+
+                    <div className="grid2">
+                      <div className="field">
+                        <label htmlFor={`howto-ar-${p.id}`}>How to use (Arabic)</label>
+                        <textarea id={`howto-ar-${p.id}`} name="howto_ar" rows={3} dir="rtl"
+                                  defaultValue={p.howto_ar || ''} />
+                      </div>
+                      <div className="field">
+                        <label htmlFor={`howto-en-${p.id}`}>How to use (English)</label>
+                        <textarea id={`howto-en-${p.id}`} name="howto_en" rows={3}
+                                  defaultValue={p.howto_en || ''} />
+                      </div>
+                    </div>
+                    <div className="muted" style={{ margin: '-8px 0 15px', fontSize: '12.5px' }}>
+                      One step per line — the page numbers them, so do not type numbers or dashes.
+                      Up to 1200 characters each.
+                    </div>
+
+                    <div className="grid2">
+                      <div className="field">
+                        <label htmlFor={`highlights-ar-${p.id}`}>Highlights (Arabic)</label>
+                        <textarea id={`highlights-ar-${p.id}`} name="highlights_ar" rows={3} dir="rtl"
+                                  defaultValue={p.highlights_ar || ''} />
+                      </div>
+                      <div className="field">
+                        <label htmlFor={`highlights-en-${p.id}`}>Highlights (English)</label>
+                        <textarea id={`highlights-en-${p.id}`} name="highlights_en" rows={3}
+                                  defaultValue={p.highlights_en || ''} />
+                      </div>
+                    </div>
+                    <div className="muted" style={{ margin: '-8px 0 18px', fontSize: '12.5px' }}>
+                      One point per line — the page draws the tick, so do not type bullets.
+                      Up to 1200 characters each.
                     </div>
 
                     <button className="btn" type="submit">Save</button>

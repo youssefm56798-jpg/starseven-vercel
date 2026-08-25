@@ -111,14 +111,29 @@ for (const [file, min] of [['db/schema.sql', 10], ['db/seed.sql', 3]]) {
   });
 }
 
-test('db/seed.sql is three upserts: products, offers, articles', {
+test('db/seed.sql is three upserts plus the product-copy update', {
   skip: existsSync(`${ROOT}db/seed.sql`) ? false : 'db/seed.sql not present',
 }, () => {
   const out = splitStatements(readFileSync(`${ROOT}db/seed.sql`, 'utf8'));
-  assert.equal(out.length, 3);
+  assert.equal(out.length, 4);
   assert.ok(out[0].includes('INSERT INTO products') && out[0].includes('ON CONFLICT (sku)'));
   assert.ok(out[1].includes('INSERT INTO offers') && out[1].includes('ON CONFLICT (code)'));
   assert.ok(out[2].includes('INSERT INTO articles') && out[2].includes('ON CONFLICT (slug)'));
+
+  // The copy update must stay non-destructive: every column it touches is
+  // guarded so a re-run cannot overwrite wording edited in the admin.
+  const copy = out[3];
+  assert.ok(copy.includes('UPDATE products p SET'));
+  for (const col of ['long_ar', 'long_en', 'howto_ar', 'howto_en', 'highlights_ar', 'highlights_en']) {
+    assert.ok(
+      copy.includes(`${col}       = CASE WHEN p.${col}`) ||
+      copy.includes(`${col}      = CASE WHEN p.${col}`) ||
+      copy.includes(`${col} = CASE WHEN p.${col}`),
+      `${col} is not guarded by a CASE WHEN ... = '' check`
+    );
+  }
+  // Eight products, each contributing one tuple to the VALUES list.
+  assert.equal((copy.match(/'S7-[A-Z-]+'/g) || []).length, 8);
 });
 
 test('db/seed.sql keeps the Arabic article bodies whole', {

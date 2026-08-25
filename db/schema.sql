@@ -41,9 +41,26 @@ CREATE TABLE IF NOT EXISTS products (
   stock        INT NOT NULL DEFAULT 100,
   active       BOOLEAN NOT NULL DEFAULT TRUE,
   sort         SMALLINT NOT NULL DEFAULT 0,
+  -- Long-form page content, all optional. Each is plain text rendered through
+  -- lib/markdown.js; howto_* and highlights_* are one item per line.
+  long_ar        TEXT NOT NULL DEFAULT '',
+  long_en        TEXT NOT NULL DEFAULT '',
+  howto_ar       TEXT NOT NULL DEFAULT '',
+  howto_en       TEXT NOT NULL DEFAULT '',
+  highlights_ar  TEXT NOT NULL DEFAULT '',
+  highlights_en  TEXT NOT NULL DEFAULT '',
   created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS idx_products_live ON products (active, sort);
+
+-- Added after the first release, so bring existing databases up to date too.
+-- Every statement here is idempotent; db:setup re-runs the whole file safely.
+ALTER TABLE products ADD COLUMN IF NOT EXISTS long_ar       TEXT NOT NULL DEFAULT '';
+ALTER TABLE products ADD COLUMN IF NOT EXISTS long_en       TEXT NOT NULL DEFAULT '';
+ALTER TABLE products ADD COLUMN IF NOT EXISTS howto_ar      TEXT NOT NULL DEFAULT '';
+ALTER TABLE products ADD COLUMN IF NOT EXISTS howto_en      TEXT NOT NULL DEFAULT '';
+ALTER TABLE products ADD COLUMN IF NOT EXISTS highlights_ar TEXT NOT NULL DEFAULT '';
+ALTER TABLE products ADD COLUMN IF NOT EXISTS highlights_en TEXT NOT NULL DEFAULT '';
 
 CREATE TABLE IF NOT EXISTS subscribers (
   id           INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

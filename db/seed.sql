@@ -212,3 +212,209 @@ ON CONFLICT (slug) DO UPDATE SET
   status       = EXCLUDED.status,
   published_at = EXCLUDED.published_at,
   updated_at   = now();
+
+
+-- ---------------------------------------------------------------------------
+--  Product page copy (added after the first release)
+--
+--  Filled in only where the column is still empty, so re-running this file
+--  never overwrites wording the owner has edited in the admin. To restore the
+--  original text for a product, blank the field in the admin and re-run.
+--
+--  howto_* and highlights_* are one item per line. long_* goes through
+--  lib/markdown.js, so **bold** works and nothing else is interpreted.
+-- ---------------------------------------------------------------------------
+UPDATE products p SET
+  long_ar       = CASE WHEN p.long_ar       = '' THEN v.long_ar       ELSE p.long_ar       END,
+  long_en       = CASE WHEN p.long_en       = '' THEN v.long_en       ELSE p.long_en       END,
+  howto_ar      = CASE WHEN p.howto_ar      = '' THEN v.howto_ar      ELSE p.howto_ar      END,
+  howto_en      = CASE WHEN p.howto_en      = '' THEN v.howto_en      ELSE p.howto_en      END,
+  highlights_ar = CASE WHEN p.highlights_ar = '' THEN v.highlights_ar ELSE p.highlights_ar END,
+  highlights_en = CASE WHEN p.highlights_en = '' THEN v.highlights_en ELSE p.highlights_en END
+FROM (VALUES
+    ('S7-WAX-RED',
+     'برو إكس هو نجم التشكيلة. تركيبة **ويف آند جروم** اتعملت للشعر المتموج والتخين — النوع اللي بيقاوم التصفيف وبتتفلت موجته بسرعة. الواكس هنا بيعرّف الموجة بدل ما يفردها.
+
+التثبيت ميجا هولد، ٥ من ٥ — أعلى درجة في التشكيلة كلها. اللمعة طبيعية مش زجاجية، والملمس بيفضل مرن، فتقدر تعدّل الاستايل بإيدك في نص اليوم من غير ما تغسل شعرك.',
+     'Pro X is the star of the line. The **Wave & Groom** formula was built for wavy and thick hair — the type that fights styling and loses its shape by midday. This wax defines the wave instead of flattening it.
+
+Hold is mega, 5 out of 5 — the strongest in the range. The finish is natural rather than glassy, and the texture stays pliable, so you can reshape with your hands mid-day without washing.',
+     'خد كمية بحجم حبة الفول على طرف صوابعك
+افركها بين إيديك لحد ما تدفى وتبقى شفافة
+وزّعها على شعر ناشف أو نص ناشف من الجذور للأطراف
+ظبّط الاستايل بإيدك أو بمشط واسع السنون',
+     'Take a pea-sized amount on your fingertips
+Rub it between your palms until it warms and turns clear
+Work it through dry or towel-dried hair, roots to ends
+Shape with your hands or a wide-tooth comb',
+     'تثبيت ميجا هولد — ٥ من ٥
+تركيبة ويف آند جروم للشعر المتموج والتخين
+لمعة طبيعية، مش زجاجية
+برطمان ١٢٠ مل',
+     'Mega hold — 5 out of 5
+Wave & Groom formula for wavy and thick hair
+Natural finish, not glassy
+120ml jar'),
+    ('S7-WAX-PUR',
+     'الشعر الكيرلي والمجعّد بيفقد رطوبته أسرع من أي نوع تاني، وأغلب أنواع الواكس بتزوّد الجفاف. عشان كده التركيبة دي مبنية على **زبدة الشيا** — ملمس أنعم وتثبيت أقل قسوة.
+
+التثبيت ٤ من ٥: قوي كفاية إن الكيرل يفضل مظبوط، ومرن كفاية إنك تعدّله من غير ما تكسر شكل الخصلة.',
+     'Curly and coily hair loses moisture faster than any other type, and most waxes make that worse. This one is built around **shea butter** instead — a softer texture and a gentler hold.
+
+Hold is 4 out of 5: firm enough to keep the curl in shape, flexible enough to reshape without breaking the pattern.',
+     'خد كمية صغيرة وافركها بين إيديك لحد ما تدفى
+حطها على شعر نص ناشف عشان توزّع أحسن
+اشتغل من الأطراف ناحية الجذور عشان متثقّلش الكيرل
+عرّف الخصل بصوابعك',
+     'Take a small amount and warm it between your palms
+Apply to towel-dried hair — it spreads more evenly
+Work from the ends up so you do not weigh the curl down
+Define the strands with your fingers',
+     'زبدة الشيا في التركيبة
+تثبيت ٤ من ٥ — مرن مش ناشف
+للشعر الكيرلي والمجعّد والتخين
+برطمان ١٢٠ مل',
+     'Shea butter in the formula
+Hold 4 out of 5 — flexible, not crunchy
+For curly, coily and thick hair
+120ml jar'),
+    ('S7-WAX-BLU',
+     '**زيت الأرجان** موجود في العناية بالشعر من زمان، وهو أساس التركيبة دي. الفكرة إنك تظبط الاستايل وتدّي الشعر ملمس أنعم في نفس الخطوة، بدل ما تعمل الاتنين بمنتجين.
+
+التثبيت ٤ من ٥ — مناسب للشعر المجعّد والمتموج اللي محتاج تحكم من غير ما يبقى ناشف أو متكتّل.',
+     '**Argan oil** has been in hair care for a long time, and it is the base of this formula. The idea is to shape the style and leave a softer feel in the same step, instead of using two products for the two jobs.
+
+Hold is 4 out of 5 — right for curly and wavy hair that needs control without ending up dry or clumped.',
+     'كمية بحجم حبة الفول بين إيديك
+وزّعها على شعر نص ناشف
+اشتغل من الأطراف ناحية الجذور
+ظبّط بصوابعك أو بمشط واسع السنون',
+     'A pea-sized amount between your palms
+Spread it through towel-dried hair
+Work from the ends up
+Finish with your fingers or a wide-tooth comb',
+     'زيت أرجان في التركيبة
+تثبيت ٤ من ٥
+للشعر المجعّد والمتموج
+برطمان ١٢٠ مل',
+     'Argan oil in the formula
+Hold 4 out of 5
+For curly and wavy hair
+120ml jar'),
+    ('S7-WAX-BLK',
+     'الشعر الناعم والمفرود مشكلته مع أغلب المنتجات إن أي لمعة بتخليه يبان أقل كثافة وبيوصل لشكل الدهون بدري. بلاك تركيبة **مطفية تماماً** — صفر لمعة.
+
+التثبيت ٥ من ٥ من غير وزن زيادة، فالشعر بيفضل واقف ومظبوط طول اليوم بدل ما يقع بعد ساعتين.',
+     'Fine, straight hair has one problem with most products: any shine makes it read thinner and look greasy sooner. Black is a fully **matte** formula — no shine at all.
+
+Hold is 5 out of 5 with no added weight, so the style stays up through the day instead of dropping after two hours.',
+     'كمية صغيرة جداً — الشعر الناعم مش محتاج كتير
+افركها كويس بين إيديك لحد ما تختفي
+حطها على شعر ناشف تماماً عشان أعلى تثبيت
+ارفع من الجذور وإنت بتوزّع',
+     'A very small amount — fine hair needs less than you think
+Rub it in well until it disappears on your palms
+Apply to fully dry hair for maximum hold
+Lift from the roots as you work it through',
+     'ملمس مطفي — صفر لمعة
+تثبيت ٥ من ٥ من غير وزن
+للشعر الناعم والمفرود
+برطمان ١٢٠ مل',
+     'Matte finish — no shine
+Hold 5 out of 5 with no added weight
+For fine and straight hair
+120ml jar'),
+    ('S7-WAX-YEL',
+     'برو هو الواكس اليومي في التشكيلة: تثبيت ٥ من ٥ بتركيبة سهلة التوزيع تنفع لأنواع شعر كتير — تخين، مفرود، أو متموج.
+
+لو بتدوّر على برطمان واحد تمد إيدك عليه كل يوم الصبح من غير ما تفكر، ده هو.',
+     'Pro is the everyday wax in the line: 5-out-of-5 hold in a formula that spreads easily and suits a range of hair — thick, straight or wavy.
+
+If you want one jar you reach for every morning without thinking about it, this is the one.',
+     'خد كمية بحجم حبة الفول
+افركها بين إيديك لحد ما تدفى
+وزّعها على شعر ناشف أو نص ناشف
+ظبّط الاستايل بإيدك',
+     'Take a pea-sized amount
+Rub it between your palms until it warms
+Work it through dry or towel-dried hair
+Shape with your hands',
+     'تثبيت ٥ من ٥
+سهل التوزيع
+يناسب الشعر التخين والمفرود والمتموج
+برطمان ١٢٠ مل',
+     'Hold 5 out of 5
+Spreads easily
+Suits thick, straight and wavy hair
+120ml jar'),
+    ('S7-GEL-YEL',
+     'الجل ده للـ**ويت لوك** — اللمعة المبلولة اللي بتدي الشعر شكل مرتب وكثافة أعلى. أنسب حاجة للشعر الناعم المفرود اللي بيقع بسرعة ومحتاج حاجة تمسكه من غير وزن.
+
+التثبيت ٣ من ٥: تحكم يومي بيتغسل بسهولة. عبوة ٢٥٠ مل.',
+     'This gel is for the **wet look** — the polished shine that makes hair read tidier and fuller. It suits fine, straight hair that drops quickly and needs hold without weight.
+
+Hold is 3 out of 5: daily control that washes out easily. 250ml bottle.',
+     'حط كمية على شعر نص مبلول — الجل بيتوزّع أحسن كده
+مشّط للخلف أو للجنب حسب الاستايل اللي عايزه
+سيبه ينشف لوحده عشان تاخد أعلى لمعة
+لو عايز شكل أنعم، مشّطه تاني وهو نص ناشف',
+     'Apply to damp hair — gel spreads best that way
+Comb it back or to the side, whichever style you want
+Let it dry on its own for the most shine
+For a softer finish, comb it again while it is half dry',
+     'ويت لوك — لمعة عالية
+تثبيت ٣ من ٥
+للشعر الناعم المفرود
+عبوة ٢٥٠ مل',
+     'Wet look — high shine
+Hold 3 out of 5
+For fine, straight hair
+250ml bottle'),
+    ('S7-GEL-GRN',
+     'نفس تثبيت الجل بريميوم، ٣ من ٥، بريحة نضيفة خفيفة بتفضل معاك من غير ما تزاحم البارفان بتاعك.
+
+للشعر الناعم المفرود: تحكم يومي للشغل أو الجامعة، وبيتغسل بسهولة في آخر اليوم. عبوة ٢٥٠ مل.',
+     'The same Premium Gel hold, 3 out of 5, with a light clean scent that stays with you without fighting your fragrance.
+
+For fine, straight hair: daily control for work or campus, and it washes out easily at the end of the day. 250ml bottle.',
+     'حط كمية على شعر نص مبلول — الجل بيتوزّع أحسن كده
+مشّط للخلف أو للجنب حسب الاستايل اللي عايزه
+سيبه ينشف لوحده عشان تاخد أعلى لمعة
+لو عايز شكل أنعم، مشّطه تاني وهو نص ناشف',
+     'Apply to damp hair — gel spreads best that way
+Comb it back or to the side, whichever style you want
+Let it dry on its own for the most shine
+For a softer finish, comb it again while it is half dry',
+     'ريحة نضيفة خفيفة
+تثبيت ٣ من ٥
+للشعر الناعم المفرود
+عبوة ٢٥٠ مل',
+     'Light, clean scent
+Hold 3 out of 5
+For fine, straight hair
+250ml bottle'),
+    ('S7-GEL-BLU',
+     'الأزرق هو الكلاسيك: تثبيت ٣ من ٥ بيفضل ثابت من الصبح لآخر اليوم من غير ما يسيب قشرة بيضا.
+
+للشعر الناعم المفرود اللي محتاج حاجة يعتمد عليها كل يوم، من غير تجربة ولا مفاجآت. عبوة ٢٥٠ مل.',
+     'Blue is the classic: 3-out-of-5 hold that stays put from morning to the end of the day without leaving white flakes.
+
+For fine, straight hair that needs something dependable every day — no experimenting, no surprises. 250ml bottle.',
+     'حط كمية على شعر نص مبلول — الجل بيتوزّع أحسن كده
+مشّط للخلف أو للجنب حسب الاستايل اللي عايزه
+سيبه ينشف لوحده عشان تاخد أعلى لمعة
+لو عايز شكل أنعم، مشّطه تاني وهو نص ناشف',
+     'Apply to damp hair — gel spreads best that way
+Comb it back or to the side, whichever style you want
+Let it dry on its own for the most shine
+For a softer finish, comb it again while it is half dry',
+     'تثبيت ثابت طول اليوم
+من غير قشرة بيضا
+للشعر الناعم المفرود
+عبوة ٢٥٠ مل',
+     'Holds all day
+No white flakes
+For fine, straight hair
+250ml bottle')
+) AS v(sku, long_ar, long_en, howto_ar, howto_en, highlights_ar, highlights_en)
+WHERE p.sku = v.sku;
