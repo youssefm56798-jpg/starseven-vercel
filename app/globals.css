@@ -7,7 +7,7 @@
   --line:rgba(18,16,11,.13); --line-invert:rgba(255,253,248,.16);
 }
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--paper);color:var(--ink);font-family:'Cairo',sans-serif;font-size:16px;
+body{background:var(--paper);color:var(--ink);font-family:var(--font-cairo),sans-serif;font-size:16px;
   line-height:1.7;-webkit-font-smoothing:antialiased;overflow-x:hidden}
 /* Arabic is never letter-spaced. Was `[dir="rtl"] body *`, which only
    worked while <html> carried the direction; the wrapper carries it now. */
@@ -18,8 +18,8 @@ body [dir="rtl"],body [dir="rtl"] *{letter-spacing:0}
 a{color:inherit;text-decoration:none}
 img{max-width:100%;display:block}
 button{font:inherit;cursor:pointer}
-.en{font-family:'Anton','Cairo',sans-serif;font-weight:400}
-[dir="rtl"] .en{font-family:'Cairo',sans-serif;font-weight:900}
+.en{font-family:var(--font-anton),var(--font-cairo),sans-serif;font-weight:400}
+[dir="rtl"] .en{font-family:var(--font-cairo),sans-serif;font-weight:900}
 .wrap{max-width:1180px;margin:0 auto;padding:0 22px}
 ::selection{background:var(--red-ui);color:#fff}
 
@@ -69,7 +69,7 @@ button{font:inherit;cursor:pointer}
 
 .s7page{display:flow-root;min-height:100vh}
 .cart-link{position:relative}
-.cart-badge{position:absolute;top:-5px;inset-inline-end:-5px;min-width:19px;height:19px;padding:0 5px;border-radius:99px;background:var(--red-ui);color:#fff;font-size:11px;font-weight:900;line-height:19px;text-align:center;font-family:"Cairo",sans-serif;box-shadow:0 2px 6px rgba(215,41,29,.45)}
+.cart-badge{position:absolute;top:-5px;inset-inline-end:-5px;min-width:19px;height:19px;padding:0 5px;border-radius:99px;background:var(--red-ui);color:#fff;font-size:11px;font-weight:900;line-height:19px;text-align:center;font-family:var(--font-cairo),sans-serif;box-shadow:0 2px 6px rgba(215,41,29,.45)}
 .nav-order{background:var(--ink);color:var(--paper);font-weight:900;font-size:13.5px;padding:10px 18px;
   border-radius:99px;transition:.2s;white-space:nowrap;flex:none}
 .nav-order:hover{background:var(--red-ui)}
@@ -115,11 +115,11 @@ button{font:inherit;cursor:pointer}
    runs; inline they merge into one bidi run inside the Arabic page and the
    margin lands on the wrong side, printing "EGP55". As flex items each keeps
    its own box and the gap is real. */
-.price{font-family:'Anton','Cairo',sans-serif;font-size:22px;display:flex;align-items:baseline;gap:8px}
-.price small{font-size:12px;color:var(--grey);font-family:'Cairo',sans-serif;font-weight:700}
-.price .was{font-size:13px;color:var(--grey);text-decoration:line-through;font-family:'Cairo',sans-serif}
+.price{font-family:var(--font-anton),var(--font-cairo),sans-serif;font-size:22px;display:flex;align-items:baseline;gap:8px}
+.price small{font-size:12px;color:var(--grey);font-family:var(--font-cairo),sans-serif;font-weight:700}
+.price .was{font-size:13px;color:var(--grey);text-decoration:line-through;font-family:var(--font-cairo),sans-serif}
 .price .save{font-size:11px;font-weight:900;color:#33600F;background:#EEF6E8;border:1.2px solid var(--green);
-  border-radius:99px;padding:1px 7px;font-family:'Cairo',sans-serif;white-space:nowrap}
+  border-radius:99px;padding:1px 7px;font-family:var(--font-cairo),sans-serif;white-space:nowrap}
 .card .buy{background:var(--ink);color:var(--paper);border:none;font-weight:900;font-size:12.5px;
   padding:9px 16px;border-radius:99px;transition:.2s}
 .card .buy:hover{background:var(--c);color:#fff}
@@ -145,15 +145,15 @@ button{font:inherit;cursor:pointer}
 .pdp-info h1{font-size:clamp(26px,4vw,40px);font-weight:900;line-height:1.15;margin-bottom:8px}
 .pdp-info .sub{color:var(--grey);font-weight:600;margin-bottom:18px}
 .pdp-price{display:flex;align-items:baseline;gap:10px;margin-bottom:22px}
-.pdp-price .p{font-family:'Anton','Cairo',sans-serif;font-size:38px;line-height:1}
-.pdp-price .p small{font-size:16px;color:var(--grey);font-family:'Cairo',sans-serif;font-weight:700}
+.pdp-price .p{font-family:var(--font-anton),var(--font-cairo),sans-serif;font-size:38px;line-height:1}
+.pdp-price .p small{font-size:16px;color:var(--grey);font-family:var(--font-cairo),sans-serif;font-weight:700}
 .pdp-price .was{font-size:20px;color:var(--grey);text-decoration:line-through}
 .pdp-price .save{background:#EEF6E8;color:#33600F;border:1.5px solid var(--green);font-weight:900;
   font-size:12px;padding:3px 11px;border-radius:99px}
 .pdp-buy{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:26px}
 .spec{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:24px}
 .spec div{border:1.5px solid var(--line);border-radius:12px;padding:14px 12px;text-align:center}
-.spec b{display:block;font-family:'Anton','Cairo',sans-serif;font-size:19px;color:var(--red-ui)}
+.spec b{display:block;font-family:var(--font-anton),var(--font-cairo),sans-serif;font-size:19px;color:var(--red-ui)}
 .spec span{font-size:11.5px;color:var(--grey);font-weight:700}
 .pdp-note{background:var(--paper-2);border-radius:14px;padding:18px 20px;font-size:14px;font-weight:600;color:var(--ink)}
 .pdp-note b{color:var(--red-ui)}
@@ -226,7 +226,7 @@ button{font:inherit;cursor:pointer}
 .coupon input::placeholder{color:#8B867B}
 .coupon button{background:var(--red-ui);color:#fff;border:none;font-weight:900;font-size:13px;padding:0 18px;border-radius:99px}
 .co-empty{text-align:center;padding:70px 20px;color:var(--grey)}
-.co-empty .big{font-size:52px;color:var(--line);font-family:'Anton',sans-serif}
+.co-empty .big{font-size:52px;color:var(--line);font-family:var(--font-anton),sans-serif}
 .formmsg{background:#FDECEA;border:1.5px solid var(--red-ui);color:#8E1409;font-weight:800;font-size:13.5px;
   padding:11px 15px;border-radius:12px;margin-bottom:16px}
 .co-done{max-width:520px;margin:40px auto;text-align:center;border:2px solid var(--ink);border-radius:22px;
@@ -370,7 +370,7 @@ button{font:inherit;cursor:pointer}
   font-size:15px;font-weight:600}
 .pdp-steps li::before{content:counter(s7step,decimal);flex:none;margin-block-start:-2px;
   width:30px;height:30px;border-radius:50%;background:var(--red-ui);color:#fff;
-  display:grid;place-items:center;font-family:'Cairo',sans-serif;font-size:13.5px;font-weight:900;
+  display:grid;place-items:center;font-family:var(--font-cairo),sans-serif;font-size:13.5px;font-weight:900;
   line-height:1;direction:ltr;unicode-bidi:isolate}
 
 /* highlights — a masked tick takes its colour from --green and, unlike a
@@ -438,7 +438,7 @@ button{font:inherit;cursor:pointer}
 /* 404 and the error boundary. Both replace a whole page, so they carry their
    own vertical rhythm rather than relying on a layout that may not have run. */
 .nf{max-width:640px;margin-inline:auto;padding:90px 0 120px;text-align:center}
-.nf-code{font-family:'Anton','Cairo',sans-serif;font-size:clamp(80px,18vw,160px);line-height:1;
+.nf-code{font-family:var(--font-anton),var(--font-cairo),sans-serif;font-size:clamp(80px,18vw,160px);line-height:1;
   color:var(--paper-2);letter-spacing:.02em;margin-bottom:-14px;user-select:none}
 .nf h1{font-size:clamp(26px,4.5vw,38px);font-weight:900;margin-bottom:14px}
 .nf p{color:var(--grey);font-weight:600;font-size:15.5px;margin-bottom:10px}

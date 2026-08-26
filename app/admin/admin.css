@@ -19,7 +19,7 @@
 
   background: var(--paper2);
   color: var(--ink);
-  font-family: 'Cairo', sans-serif;
+  font-family: var(--font-cairo), sans-serif;
   font-size: 15px;
   line-height: 1.6;
   min-height: 100vh;
@@ -157,7 +157,7 @@
 
 .s7login {
   min-height: 100vh; display: grid; place-items: center; background: #12100B;
-  color: #FFFDF8; font-family: 'Cairo', sans-serif; padding: 24px;
+  color: #FFFDF8; font-family: var(--font-cairo), sans-serif; padding: 24px;
 }
 .s7login .box { width: 100%; max-width: 390px; }
 .s7login .logo { font-size: 19px; font-weight: 900; margin-bottom: 26px; text-align: center; }
