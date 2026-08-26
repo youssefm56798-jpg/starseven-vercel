@@ -111,11 +111,11 @@ for (const [file, min] of [['db/schema.sql', 10], ['db/seed.sql', 3]]) {
   });
 }
 
-test('db/seed.sql is three upserts, the copy update and the article wave', {
+test('db/seed.sql is three upserts, the copy update, the article wave and the link fix', {
   skip: existsSync(`${ROOT}db/seed.sql`) ? false : 'db/seed.sql not present',
 }, () => {
   const out = splitStatements(readFileSync(`${ROOT}db/seed.sql`, 'utf8'));
-  assert.equal(out.length, 5);
+  assert.equal(out.length, 6);
   assert.ok(out[0].includes('INSERT INTO products') && out[0].includes('ON CONFLICT (sku)'));
   assert.ok(out[1].includes('INSERT INTO offers') && out[1].includes('ON CONFLICT (code)'));
   // Both article statements must target the (slug, lang) index. The old
@@ -156,6 +156,20 @@ test('db/seed.sql is three upserts, the copy update and the article wave', {
     const hits = articles.match(new RegExp(`'${slug}', '(ar|en)'`, 'g')) || [];
     assert.equal(hits.length, 2, `${slug} should exist in both languages`);
   }
+
+  // The link fix. The rows it edits were seeded ON CONFLICT DO NOTHING, so
+  // they can only be changed by a statement like this one — and it has to stay
+  // guarded, or it rewrites a body an admin has edited on every deploy.
+  const linkfix = out[5];
+  assert.ok(linkfix.includes('UPDATE articles'));
+  assert.ok(linkfix.includes("replace(body, '](/#hair)'"),
+    'the link fix must target the old home-page anchor');
+  assert.ok(linkfix.includes("WHERE body LIKE '%](/#hair)%'"),
+    'the link fix must be a no-op once it has run');
+  // English articles live under /en, so the English body cannot be given the
+  // Arabic hub's URL.
+  assert.ok(linkfix.includes("'](/en/hair-types)'") && linkfix.includes("'](/hair-types)'"),
+    'the replacement must be language-correct');
 });
 
 test('db/seed.sql keeps the Arabic article bodies whole', {

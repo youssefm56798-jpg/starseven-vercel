@@ -1331,3 +1331,27 @@ ON CONFLICT (slug, lang) DO UPDATE SET
   sku          = EXCLUDED.sku,
   status       = EXCLUDED.status,
   updated_at   = now();
+
+-- ---------------------------------------------------------------------------
+--  Point the oldest two articles at the hub, not at a scroll position
+--
+--  'choose-hair-product-by-hair-type' is the short version of what /hair-types
+--  says at length, and it closed by linking to '/#hair' — an anchor on the home
+--  page. So the one article most likely to rank for "which product for my hair
+--  type" sent its readers to a widget rather than to the page written to answer
+--  that exact question, and the two competed for the same query with no link
+--  between them to say which one Google should prefer.
+--
+--  Language-correct on purpose: English articles live under /en, so an English
+--  body linking '/hair-types' would drop an English reader onto the Arabic hub.
+--
+--  This is an UPDATE rather than an edit to the INSERT above it because that
+--  block is ON CONFLICT DO NOTHING — the rows already exist in production, so
+--  changing the literal there would change nothing. Guarded by LIKE so it is a
+--  no-op on every deploy after the first, and so it cannot touch a body an
+--  admin has since rewritten.
+-- ---------------------------------------------------------------------------
+UPDATE articles
+   SET body = replace(body, '](/#hair)', CASE WHEN lang = 'en' THEN '](/en/hair-types)' ELSE '](/hair-types)' END),
+       updated_at = now()
+ WHERE body LIKE '%](/#hair)%';
