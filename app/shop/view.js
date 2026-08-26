@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { localePath, localeUrl } from '../../lib/urls.js';
-import { KINDS, shopPath, shopCopy } from './lib.js';
+import { CATEGORIES, KINDS, shopPath, shopCopy, kindColumn } from './lib.js';
 import { sql } from '../../lib/db.js';
 import { site } from '../../lib/config.js';
 import { currencyLabel, whole } from '../../lib/money.js';
@@ -23,10 +23,19 @@ export default async function ShopView({ kind, lang }) {
   const c = shopCopy(kind, lang);
   const active = KINDS.includes(kind) ? kind : 'all';
 
-  // Two complete queries rather than a concatenated WHERE clause.
+  // Two complete queries rather than a concatenated WHERE clause. The category
+  // filters on its `kind` column, which is not the same string as its URL slug
+  // — /shop/cream-gel selects kind = 'cream'.
   const products = active === 'all'
     ? await sql`SELECT * FROM products WHERE active = true ORDER BY sort, id`
-    : await sql`SELECT * FROM products WHERE active = true AND kind = ${active} ORDER BY sort, id`;
+    : await sql`SELECT * FROM products WHERE active = true AND kind = ${kindColumn(active)} ORDER BY sort, id`;
+
+  // A category with nothing priced yet would be an empty page inviting a
+  // crawl. Only categories that actually hold something get a chip.
+  const stocked = await sql`
+    SELECT kind, count(*)::int AS n FROM products WHERE active = true GROUP BY kind`;
+  const have = new Set(stocked.map(r => r.kind));
+  const shown = CATEGORIES.filter(c => have.has(c.kind) || c.slug === active);
 
   const itemList = {
     '@context': 'https://schema.org',
@@ -85,13 +94,14 @@ export default async function ShopView({ kind, lang }) {
 
       <div className="wrap">
         <div className="chips">
-          {[['all', ar ? 'الكل' : 'All'], ['wax', ar ? 'واكس' : 'Wax'], ['gel', ar ? 'جل' : 'Gel']].map(
-            ([k, label]) => (
-              <Link key={k} href={L(shopPath(k))} className={active === k ? 'on' : ''}>
-                {label}
-              </Link>
-            )
-          )}
+          <Link href={L('/shop')} className={active === 'all' ? 'on' : ''}>
+            {ar ? 'الكل' : 'All'}
+          </Link>
+          {shown.map(c => (
+            <Link key={c.slug} href={L(shopPath(c.slug))} className={active === c.slug ? 'on' : ''}>
+              {ar ? c.crumb.ar : c.crumb.en}
+            </Link>
+          ))}
         </div>
 
         {products.length === 0 ? (
@@ -131,8 +141,11 @@ export default async function ShopView({ kind, lang }) {
           <Link href={L('/hair-types')}>
             {ar ? 'مش عارف تختار؟ اعرف نوع شعرك ←' : 'Not sure? Find your hair type →'}
           </Link>
-          {active !== 'wax' && <Link href={L('/shop/wax')}>{ar ? 'واكس الشعر ←' : 'Hair wax →'}</Link>}
-          {active !== 'gel' && <Link href={L('/shop/gel')}>{ar ? 'جل الشعر ←' : 'Hair gel →'}</Link>}
+          {shown.filter(c => c.slug !== active).slice(0, 3).map(c => (
+            <Link key={c.slug} href={L(shopPath(c.slug))}>
+              {ar ? `${c.h1.ar} ←` : `${c.h1.en} →`}
+            </Link>
+          ))}
           {active !== 'all' && <Link href={L('/shop')}>{ar ? 'كل التشكيلة ←' : 'The full line →'}</Link>}
         </nav>
       </div>

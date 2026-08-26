@@ -111,11 +111,11 @@ for (const [file, min] of [['db/schema.sql', 10], ['db/seed.sql', 3]]) {
   });
 }
 
-test('db/seed.sql is three upserts, the copy update, the article wave and the link fix', {
+test('db/seed.sql is the seeds, the copy update, the article wave, the link fix and the catalogue', {
   skip: existsSync(`${ROOT}db/seed.sql`) ? false : 'db/seed.sql not present',
 }, () => {
   const out = splitStatements(readFileSync(`${ROOT}db/seed.sql`, 'utf8'));
-  assert.equal(out.length, 6);
+  assert.equal(out.length, 7);
   assert.ok(out[0].includes('INSERT INTO products') && out[0].includes('ON CONFLICT (sku)'));
   assert.ok(out[1].includes('INSERT INTO offers') && out[1].includes('ON CONFLICT (code)'));
   // Both article statements must target the (slug, lang) index. The old
@@ -170,6 +170,21 @@ test('db/seed.sql is three upserts, the copy update, the article wave and the li
   // Arabic hub's URL.
   assert.ok(linkfix.includes("'](/en/hair-types)'") && linkfix.includes("'](/hair-types)'"),
     'the replacement must be language-correct');
+
+  // The rest of the range. It must stay DO NOTHING and it must stay inactive:
+  // these rows carry price 0 because the manufacturer feed has no prices, and
+  // a zero-price product that reached the storefront would be free.
+  const catalogue = out[6];
+  assert.ok(catalogue.includes('INSERT INTO products'));
+  assert.ok(catalogue.includes('ON CONFLICT (sku) DO NOTHING'),
+    'the catalogue seed must never overwrite a row the client has priced');
+  assert.ok(!/,\s*TRUE,\s*\d+\)/.test(catalogue),
+    'no catalogue row may seed active = TRUE while its price is 0');
+  // Matched as a VALUES field, not as the bare word — the comment above the
+  // statement explains the FALSE and would otherwise be counted as a row.
+  assert.equal((catalogue.match(/,\s*FALSE,/g) || []).length,
+    (catalogue.match(/'S7-/g) || []).length,
+    'every catalogue row must be seeded inactive');
 });
 
 test('db/seed.sql keeps the Arabic article bodies whole', {

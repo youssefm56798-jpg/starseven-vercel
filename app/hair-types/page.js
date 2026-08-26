@@ -47,10 +47,15 @@ export default async function HairTypesPage({ searchParams }) {
 
   // The formats table only claims what the live catalogue holds, so it can
   // never advertise a range we stopped stocking.
+  const no = ar ? 'لأ' : 'No';
+  const yes = (n, unitAr, unitEn) =>
+    n > 0 ? (ar ? `${n} ${unitAr}` : `${n} ${unitEn}`) : no;
+
   const have = {
-    gel: counts.gel > 0 ? (ar ? `${counts.gel} جل` : `${counts.gel} gels`) : ar ? 'لأ' : 'No',
-    wax: counts.wax > 0 ? (ar ? `${counts.wax} واكس` : `${counts.wax} waxes`) : ar ? 'لأ' : 'No',
-    none: ar ? 'لأ' : 'No',
+    gel: yes(counts.gel, 'جل', counts.gel === 1 ? 'gel' : 'gels'),
+    wax: yes(counts.wax, 'واكس', counts.wax === 1 ? 'wax' : 'waxes'),
+    cream: yes(counts.cream, 'كريم جل', counts.cream === 1 ? 'cream gel' : 'cream gels'),
+    none: no,
   };
 
   const formats = ar
@@ -58,28 +63,34 @@ export default async function HairTypesPage({ searchParams }) {
         ['جل', 'عالي جداً', 'مبلولة', 'استايل محدد، فرق جانبي، وتعريف الكيرلة', 'اللي عايز شكل طبيعي — بينشف ومش هتعدله بعد كده', have.gel],
         ['واكس', 'متوسط لعالي', 'طبيعية', 'الشعر القصير والمتوسط، التكستشر، وتعريف الشعر الخشن', 'الشعر الطويل — بيقع تحت وزنه', have.wax],
         ['طين (clay)', 'عالي', 'مطفي', 'الشعر الخفيف اللي عايز حجم', 'الكيرلي والأفرو — بينشّفهم', have.none],
-        ['كريم', 'خفيف', 'قليلة', 'أسهل شكل في التعامل، بيشتغل مع كل الأنواع', 'اللي محتاج تثبيت حقيقي', have.none],
+        ['كريم', 'خفيف', 'قليلة', 'أسهل شكل في التعامل، بيشتغل مع كل الأنواع', 'اللي محتاج تثبيت حقيقي', have.cream],
         ['بوميد', 'متوسط لعالي', 'عالية', 'الشعر المتوسط والكثيف، السليك باك والفرق الجانبي', 'الشعر الخفيف — تقيل عليه', have.none],
       ]
     : [
         ['Gel', 'Very high', 'Wet', 'Structured styles, sharp side parts, curl definition', 'Anyone wanting a natural look — it sets hard, no restyling', have.gel],
         ['Wax', 'Medium–high', 'Natural', 'Short to medium hair, texture, defining coarse hair', 'Long hair — it sags under its own weight', have.wax],
         ['Clay', 'High', 'Matte', 'Fine or thin hair that needs volume', 'Very curly or coily hair — too drying', have.none],
-        ['Cream', 'Light', 'Low', 'The most forgiving format, works across every type', 'Anyone needing real structure', have.none],
+        ['Cream', 'Light', 'Low', 'The most forgiving format, works across every type', 'Anyone needing real structure', have.cream],
         ['Pomade', 'Medium–high', 'High', 'Medium to thick hair, slick-backs and side parts', 'Thin or fine hair — too heavy', have.none],
       ];
 
-  const gaps = ar
-    ? [
-        'مفيش طين (clay) ولا معجون مطفي. ده أوضح نقص: الشعر الخفيف اللي عايز حجم أنسب حاجة ليه طين، وإحنا بنرشحله الواكس الأسود المطفي كأقرب حل موجود — مش منتج متعمل للحالة دي مخصوص.',
-        'مفيش كريم. الكريم أخف شكل وأسهله، وهو أنسب بداية لصاحب الشعر الكيرلي أو الأفرو اللي شايف الواكس تقيل عليه.',
-        'مفيش ليڤ-إن ولا منتج بيتحط قبل التصفيف للشعر الأفرو.',
-      ]
-    : [
-        'No clay and no matte paste. That is the clearest gap: fine hair that needs volume is best served by a clay, and we point it at Black Matte wax as the closest thing that exists here — not as a product built for the job.',
-        'No cream. Cream is the lightest and most forgiving format, and the better starting point for curly or coily hair that finds wax too much.',
-        'No leave-in or pre-styler for coily hair.',
-      ];
+  // Generated from the live catalogue, not typed. The cream line was true when
+  // the range was five waxes and three gels; it stopped being true the moment
+  // a cream gel was stocked, and a claim that quietly rots is worse than no
+  // claim at all.
+  const gaps = [
+    ar
+      ? 'مفيش طين (clay) ولا معجون مطفي. ده أوضح نقص: الشعر الخفيف اللي عايز حجم أنسب حاجة ليه طين، وإحنا بنرشحله أقرب حل موجود عندنا — مش منتج متعمل للحالة دي مخصوص.'
+      : 'No clay and no matte paste. That is the clearest gap: fine hair that needs volume is best served by a clay, and we point it at the closest thing that exists here — not at a product built for the job.',
+    counts.cream === 0
+      ? (ar
+        ? 'مفيش كريم. الكريم أخف شكل وأسهله، وهو أنسب بداية لصاحب الشعر الكيرلي أو الأفرو اللي شايف الواكس تقيل عليه.'
+        : 'No cream. Cream is the lightest and most forgiving format, and the better starting point for curly or coily hair that finds wax too much.')
+      : null,
+    ar
+      ? 'مفيش ليڤ-إن ولا منتج بيتحط قبل التصفيف للشعر الأفرو.'
+      : 'No leave-in or pre-styler for coily hair.',
+  ].filter(Boolean);
 
   return (
     <Dir lang={lang}>

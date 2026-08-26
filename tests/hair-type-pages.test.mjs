@@ -112,15 +112,27 @@ test('clamp survives nullish input', () => {
 
 /* ------------------------------------------------------- format counts */
 
+const ZERO = { wax: 0, gel: 0, cream: 0, gelwax: 0, total: 0 };
+
 test('formatCounts counts each kind', () => {
-  const rows = [{ kind: 'wax' }, { kind: 'wax' }, { kind: 'gel' }];
-  assert.deepEqual(formatCounts(rows), { wax: 2, gel: 1, total: 3 });
+  const rows = [{ kind: 'wax' }, { kind: 'wax' }, { kind: 'gel' },
+                { kind: 'cream' }, { kind: 'gelwax' }, { kind: 'cologne' }];
+  assert.deepEqual(formatCounts(rows),
+    { wax: 2, gel: 1, cream: 1, gelwax: 1, total: 6 });
 });
 
 test('formatCounts on an empty or missing catalogue is all zeros', () => {
-  assert.deepEqual(formatCounts([]), { wax: 0, gel: 0, total: 0 });
-  assert.deepEqual(formatCounts(null), { wax: 0, gel: 0, total: 0 });
-  assert.deepEqual(formatCounts(undefined), { wax: 0, gel: 0, total: 0 });
+  assert.deepEqual(formatCounts([]), ZERO);
+  assert.deepEqual(formatCounts(null), ZERO);
+  assert.deepEqual(formatCounts(undefined), ZERO);
+});
+
+test('cream is counted, because the page claims we do not make one', () => {
+  // The "no cream" line on /hair-types is generated from this number. If cream
+  // stopped being counted the claim would silently go back to hard-coded and
+  // would be false the day a cream gel is priced.
+  assert.equal(formatCounts([{ kind: 'cream' }]).cream, 1);
+  assert.equal(formatCounts([{ kind: 'wax' }]).cream, 0);
 });
 
 /* ---------------------------------------------------------- range gaps */

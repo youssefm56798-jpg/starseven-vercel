@@ -1,6 +1,7 @@
 import { sql, hasDb } from '../lib/db.js';
 import { HAIR_TYPES } from '../lib/hairtypes.js';
 import { localeUrl } from '../lib/urls.js';
+import { CATEGORIES } from './shop/lib.js';
 
 /**
  * sitemap.xml, generated from the live catalogue and published articles so it
@@ -74,10 +75,6 @@ export default async function sitemap() {
   const staticPaths = [
     ['/', { lastModified: now, changeFrequency: 'daily', priority: 1.0 }],
     ['/shop', { lastModified: now, changeFrequency: 'daily', priority: 0.9 }],
-    // The two category pages carry the head terms — "hair wax", "hair gel" —
-    // that /shop cannot rank for while it is titled after the whole line.
-    ['/shop/wax', { lastModified: now, changeFrequency: 'daily', priority: 0.9 }],
-    ['/shop/gel', { lastModified: now, changeFrequency: 'daily', priority: 0.9 }],
     ['/hair-types', { lastModified: now, changeFrequency: 'monthly', priority: 0.8 }],
     ['/brand', { lastModified: now, changeFrequency: 'monthly', priority: 0.6 }],
     // Built from lib/hairtypes.js rather than the database, so they are listed
@@ -94,13 +91,25 @@ export default async function sitemap() {
   if (!hasDb()) return base;   // let a build without a database still succeed
 
   try {
-    const products = await sql`SELECT slug, created_at FROM products WHERE active = true`;
+    const products = await sql`SELECT slug, kind, created_at FROM products WHERE active = true`;
+
+    // Category pages carry the head terms — "hair wax", "hair gel" — that
+    // /shop cannot rank for while it is titled after the whole line. Only the
+    // ones that actually hold a live product are listed: the rest 404 until
+    // the client prices them, and a sitemap must never point at a 404.
+    const stocked = new Set(products.map(p => p.kind));
+    const categories = CATEGORIES
+      .filter(c => stocked.has(c.kind))
+      .flatMap(c => bilingual(`/shop/${c.slug}`, {
+        lastModified: now, changeFrequency: 'daily', priority: 0.9,
+      }));
     const articles = await sql`
       SELECT slug, lang, COALESCE(published_at, updated_at) AS m
         FROM articles WHERE status = 'published'`;
 
     return [
       ...base,
+      ...categories,
       ...products.flatMap(p => bilingual(`/product/${p.slug}`, {
         lastModified: new Date(p.created_at),
         changeFrequency: 'weekly',

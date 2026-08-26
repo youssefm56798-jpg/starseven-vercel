@@ -63,7 +63,14 @@ export function clamp(text, max = 160) {
 export function formatCounts(rows) {
   const list = Array.isArray(rows) ? rows : [];
   const of = k => list.filter(p => String(p.kind) === k).length;
-  return { wax: of('wax'), gel: of('gel'), total: list.length };
+  // cream and gelwax are counted because the formats table and the "what we do
+  // not make" list are both generated from these numbers. The range has grown
+  // past wax and gel; a hard-coded "we make no cream" would have gone from a
+  // point of honesty to a plain falsehood the day a cream gel was priced.
+  return {
+    wax: of('wax'), gel: of('gel'), cream: of('cream'), gelwax: of('gelwax'),
+    total: list.length,
+  };
 }
 
 /* ------------------------------------------------------------------ gaps ---

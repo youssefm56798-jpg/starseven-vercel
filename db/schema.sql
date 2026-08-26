@@ -23,7 +23,8 @@ CREATE TABLE IF NOT EXISTS products (
   sku          TEXT NOT NULL UNIQUE,
   slug         TEXT NOT NULL UNIQUE,
   kind         TEXT NOT NULL DEFAULT 'wax'
-               CHECK (kind IN ('wax','gel','cream','shampoo','cologne')),
+               CHECK (kind IN ('wax','gel','gelwax','cream','spray',
+                               'cologne','shampoo','depilatory')),
   name_ar      TEXT NOT NULL,
   name_en      TEXT NOT NULL,
   sub_ar       TEXT NOT NULL DEFAULT '',
@@ -61,6 +62,16 @@ ALTER TABLE products ADD COLUMN IF NOT EXISTS howto_ar      TEXT NOT NULL DEFAUL
 ALTER TABLE products ADD COLUMN IF NOT EXISTS howto_en      TEXT NOT NULL DEFAULT '';
 ALTER TABLE products ADD COLUMN IF NOT EXISTS highlights_ar TEXT NOT NULL DEFAULT '';
 ALTER TABLE products ADD COLUMN IF NOT EXISTS highlights_en TEXT NOT NULL DEFAULT '';
+
+-- The catalogue grew past wax and gel. Ovanza also makes a gel-wax hybrid, a
+-- cream gel, a hair spray and a depilatory range, and an existing database
+-- still carries the old three-value CHECK — which would reject every one of
+-- them. Dropped and re-added rather than altered: Postgres has no
+-- ALTER CONSTRAINT for a CHECK, and IF EXISTS keeps this safe to re-run.
+ALTER TABLE products DROP CONSTRAINT IF EXISTS products_kind_check;
+ALTER TABLE products ADD CONSTRAINT products_kind_check
+  CHECK (kind IN ('wax','gel','gelwax','cream','spray',
+                  'cologne','shampoo','depilatory'));
 
 CREATE TABLE IF NOT EXISTS subscribers (
   id           INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
