@@ -1,5 +1,6 @@
 import { sql } from '../../lib/db.js';
 import { site } from '../../lib/config.js';
+import { currencyLabel } from '../../lib/money.js';
 import { productPublic } from '../../lib/hairtypes.js';
 import { Dir, Nav, Footer, Crumb } from '../_components/Chrome.js';
 import CheckoutClient from './CheckoutClient.js';
@@ -43,7 +44,7 @@ export default async function CheckoutPage({ searchParams }) {
           add={add}
           catalog={rows.map(productPublic)}
           shipping={{ fee: site.shipping, freeOver: site.freeOver }}
-          currency={site.currency}
+          currency={currencyLabel(lang)}
         />
       </div>
 

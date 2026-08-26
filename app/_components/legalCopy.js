@@ -12,7 +12,7 @@ export const LEGAL = {
       title: 'سياسة الخصوصية',
       body: `آخر تحديث: أغسطس 2026
 
-نيو ستار سفن (علامة تابعة لـ **[الاسم القانوني للشركة]**) بتحترم خصوصيتك. الصفحة دي بتشرح إيه البيانات اللي بنجمعها وليه.
+نيو ستار سفن (علامة تابعة لـ **أوفانزا كوزمتيكس**) بتحترم خصوصيتك. الصفحة دي بتشرح إيه البيانات اللي بنجمعها وليه.
 
 ## البيانات اللي بنجمعها
 - **بيانات الأوردر:** اسمك، رقم موبايلك، عنوان التوصيل، وأي ملاحظات — بنجمعها عشان نوصّل طلبك ونأكده.
@@ -37,7 +37,7 @@ export const LEGAL = {
       title: 'Privacy Policy',
       body: `Last updated: August 2026
 
-New Star Seven (a brand of **[Legal company name]**) respects your privacy. This page explains what we collect and why.
+New Star Seven (a brand of **Ovanza Cosmetics**) respects your privacy. This page explains what we collect and why.
 
 ## What we collect
 - **Order details:** your name, mobile number, delivery address and any notes — used to deliver and confirm your order.
@@ -82,7 +82,7 @@ Any privacy question: 01028282216.`,
 - الكوبونات ليها شروط (حد أدنى للأوردر، تاريخ انتهاء) وممكن نوقفها في أي وقت.
 
 ## الملكية الفكرية
-- كل المحتوى والصور والعلامة ملك لـ **[الاسم القانوني للشركة]**.
+- كل المحتوى والصور والعلامة ملك لـ **أوفانزا كوزمتيكس**.
 
 ## تواصل
 01028282216.`,
@@ -108,7 +108,7 @@ By using the New Star Seven site and ordering from it, you agree to these terms.
 - Codes carry conditions (minimum order, expiry) and may be withdrawn at any time.
 
 ## Intellectual property
-- All content, images and the brand belong to **[Legal company name]**.
+- All content, images and the brand belong to **Ovanza Cosmetics**.
 
 ## Contact
 01028282216.`,

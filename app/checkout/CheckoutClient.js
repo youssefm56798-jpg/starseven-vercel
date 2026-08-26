@@ -104,6 +104,9 @@ export default function CheckoutClient({ lang, add, catalog, shipping, currency 
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(null);
 
+  // Plain interpolation put the ISO code and the number in one bidi run, so an
+  // Arabic page rendered "EGP 295" instead of "295 جنيه". The caller now sends the
+  // localised label, and money() returns the two parts already ordered.
   const money = v => `${Math.round(v * 100) / 100} ${currency}`;
 
   // localStorage is only available in the browser, so seed after mount.
@@ -255,10 +258,12 @@ export default function CheckoutClient({ lang, add, catalog, shipping, currency 
             </span>
           </label>
 
-          {/* Spam trap. Hidden with clip-path rather than a huge negative offset,
-              which would stretch the page thousands of pixels wide. */}
+          {/* Spam trap. .hp-field in globals.css takes it off screen with
+              clip-path. Never remove that rule: anything typed in here makes the
+              order route discard the order. */}
           <input type="text" tabIndex={-1} autoComplete="off" aria-hidden="true"
-            value={hp} onChange={e => setHp(e.target.value)} className="hp-field" />
+            name="company_website" value={hp} onChange={e => setHp(e.target.value)}
+            className="hp-field" />
 
           <button className="btn btn-red btn-full" type="submit" disabled={busy}
             style={{ marginTop: 6 }}>
@@ -280,7 +285,7 @@ export default function CheckoutClient({ lang, add, catalog, shipping, currency 
             <img src={`/${l.img}`} alt={l[lang].name} width="52" height="52" />
             <div>
               <h4>{l[lang].name}</h4>
-              <div className="q">{money(l.price)}</div>
+              <div className="q"><bdi>{money(l.price)}</bdi></div>
             </div>
             <div className="qc">
               <button onClick={() => changeQty(l.sku, l.qty - 1)} aria-label="-">−</button>
@@ -301,20 +306,20 @@ export default function CheckoutClient({ lang, add, catalog, shipping, currency 
         </div>
         {copErr && <div className="formmsg" style={{ marginBottom: 12 }}>{copErr}</div>}
 
-        <div className="co-row"><span>{T.sub}</span><span>{money(t.subtotal)}</span></div>
+        <div className="co-row"><span>{T.sub}</span><span><bdi>{money(t.subtotal)}</bdi></span></div>
         {t.discount > 0 && (
           <div className="co-row">
             <span>{T.disc} {applied.code}</span>
-            <span className="free">−{money(t.discount)}</span>
+            <span className="free"><bdi>−{money(t.discount)}</bdi></span>
           </div>
         )}
         <div className="co-row">
           <span>{T.ship}</span>
           <span className={t.shipping === 0 ? 'free' : ''}>
-            {t.shipping === 0 ? T.free : money(t.shipping)}
+            {t.shipping === 0 ? T.free : <bdi>{money(t.shipping)}</bdi>}
           </span>
         </div>
-        <div className="co-row tot"><span>{T.tot}</span><span>{money(t.total)}</span></div>
+        <div className="co-row tot"><span>{T.tot}</span><span><bdi>{money(t.total)}</bdi></span></div>
 
         <div style={{ color: '#8B867B', fontSize: 12, fontWeight: 700, marginTop: 12, textAlign: 'center' }}>
           {T.cod}
