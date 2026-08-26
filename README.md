@@ -6,10 +6,13 @@ for email.
 
 ```bash
 npm install
-cp .env.example .env.local     # fill in DATABASE_URL at minimum
+cp .env.example .env.local     # DATABASE_URL and SESSION_SECRET at minimum
 npm run db:setup               # creates tables, loads products and articles
 npm run dev
 ```
+
+`SESSION_SECRET` is not optional if you touch anything behind a login: every
+auth route throws without it. `DATABASE_URL` comes from Neon.
 
 Without `DATABASE_URL` the homepage still renders (with an empty product grid),
 which is enough to work on the landing layout offline. The shop, blog, product
@@ -20,7 +23,7 @@ and checkout pages need the database.
 | Path | What lives there |
 |---|---|
 | `app/` | Pages and API routes. `_components/` is shared UI, `api/` is the JSON endpoints, `admin/` is the back office. |
-| `lib/` | Pure logic: pricing, phone normalisation, hair-type data and ranking, auth, mail templates, cart, markdown. No framework imports, so it is all directly testable. |
+| `lib/` | Logic, mostly framework-free so it is directly testable: pricing, phone normalisation, hair-type data and ranking, credentials, carts, markdown, mail templates. The two that do import from Next are `customer-auth.js` and `auth.js`, because sessions live in cookies. |
 | `db/` | `schema.sql` and `seed.sql`. Both safe to re-run. |
 | `scripts/` | `setup-db.mjs` applies the SQL files. |
 | `tests/` | `node --test`. No database needed. |
@@ -45,14 +48,47 @@ and checkout pages need the database.
   used JS-driven infinite rotations that no amount of pausing could stop; they
   burned CPU on an idle tab. Don't reintroduce them.
 
+## If you are picking this up cold
+
+Read in this order:
+
+1. [`docs/SECURITY.md`](docs/SECURITY.md) — where every control lives, the one
+   trade-off in the session design, and the checklist before a real domain.
+2. [`docs/auth-spec.json`](docs/auth-spec.json) — the customer auth
+   specification, including what was deliberately left out.
+3. [`docs/product-facts.md`](docs/product-facts.md) — the catalogue as it
+   actually is, with real ingredient lists read off the packaging, and the
+   places the site currently contradicts them.
+4. [`docs/DEPLOY.md`](docs/DEPLOY.md) — Vercel and Neon setup.
+
+### Three things that will surprise you
+
+- **55 of the 63 products are `active = false` with `price = 0`.** That is
+  deliberate, not unfinished. The manufacturer catalogue carries no prices, and
+  a guessed price on a cash-on-delivery shop is an argument at the customer's
+  door. The client sets price and stock in the admin and ticks Active. A
+  category with nothing live **404s** rather than serving an empty grid, and the
+  sitemap only lists categories that hold something.
+
+- **The database migrates on every deploy.** `vercel-build` runs
+  `scripts/setup-db.mjs` before `next build`, applying `db/schema.sql` then
+  `db/seed.sql`. Both are written to be safe to re-run — the seeds are
+  `ON CONFLICT DO NOTHING` so a redeploy can never revert a price edited in the
+  admin. If you add a statement, keep that property, and keep apostrophes out
+  of SQL comments: the splitter tracks quote state and reads one as an
+  unterminated string.
+
+- **Some tests read source files as text rather than executing them.** That is
+  on purpose. They guard against omissions — a route that forgets the CSRF
+  check, a font nothing loads, an identifier that does not exist — and an
+  omission has no behaviour to assert against. Each one exists because the
+  corresponding failure reached production behind a green build.
+
 ## Commands
 
 | | |
 |---|---|
 | `npm run dev` | Dev server |
 | `npm run build` | Production build |
-| `npm test` | Test suite |
+| `npm test` | Test suite — 295 tests, no database needed |
 | `npm run db:setup` | Apply `db/schema.sql` then `db/seed.sql` |
-
-Deployment: [`docs/DEPLOY.md`](docs/DEPLOY.md).
-Security model and the attack testing behind it: [`docs/SECURITY.md`](docs/SECURITY.md).

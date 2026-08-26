@@ -1,67 +1,108 @@
-# Security review — New Star Seven store
+# Security model — New Star Seven store
 
-An attack → fix → re-attack pass was run against the whole stack (checkout,
-newsletter, admin, and the server-rendered pages) with a live MySQL database.
-This records what was tested, what held, and what was fixed.
+This describes the Next.js / Neon Postgres application in this repository.
 
-## Controls in place
+> An earlier version of this file documented the PHP + MySQL site this was
+> ported from — `lib/boot.php`, `.htaccess`, `htmlspecialchars`, `api/order.php`.
+> None of those exist here. If you have a copy that mentions them, it is stale.
 
-| Threat | Defence | Verified |
+---
+
+## Where each control actually lives
+
+| Threat | Defence | File |
 |---|---|---|
-| **SQL injection** | Prepared statements with bound parameters everywhere; no string-built queries | Injected payloads in `sku`, `coupon`, and confirm tokens — all rejected as data |
-| **Price / total tampering** | Every price, discount and delivery fee recomputed server-side in `api/order.php` from the database; the browser only sends `sku` + `qty` | Sent `price:0.01` and fake totals — ignored, charged the real price |
-| **Quantity abuse** | Clamped to 1–20 per line, integer-cast | Negative and 999999999 quantities both clamped |
-| **Stored XSS** | All output escaped with `htmlspecialchars`; article Markdown escapes first then re-enables a whitelist; JSON-LD encoded with `JSON_HEX_TAG` | `<script>`, `<img onerror>`, and a `</script>` breakout in a product name — all neutralised |
-| **CSRF** | Per-session token required on every admin POST, checked with `hash_equals` | POSTs without / with a forged token → 419 |
-| **Broken access control** | Every admin page calls `require_admin()`; no order-read endpoint exists (no IDOR surface) | All admin pages redirect to login; `GET /api/order.php` → 405 |
-| **Auth** | `password_hash`/`password_verify`, session regenerated on login, generic "wrong email or password", login rate-limited | Wrong password and enumeration attempts gave nothing |
-| **Rate limiting** | Fixed-window per-IP limiter on subscribe / order / quiz / login | Subscribe flips to 429 after 5/hour |
-| **Stock races** | Order write is one transaction; stock decrement guarded by `WHERE stock >= ?` | 5 concurrent orders against stock of 3 → one succeeded, stock never went negative |
-| **Clickjacking** | `X-Frame-Options: SAMEORIGIN` + `frame-ancestors` in CSP | Confirmed on every response |
-| **Method tampering** | `require_post()` on mutating endpoints | PUT/DELETE/PATCH/TRACE → 405 |
-| **Open redirect** | Language switch only ever emits same-origin relative paths | No off-site URL emitted |
-| **Header injection** | Email validated with `filter_var` before use; phone normalised to digits | Newline-in-email rejected |
-| **Secrets exposure** | `config.php` / `config.local.php` only `return` an array (no output if hit directly); `.htaccess` denies `.sql`/`.log`/`config.local.php`; `db/` and `lib/` carry deny rules and an `index.php` guard | Direct hits return 0 bytes or 403 |
+| **SQL injection** | `@neondatabase/serverless` tagged templates. Every `${}` is a bound parameter — the driver never interpolates into SQL text. There is no string-built query in the codebase. | everywhere `sql\`` appears |
+| **Price / total tampering** | The browser sends `sku` and `qty` and nothing else. Prices, discounts and delivery are re-read from the database and recomputed server-side. Anything else in the payload is dropped by `cleanCartLines()`. | `lib/pricing.js`, `lib/credentials.js`, `app/api/order/route.js` |
+| **Quantity abuse** | Clamped 1–20 per line, floored to an integer, capped at 50 lines. Negative, `NaN`, `Infinity` and `1e9` all tested. | `lib/credentials.js`, `tests/credentials.test.mjs` |
+| **Stock races** | The order write is one transaction and the decrement is guarded by `WHERE stock >= ?`, so two customers cannot both take the last jar. | `app/api/order/route.js` |
+| **Stored XSS** | React escapes by default. The three places that use `dangerouslySetInnerHTML` are: article Markdown, which escapes first and then re-enables a whitelist; and JSON-LD, which is serialised then has `<` replaced with `<` so a `</script>` in a product name cannot break out. | `lib/markdown.js`, the `ld()` helper in each page |
+| **CSRF** | Three independent locks: `SameSite=Lax` cookies, an `Origin` / `Sec-Fetch-Site` check, and a required `application/json` content type that a cross-site form post cannot set without a preflight this API never answers. | `lib/auth-guard.js`, `lib/credentials.js` |
+| **Customer auth** | bcrypt cost 12. Short signed access token, opaque rotating refresh token stored as a SHA-256 digest. See below. | `lib/customer-auth.js` |
+| **Admin auth** | Separate cookie, separate table, separate module. A customer session cannot become an admin session. | `lib/auth.js` |
+| **Broken access control** | Every cart and order query is scoped by the user id taken from the verified token. No endpoint reads an identity from a body, query string or header — asserted by a test that greps the route files. | `lib/server-cart.js`, `tests/auth-routes.test.mjs` |
+| **User enumeration** | Login runs a real bcrypt compare against a fixed hash when the address is unknown, so an unknown account costs the same time as a wrong password, and both return the same message. | `app/api/auth/login/route.js` |
+| **Rate limiting** | Fixed-window per-IP limiter in a single statement, so concurrent requests cannot race between read and write. Login also has a per-account bucket, keyed by a digest so the table never becomes a list of customer emails. | `lib/db.js`, `lib/config.js` |
+| **Request body size** | 128 KB cap, checked both from `Content-Length` and from the actual read, so a spoofed length does not get around it. | `lib/http.js` |
+| **Secrets** | Nothing is committed. `.env*` is gitignored; only `.env.example` with placeholders is tracked. Verified against the full history, not just the working tree. | `.gitignore`, `.env.example` |
+| **Indexing of private pages** | `/admin`, `/api`, `/checkout` and `/account` are disallowed in robots.txt in both locales, and the pages themselves send `robots: noindex`. | `app/robots.js` |
 
-## Fixed during the review
+---
 
-1. **Request body size cap (DoS).** A 10 MB POST body was previously read in full.
-   Added `S7_MAX_BODY` (128 KB): oversized requests are refused with a clean
-   `413` both by an early `Content-Length` check and by a bounded stream read, so
-   a spoofed / omitted length can't get around it. `lib/boot.php`.
+## Customer sessions, and the one trade-off worth understanding
 
-2. **Security headers no longer depend on `.htaccess` alone.** `security_headers()`
-   sets `X-Content-Type-Options`, `X-Frame-Options`, and `Referrer-Policy` from
-   PHP at boot, so they survive a misconfigured `AllowOverride` or a non-Apache
-   server. `lib/boot.php`.
+The requirement was: do not make a returning customer log in again, do not read
+the database on every request, and still be able to revoke a session. Those do
+not all fit in one token, so there are two.
 
-3. **Content-Security-Policy added.** Server-rendered pages and the SPA now ship a
-   CSP that locks sources to `self` plus the known CDN/font hosts, with
-   `object-src 'none'`, `base-uri 'self'`, `form-action 'self'`. JSON endpoints
-   send `default-src 'none'; frame-ancestors 'none'`. (`'unsafe-eval'`/`'unsafe-inline'`
-   remain only because the in-browser Babel build needs them — a future no-build
-   compile step would let those be dropped.)
+**Access token** — a 15-minute JWT (HS256, `jose`). Verified by signature alone.
+Every authenticated render uses this and touches no database.
 
-4. **`db/` directory guard.** Added `db/index.php` (403) so the SQL files aren't
-   directory-listed even on a server that ignores `.htaccess`. The `.sql` files
-   hold schema only — no credentials — so this is defence in depth.
+**Refresh token** — 32 random bytes, opaque, 60-day life, **stored only as a
+SHA-256 digest**. Rotated on every use. It is the only thing that reads the
+`sessions` table, and only once the access token has expired.
 
-## Deployment checklist (security-relevant)
+Consequences to be aware of before changing any of it:
 
-- [ ] Set `debug => false` in `lib/config.php` (hides PHP errors).
-- [ ] Serve the site over **HTTPS** — the admin session cookie sets its `Secure`
-      flag automatically when the request is HTTPS.
-- [ ] Delete `admin/setup.php` after creating the first admin.
-- [ ] Do **not** upload `tests/` or `lib/config.local.php`.
-- [ ] Use a strong `admin.setup_key` and a long admin password (10+ chars enforced).
-- [ ] Confirm `.htaccess` is active (Hostinger has `AllowOverride On` by default);
-      the PHP-level guards above cover the case where it isn't.
+- **A revoked session survives up to 15 minutes.** That is the price of not
+  reading the database per request. Lowering `ACCESS_TTL` narrows it linearly.
+  `tests/auth-routes.test.mjs` fails if it is raised above 900s.
+- **A refresh token presented twice revokes the whole family.** Two parties
+  holding one token is indistinguishable from theft, so both are logged out.
+  This means a client that fires concurrent refreshes will log itself out —
+  `lib/session-client.js` shares a single in-flight refresh for exactly this
+  reason. Do not remove that.
+- **A database dump contains nothing replayable.** Digests only.
 
-## Residual, accepted
+`docs/auth-spec.json` is the full specification, including what was deliberately
+left out.
 
-- **Newsletter email enumeration** — subscribing an already-registered address
-  returns "you're already on the list". Standard for newsletters and low value to
-  an attacker; left as-is for usability.
-- **`'unsafe-eval'` in the CSP** — required by the in-browser Babel transform.
-  Removing it means adding a build step, which is out of scope for the current
-  no-build deployment.
+---
+
+## What is deliberately not done yet
+
+These are known gaps, not oversights. Listed so nobody has to rediscover them.
+
+- **No email verification on register.** An address can be claimed without
+  proving control of it.
+- **No password reset.** A customer who forgets theirs has no route back.
+- **No MFA**, and no per-device session list for customers.
+- **The admin login has not been moved onto the customer session machinery.**
+  It still uses the simpler 8-hour signed cookie in `lib/auth.js`.
+- **`ADMIN_SETUP_KEY` should be removed from the environment** once the first
+  admin exists; `/admin/setup` is reachable while it is set.
+
+---
+
+## Checklist before a production domain goes live
+
+- [ ] `SESSION_SECRET` set to a long random string. **Every auth route throws
+      without it** — this is not a soft failure.
+- [ ] `NEXT_PUBLIC_SITE_URL` set to the real origin. The CSRF origin check
+      compares against it, so a wrong value refuses every mutation.
+- [ ] `ADMIN_SETUP_KEY` removed after the first admin is created.
+- [ ] `MAIL_FROM` on a domain the client actually controls. It currently
+      defaults to `newstarseven.com`, which belongs to an unrelated business —
+      see `docs/product-facts.md`.
+- [ ] HTTPS only. The session cookies are `Secure` unconditionally, so they will
+      not be set over plain HTTP at all.
+- [ ] Confirm `robots.txt` in production disallows `/account` and `/checkout`.
+
+---
+
+## Testing
+
+`npm test` — 295 tests, no database required.
+
+Three of the suites exist because a green build hid a real production failure,
+and are worth keeping for that reason:
+
+| Suite | The failure it would have caught |
+|---|---|
+| `tests/hook-deps.test.mjs` | `ReferenceError: q is not defined` in a hook dependency array. The checkout was dead for eight deploys; the build was green throughout, because it compiles rather than resolving identifiers. |
+| `tests/fonts.test.mjs` | The port dropped the Google Fonts link. Thirty-four `font-family` declarations named fonts nothing loaded, and the whole site rendered in a system fallback. |
+| `tests/sql-split.test.mjs` | A migration that ran, reported success, and changed nothing. |
+
+The lesson each encodes: a passing build is not evidence that a thing works, and
+neither is an API that answers optimistically. `document.fonts.check()` returns
+`true` for a font that was never loaded.
