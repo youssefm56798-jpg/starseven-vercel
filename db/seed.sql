@@ -1657,3 +1657,36 @@ VALUES
    'الفحم', 'Coal',
    0, '#4A4A4A', 'assets/catalog/sweet-paste-100-coal.webp', 100, 3, '', 0, FALSE, 161)
 ON CONFLICT (sku) DO NOTHING;
+
+-- ---------------------------------------------------------------------------
+--  Price the catalogue that shares a format with something already on sale
+--
+--  Instruction was to price these the same as the existing products. That maps
+--  cleanly onto anything in the same format family, and not at all onto a
+--  different one, so it is applied only where it means something:
+--
+--    wax and gel-wax  -> 45, the price of the 120ml premium waxes
+--    gel and cream gel at 250ml -> 40, the price of the 250ml premium gels
+--
+--  Deliberately NOT priced here, because copying a number across these would
+--  be wrong rather than merely approximate:
+--    * 650ml and 850ml gels - between 2.6x and 3.4x the volume of the 250ml
+--      the price would be copied from
+--    * 14ml and 20ml sachets - a fraction of that volume
+--    * hair spray, cologne, and the whole depilatory range - no product on the
+--      shop shares a format with any of them
+--  Those stay hidden until someone supplies a real number.
+--
+--  Guarded on price = 0 AND active = false, so this touches a row exactly once
+--  and can never overwrite a price set later in the admin.
+-- ---------------------------------------------------------------------------
+UPDATE products
+   SET price = 45, stock = 200, active = TRUE
+ WHERE price = 0 AND active = FALSE
+   AND kind IN ('wax', 'gelwax');
+
+UPDATE products
+   SET price = 40, stock = 200, active = TRUE
+ WHERE price = 0 AND active = FALSE
+   AND kind IN ('gel', 'cream')
+   AND size_ml = 250;
