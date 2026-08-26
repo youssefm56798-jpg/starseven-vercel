@@ -44,7 +44,7 @@ export function Nav({ lang = 'ar', path = '' }) {
     <nav className="s7nav">
       <div className="wrap inner">
         <Link className="logo" href={L('/')}>
-          <img src="/assets/logo-s7.png" alt="New Star Seven" width="120" height="30" />
+          <img src="/assets/logo-s7.png" alt="New Star Seven" width="123" height="30" />
         </Link>
 
         {/* Shop carries a submenu because the two formats are the split
@@ -121,7 +121,7 @@ export function Footer({ lang = 'ar' }) {
         <div className="wrap">
           <div className="fgrid">
             <div className="fbrand">
-              <img src="/assets/logo-s7.png" alt="New Star Seven" width="120" height="32" />
+              <img src="/assets/logo-s7.png" alt="New Star Seven" width="132" height="32" />
               <p>
                 {ar
                   ? 'نيو ستار سفن — منتجات تصفيف شعر الرجال. جودة عالمية، مصنوعة في مصر.'
