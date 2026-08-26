@@ -181,7 +181,9 @@ A level-3 gel is plenty for the office. A full day of heat and movement wants a 
  '', '',
  'thick', 'S7-WAX-YEL', 'published', '2026-08-18 10:00:00'
 )
-ON CONFLICT (slug) DO NOTHING;
+-- (slug, lang), not (slug): slug alone is no longer unique now that an
+-- article and its translation share one.
+ON CONFLICT (slug, lang) DO NOTHING;
 
 
 -- ---------------------------------------------------------------------------

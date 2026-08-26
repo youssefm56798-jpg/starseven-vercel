@@ -118,7 +118,12 @@ test('db/seed.sql is three upserts, the copy update and the article wave', {
   assert.equal(out.length, 5);
   assert.ok(out[0].includes('INSERT INTO products') && out[0].includes('ON CONFLICT (sku)'));
   assert.ok(out[1].includes('INSERT INTO offers') && out[1].includes('ON CONFLICT (code)'));
-  assert.ok(out[2].includes('INSERT INTO articles') && out[2].includes('ON CONFLICT (slug)'));
+  // Both article statements must target the (slug, lang) index. The old
+// global unique on slug is dropped by schema.sql, so `ON CONFLICT (slug)`
+// now fails with "no unique or exclusion constraint matching".
+  assert.ok(out[2].includes('INSERT INTO articles'));
+  assert.ok(out[2].includes('ON CONFLICT (slug, lang)'),
+    'the first article seed must conflict on (slug, lang)');
 
   // The copy update must stay non-destructive: every column it touches is
   // guarded so a re-run cannot overwrite wording edited in the admin.
