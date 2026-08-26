@@ -34,7 +34,21 @@ Read from ovanzacosmetics.com and its API:
 - Trading name, as the company writes it in English: **"Ofanza Cosmetics for the Manufacturing and Trading of Cosmetics"**
 - Arabic legal name, from its own merchant storefront: **أوفانزا لتصنيع وتجارة مستحضرات التجميل**
 - Founded **2012**, one product at launch; exporting since **2018**
-- Location given as **Egypt — Cairo**. No street address, registration number or EDA notification number found anywhere.
+- Website gives the location as **Egypt — Cairo**, but the packaging is more specific.
+  Printed on the back label of the 135ml jars, in both languages:
+
+  > Produced by Ovanza for manufacturing cosmetics: **el sharqiyah – belbeis –
+  > second industrial zone**
+  >
+  > أوفانزا لتصنيع وتجارة مستحضرات التجميل: **الشرقية – بلبيس – المنطقة الصناعية الثانية**
+
+  So the factory is in Belbeis, El Sharqia — not Cairo. Cairo is the office.
+- **Customer service numbers, printed on the pack:** `002 01110391048` and
+  `002 01029660069`. Both differ from the WhatsApp number the site uses
+  (`01028282216`), which is worth reconciling with the client before launch — a
+  customer reading the jar will call a number the shop does not answer.
+- The back label carries what appears to be an **EDA registration line** and two QR
+  codes, but neither is legible at the resolution the renders are published at.
 - Phone **+20 150 843 7333**, email **info@ovanzacosmetics.com**
 - Facebook: facebook.com/Ovanzacosmetics
 - Two brands: **New Star Seven** and **Source Lino**
@@ -44,6 +58,34 @@ readable in the product renders. `newstarseven.com` is unrelated to this company
 and `MAIL_FROM` currently sends from it. That needs changing before launch.
 
 ---
+
+## Reading the panel from the renders
+
+Worth writing down, because it is repeatable and it is free.
+
+Ovanza publishes its product renders at 2000x2000, and **the ingredient panel is
+modelled on the pack** — it is not a placeholder. On the 120ml tins it is printed
+around the side of the tin and is legible in the three-quarter renders (the ones the
+feed stores as the second media item). On the 135ml jars there is a full back label
+carrying the factory address, the service numbers and a QR code.
+
+Two things make it readable:
+
+1. **Crop and rotate to the panel, then upscale.** The text runs around the tin, so
+   it needs de-rotating before it can be read.
+2. **Un-warp the cylinder where the text runs off the curve.** Screen position on a
+   cylinder is `x = R·sin(t)`, so remapping with `t = asin(x/R)` stretches the
+   compressed edge back to even spacing. `scratchpad/unwrap.py` does this.
+
+What this does **not** reach: the gel jars. Their panel sits on the far curve of a
+transparent jar and there are simply not enough pixels on it in any published render
+— the un-warp recovers `ovanzacosmetics.com` and then falls apart. The gels need a
+marketplace photograph or the physical bottle.
+
+And a caution for anyone repeating this: two of the gel images in this repository
+(`gel-250-white`, `gel-250-black`) were **re-rendered with a generative model** to
+match the site's camera angle, because no modern render existed. Their labels are
+plausible but not authoritative. **Never read an ingredient off those two.**
 
 ## The waxes — full ingredient lists
 
@@ -102,13 +144,21 @@ set. This is consistent with a product whose job is to deposit black.
 - Amazon's "Active Ingredients" field reads *"Pond Seed Oil"* — a machine mistranslation of حبة البركة. **Never publish that.**
 
 ### Argan — blue — 120ml — `S7-WAX-BLU`
-**Ingredients: NOT FOUND.** This SKU is not on Amazon.eg, so there is no photograph of
-its panel. Confirmed to exist at 120ml on Ovanza's own storefront (Cairo One, EGP 56).
+**Ingredients (verbatim):** Microcrystalline wax – Bees wax – Petrolatum – Paraffinum
+Liquidum – Propyl Paraben – BHT – Tocopheryl acetate – Lanolin – Parfume –
+**Argania Spinosa Kernel Oil** – isopropyl myristate – +/– CI 15850 – +/– CI 61565
+– +/– CI 47005 – +/– CI 73015 – +/– CI 77266
 
-Do not assume it matches the others with argan swapped in — get the jar and read it.
+Read off the manufacturer's own render, not a marketplace photo — see "Reading the
+panel from the renders" below. This was the last gap in the five waxes on sale.
 
-- Manufacturer's copy claims argan oil and **vitamin E**, for hair loss and split ends
+The pattern holds: the shared base, plus one hero botanical. Note that the
+manufacturer's marketing copy credits argan with "vitamin E" — Tocopheryl acetate is
+vitamin E, but it is in the shared base of every jar in the line, so it is not
+something the argan variant adds.
+
 - Manufacturer's spec: **Medium hold – High flexibility – High shine**
+- Amazon EGP not listed (absent from Amazon.eg) · Cairo One EGP 56
 
 ---
 
