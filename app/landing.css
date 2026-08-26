@@ -38,7 +38,20 @@
 .s7home nav{position:sticky;top:0;z-index:100;background:var(--paper);border-bottom:1.5px solid var(--ink)}
 .s7home .hero{position:relative;overflow:hidden;border-bottom:1.5px solid var(--ink)}
 .s7home .hero .wrap{display:grid;grid-template-columns:1.02fr .98fr;min-height:86vh;align-items:center;gap:20px;padding-top:44px;padding-bottom:60px}
+/* The hero title is sized from its own column, not from the viewport.
+   9.6vw kept growing past 1180px while the column it sits in stopped — the
+   .wrap is a two-column grid inside a max-width container — so above roughly
+   1010px the English hero outgrew its track and "YOUR STYLE" wrapped onto two
+   lines. Arabic never showed it: its longest line is 3.2em wide against
+   English's 6.2em, so it still fit.
+   The vw line stays first as the fallback for anything without container
+   queries; the cqw lines override it where they are supported. The two
+   multipliers are the reciprocal of each language's longest line, measured in
+   the rendered face, with a little room left over. */
+.s7home .hero .wrap>div:first-child{container-type:inline-size}
 .s7home .hero-title{font-size:clamp(56px,9.6vw,148px);line-height:.96;text-transform:uppercase;color:var(--ink)}
+.s7home .hero-title{font-size:clamp(44px,29cqw,148px)}
+.s7home .hero-title.en-display{font-size:clamp(40px,15cqw,148px)}
 .s7home .hero-title .row{display:block;overflow:hidden;padding-bottom:.08em;margin-bottom:-.08em}
 .s7home .hero-title .row>span{display:block;will-change:transform}
 .s7home .hero-title .stroke{color:transparent;-webkit-text-stroke:2px var(--ink)}

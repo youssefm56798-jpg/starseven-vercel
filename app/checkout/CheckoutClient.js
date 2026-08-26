@@ -123,7 +123,10 @@ export default function CheckoutClient({ lang, add, catalog, shipping, currency 
     }
     setCart(next);
     setReady(true);
-  }, [add, q]);
+    // `lang`, not `L`. L is rebuilt every render, so listing it here would
+    // re-run this effect on every render — and it writes the cart and calls
+    // replaceState. `lang` is the reactive value L is derived from.
+  }, [add, lang]);
 
   const lines = cart
     .map(c => {
