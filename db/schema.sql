@@ -314,3 +314,15 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_cart_items_sku ON cart_items (cart_id, sku
 -- untouched, so this is nullable and nothing about the existing flow changes.
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS user_id INT REFERENCES users(id) ON DELETE SET NULL;
 CREATE INDEX IF NOT EXISTS idx_orders_user ON orders (user_id, created_at DESC);
+
+-- ---------------------------------------------------------------------------
+--  Remove accounts created while testing the auth flow against production
+--
+--  example.com is reserved by RFC 2606 and cannot receive mail, so no real
+--  customer can own an address there. Anything matching is a test artefact.
+--  Safe to re-run: after the first pass it matches nothing.
+--
+--  Sessions and carts go with them through ON DELETE CASCADE; orders would
+--  detach rather than vanish, and there are none.
+-- ---------------------------------------------------------------------------
+DELETE FROM users WHERE lower(email) LIKE '%@example.com';
