@@ -167,21 +167,29 @@ CREATE INDEX IF NOT EXISTS idx_articles_live ON articles (status, lang, publishe
 -- onto a shared slug. Both statements are safe to re-run.
 ALTER TABLE articles DROP CONSTRAINT IF EXISTS articles_slug_key;
 
--- Order matters. Drop any '-ar' row whose shared-slug twin already exists
--- first: the seed republishes some of these articles at the shared slug, so a
--- rename alone would leave the old row behind as a duplicate of the new one —
--- two URLs, same article, which is the thing this whole change is undoing.
-DELETE FROM articles a
- WHERE a.lang = 'ar' AND a.slug LIKE '%-ar'
-   AND EXISTS (SELECT 1 FROM articles b
-                WHERE b.lang = 'ar'
-                  AND b.slug = left(a.slug, length(a.slug) - 3));
-
--- Then fold the rest onto the shared slug.
-UPDATE articles SET slug = left(slug, length(slug) - 3)
- WHERE lang = 'ar' AND slug LIKE '%-ar'
-   AND NOT EXISTS (SELECT 1 FROM articles b
-                    WHERE b.lang = 'ar' AND b.slug = left(articles.slug, length(articles.slug) - 3));
+-- Fold the legacy '-ar' Arabic slugs onto the shared slug.
+--
+-- Written as one statement rather than a DELETE followed by an UPDATE: as two
+-- statements each guarded by its own EXISTS, whether a row was deleted, renamed
+-- or skipped depended on what the other had already done, and the pair reported
+-- success while changing nothing.
+--
+-- Here the deletion is a CTE, so the UPDATE sees the table as it will be after
+-- the duplicates are gone, and the two decisions are made against one snapshot.
+WITH dupes AS (
+  DELETE FROM articles a
+   WHERE a.lang = 'ar'
+     AND a.slug LIKE '%-ar'
+     AND EXISTS (SELECT 1 FROM articles b
+                  WHERE b.lang = 'ar'
+                    AND b.slug = left(a.slug, length(a.slug) - 3))
+  RETURNING a.id
+)
+UPDATE articles t
+   SET slug = left(t.slug, length(t.slug) - 3)
+ WHERE t.lang = 'ar'
+   AND t.slug LIKE '%-ar'
+   AND t.id NOT IN (SELECT id FROM dupes);
 
 CREATE TABLE IF NOT EXISTS quiz_results (
   id          INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

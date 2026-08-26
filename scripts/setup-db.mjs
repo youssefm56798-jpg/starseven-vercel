@@ -21,6 +21,7 @@ import { splitStatements } from './sql-split.mjs';
 import { applyEnv } from './env-file.mjs';
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
+const NEWLINE = String.fromCharCode(10);
 
 /** Reads one .env file if it is there. Values already in process.env win. */
 function loadEnvFile(path) {
@@ -148,6 +149,7 @@ if (!wants.schemaOnly) await runFile(exec, 'db/seed.sql');
 /* -------------------------------------------------------------- summary */
 
 let counts;
+let articleList = '';
 try {
   const [row] = await exec(`
     SELECT (SELECT count(*) FROM products) AS products,
@@ -158,6 +160,10 @@ try {
            (SELECT count(*) FROM articles
               WHERE status = 'published')                 AS articles_published`);
   counts = row;
+  // The count alone cannot say WHICH rows are there, and a slug migration
+  // that silently affects nothing looks identical to one that worked.
+  const arts = await exec(`SELECT slug, lang FROM articles ORDER BY slug, lang`);
+  articleList = arts.map(a => '   ' + a.slug + '[' + a.lang + ']').join(NEWLINE);
 } catch (err) {
   fail('Setup ran, but the summary query failed.', err.message);
 }
@@ -168,6 +174,7 @@ console.log(`
    products   ${counts.products}   (${counts.products_active} active)
    offers     ${counts.offers}   (${counts.offers_active} active)
    articles   ${counts.articles}   (${counts.articles_published} published)
+${articleList}
   ------------------------------------------------
   Done in ${secs}s. Re-running this script is safe.
 `);
