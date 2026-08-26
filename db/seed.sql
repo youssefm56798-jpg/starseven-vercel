@@ -115,7 +115,10 @@ Not sure where you land? The [hair-type finder](/#hair) on the homepage walks yo
  'wavy', 'S7-WAX-RED', 'published', '2026-08-10 10:00:00'
 ),
 (
- 'choose-hair-product-by-hair-type-ar', 'ar', 'choose-by-type',
+ -- Bare slug, not '-ar': twins share a slug now. Left as '-ar' this row was
+ -- re-inserted on every deploy right after the migration renamed the real
+ -- one, resurrecting the duplicate the migration had just removed.
+ 'choose-hair-product-by-hair-type', 'ar', 'choose-by-type',
  'إزاي تختار منتج شعر على حسب نوع شعرك',
  'ناعم، متموج، كيرلي ولا خشن — المنتج اللي بيظبط واحد ممكن يبوّظ التاني. ده الدليل المختصر.',
  '## ابدأ من شعرك، مش من البرطمان
@@ -160,7 +163,7 @@ A level-3 gel is plenty for the office. A full day of heat and movement wants a 
  'thick', 'S7-WAX-YEL', 'published', '2026-08-18 10:00:00'
 ),
 (
- 'make-your-style-last-all-day-ar', 'ar', 'last-all-day',
+ 'make-your-style-last-all-day', 'ar', 'last-all-day',
  'خلي ستايلك يقعد من الصبح لآخر اليوم',
  'منتج كويس على شعر مبلول وبكمية غلط = صباح ضايع. أربع حاجات بيتوقف عليها إن الستايل يعيش اليوم كله.',
  '## ١. نشّف الأول، وشعرك شبه ناشف
