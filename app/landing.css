@@ -45,12 +45,17 @@
    lines. Arabic never showed it: its longest line is 3.2em wide against
    English's 6.2em, so it still fit.
    The vw line stays first as the fallback for anything without container
-   queries; the cqw lines override it where they are supported. The two
-   multipliers are the reciprocal of each language's longest line, measured in
-   the rendered face, with a little room left over. */
+   queries; the cqw lines override it where they are supported.
+
+   The two multipliers are measured, not guessed: binary-searching the font
+   size at which the longest line starts to wrap gives 15.54cqw for English
+   ("YOUR STYLE" in Anton) and 23.34cqw for Arabic ("طول اليوم" in Cairo).
+   Rounded down for headroom. Measuring the Arabic with canvas measureText
+   instead gave 31cqw and was wrong by a third — the shaping differs from what
+   the browser lays out, so this has to be measured in the DOM. */
 .s7home .hero .wrap>div:first-child{container-type:inline-size}
 .s7home .hero-title{font-size:clamp(56px,9.6vw,148px);line-height:.96;text-transform:uppercase;color:var(--ink)}
-.s7home .hero-title{font-size:clamp(44px,29cqw,148px)}
+.s7home .hero-title{font-size:clamp(44px,22cqw,148px)}
 .s7home .hero-title.en-display{font-size:clamp(40px,15cqw,148px)}
 .s7home .hero-title .row{display:block;overflow:hidden;padding-bottom:.08em;margin-bottom:-.08em}
 .s7home .hero-title .row>span{display:block;will-change:transform}
