@@ -10,6 +10,7 @@
  * docs/hair-type-research.md §1 and §"Gaps this exposes in the current range".
  */
 import { HAIR_TYPES } from '../../lib/hairtypes.js';
+import { alternatesForLang } from '../../lib/urls.js';
 
 /** The six slugs, in tile order. The route's static params come from here. */
 export const HAIR_SLUGS = HAIR_TYPES.map(t => t.slug);
@@ -106,10 +107,7 @@ export function typeMeta(tile, lang) {
       ? `شعر ${c.name} — أنهي واكس أو جل يناسبه`
       : `${c.name} hair — which wax or gel suits it`,
     description: clamp(`${c.problem} ${c.answer}`, 165),
-    alternates: {
-      canonical: path,
-      languages: { ar: path, en: `${path}?lang=en` },
-    },
+    alternates: alternatesForLang(path, lang),
   };
 }
 
@@ -121,10 +119,7 @@ export function indexMeta(lang) {
     description: ar
       ? 'ستة أنواع شعر، وأنهي واكس أو جل من نيو ستار سفن يناسب كل واحد فيهم — والمشكلة اللي بيحلها، واللي لازم تبعد عنه.'
       : 'Six hair types, and which New Star Seven wax or gel suits each one — the problem it solves, and what to avoid.',
-    alternates: {
-      canonical: '/hair-types',
-      languages: { ar: '/hair-types', en: '/hair-types?lang=en' },
-    },
+    alternates: alternatesForLang('/hair-types', lang),
   };
 }
 

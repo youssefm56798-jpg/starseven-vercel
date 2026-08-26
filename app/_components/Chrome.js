@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { site } from '../../lib/config.js';
+import { localePath } from '../../lib/urls.js';
 import CartBadge from './CartBadge.js';
 
 /**
@@ -34,14 +35,15 @@ export function waLink(text = '') {
 
 export function Nav({ lang = 'ar', path = '' }) {
   const ar = lang === 'ar';
-  const q = ar ? '' : '?lang=en';
+  // Every href goes through localePath so the nav can never disagree with the
+  // canonical and hreflang tags about what a page's URL is.
+  const L = p => localePath(p, lang);
   const other = ar ? 'en' : 'ar';
-  const sep = path.includes('?') ? '&' : '?';
 
   return (
     <nav className="s7nav">
       <div className="wrap inner">
-        <Link className="logo" href={ar ? '/' : '/?lang=en'}>
+        <Link className="logo" href={L('/')}>
           <img src="/assets/logo-s7.png" alt="New Star Seven" width="120" height="30" />
         </Link>
 
@@ -50,37 +52,40 @@ export function Nav({ lang = 'ar', path = '' }) {
             :focus-within so it opens from the keyboard too. */}
         <div className="nav-links">
           <div className="nav-item has-sub">
-            <Link href={`/shop${q}`} className={path.startsWith('shop') ? 'on' : ''}>
+            <Link href={L('/shop')} className={path.startsWith('shop') ? 'on' : ''}>
               {ar ? 'المنتجات' : 'Shop'}
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden="true">
                 <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </Link>
             <div className="nav-sub">
-              <Link href={`/shop${q}`}>{ar ? 'كل التشكيلة' : 'The full line'}</Link>
-              <Link href={`/shop?kind=wax${ar ? '' : '&lang=en'}`}>{ar ? 'واكس' : 'Wax'}</Link>
-              <Link href={`/shop?kind=gel${ar ? '' : '&lang=en'}`}>{ar ? 'جل' : 'Gel'}</Link>
+              <Link href={L('/shop')}>{ar ? 'كل التشكيلة' : 'The full line'}</Link>
+              <Link href={`${L('/shop')}?kind=wax`}>{ar ? 'واكس' : 'Wax'}</Link>
+              <Link href={`${L('/shop')}?kind=gel`}>{ar ? 'جل' : 'Gel'}</Link>
             </div>
           </div>
 
           <div className="nav-item">
-            <Link href={`/hair-types${q}`} className={path.startsWith('hair-types') ? 'on' : ''}>
+            <Link href={L('/hair-types')} className={path.startsWith('hair-types') ? 'on' : ''}>
               {ar ? 'نوع شعرك' : 'Hair types'}
             </Link>
           </div>
 
           <div className="nav-item">
-            <Link href={`/blog${q}`} className={path.startsWith('blog') || path.startsWith('article') ? 'on' : ''}>
+            <Link href={L('/blog')} className={path.startsWith('blog') || path.startsWith('article') ? 'on' : ''}>
               {ar ? 'مقالات' : 'Articles'}
             </Link>
           </div>
         </div>
 
         <div className="nav-right">
-          <Link className="lang-btn" href={`/${path}${sep}lang=${other}`}>
+          {/* Swap the locale on the page you are actually on, keeping any
+              filter. It used to append ?lang= to the path, which on the article
+              routes returned the language it claimed to leave. */}
+          <Link className="lang-btn" href={localePath('/' + path, other)} hrefLang={other}>
             {ar ? 'EN' : 'عربي'}
           </Link>
-          <Link className="cart-link" href={`/checkout${q}`} aria-label={ar ? 'السلة' : 'Cart'}>
+          <Link className="cart-link" href={L('/checkout')} aria-label={ar ? 'السلة' : 'Cart'}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9">
               <path d="M3 4h2.2l2 11.2a2 2 0 0 0 2 1.6h7.9a2 2 0 0 0 2-1.55L20.7 8H6.2"
                 strokeLinecap="round" strokeLinejoin="round" />
@@ -88,7 +93,7 @@ export function Nav({ lang = 'ar', path = '' }) {
             </svg>
             <CartBadge />
           </Link>
-          <Link className="nav-order" href={`/shop${q}`}>{ar ? 'اطلب دلوقتي' : 'Shop now'}</Link>
+          <Link className="nav-order" href={L('/shop')}>{ar ? 'اطلب دلوقتي' : 'Shop now'}</Link>
         </div>
       </div>
     </nav>
@@ -97,7 +102,7 @@ export function Nav({ lang = 'ar', path = '' }) {
 
 export function Footer({ lang = 'ar' }) {
   const ar = lang === 'ar';
-  const q = ar ? '' : '?lang=en';
+  const L = p => localePath(p, lang);
 
   return (
     <>
@@ -116,10 +121,10 @@ export function Footer({ lang = 'ar' }) {
             <div>
               <h5>{ar ? 'روابط' : 'Links'}</h5>
               <ul>
-                <li><Link href={`/shop${q}`}>{ar ? 'المنتجات' : 'Shop'}</Link></li>
-                <li><Link href={`/blog${q}`}>{ar ? 'مقالات' : 'Articles'}</Link></li>
-                <li><Link href={`/privacy${q}`}>{ar ? 'سياسة الخصوصية' : 'Privacy'}</Link></li>
-                <li><Link href={`/terms${q}`}>{ar ? 'الشروط والأحكام' : 'Terms'}</Link></li>
+                <li><Link href={L('/shop')}>{ar ? 'المنتجات' : 'Shop'}</Link></li>
+                <li><Link href={L('/blog')}>{ar ? 'مقالات' : 'Articles'}</Link></li>
+                <li><Link href={L('/privacy')}>{ar ? 'سياسة الخصوصية' : 'Privacy'}</Link></li>
+                <li><Link href={L('/terms')}>{ar ? 'الشروط والأحكام' : 'Terms'}</Link></li>
               </ul>
             </div>
 
@@ -164,14 +169,14 @@ export function Footer({ lang = 'ar' }) {
 /** Breadcrumbs. `trail` is [{label, href}] with the last item usually hrefless. */
 export function Crumb({ lang = 'ar', trail = [] }) {
   const ar = lang === 'ar';
-  const q = ar ? '' : '?lang=en';
+  const L = p => localePath(p, lang);
   return (
     <div className="crumb">
-      <Link href={ar ? '/' : '/?lang=en'}>{ar ? 'الرئيسية' : 'Home'}</Link>
+      <Link href={L('/')}>{ar ? 'الرئيسية' : 'Home'}</Link>
       {trail.map((t, i) => (
         <span key={i}>
           <span>›</span>
-          {t.href ? <Link href={`${t.href}${q}`}>{t.label}</Link> : t.label}
+          {t.href ? <Link href={L(t.href)}>{t.label}</Link> : t.label}
         </span>
       ))}
     </div>

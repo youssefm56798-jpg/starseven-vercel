@@ -1,4 +1,5 @@
 import { renderMarkdown } from '../../lib/markdown.js';
+import { alternatesForLang } from '../../lib/urls.js';
 import { LEGAL } from './legalCopy.js';
 import { Dir, Nav, Footer, Crumb } from './Chrome.js';
 
@@ -32,6 +33,6 @@ export function legalMetadata(doc, lang) {
   return {
     title: page.title,
     description: page.title,
-    alternates: { canonical: `/${doc}`, languages: { ar: `/${doc}`, en: `/${doc}?lang=en` } },
+    alternates: alternatesForLang(`/${doc}`, lang),
   };
 }

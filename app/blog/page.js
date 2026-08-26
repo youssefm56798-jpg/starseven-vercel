@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { alternatesForLang, localePath } from '../../lib/urls.js';
 import { sql } from '../../lib/db.js';
 import { Dir, Nav, Footer, Crumb } from '../_components/Chrome.js';
 
@@ -7,12 +8,13 @@ export const revalidate = 300;
 export async function generateMetadata({ searchParams }) {
   const sp = await searchParams;
   const ar = sp?.lang !== 'en';
+  const lang = ar ? 'ar' : 'en';
   return {
     title: ar ? 'مقالات العناية بالشعر' : 'Hair care guides',
     description: ar
       ? 'نصايح تصفيف وعناية شعر الرجال: أنهي منتج لنوع شعرك، إزاي تحطه صح، وإزاي يقعد طول اليوم.'
       : 'Men’s hair styling and care guides: which product suits your hair, how to apply it, and how to make it last.',
-    alternates: { canonical: '/blog', languages: { ar: '/blog', en: '/blog?lang=en' } },
+    alternates: alternatesForLang('/blog', lang),
   };
 }
 
@@ -20,7 +22,7 @@ export default async function BlogPage({ searchParams }) {
   const sp = await searchParams;
   const lang = sp?.lang === 'en' ? 'en' : 'ar';
   const ar = lang === 'ar';
-  const q = ar ? '' : '?lang=en';
+  const L = p => localePath(p, lang);
 
   const posts = await sql`
     SELECT slug, title, excerpt, cover, cover_alt, hair_type, published_at
@@ -53,7 +55,7 @@ export default async function BlogPage({ searchParams }) {
         ) : (
           <div className="bloglist">
             {posts.map(a => (
-              <Link className="acard" key={a.slug} href={`/article/${a.slug}${q}`}>
+              <Link className="acard" key={a.slug} href={L(`/article/${a.slug}`)}>
                 {a.cover && (
                   <div className="cov">
                     <img src={`/${a.cover}`} alt={a.cover_alt || a.title} loading="lazy"

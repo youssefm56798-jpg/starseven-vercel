@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { alternatesForLang, localePath } from '../../../lib/urls.js';
 import { notFound } from 'next/navigation';
 import { sql } from '../../../lib/db.js';
 import { site } from '../../../lib/config.js';
@@ -30,6 +31,7 @@ export async function generateMetadata({ params, searchParams }) {
   const { slug } = await params;
   const sp = await searchParams;
   const ar = sp?.lang !== 'en';
+  const lang = ar ? 'ar' : 'en';
   const p = await getProduct(slug);
   if (!p) return { title: ar ? 'المنتج مش موجود' : 'Product not found', robots: { index: false } };
 
@@ -42,10 +44,7 @@ export async function generateMetadata({ params, searchParams }) {
   return {
     title: name,
     description: desc,
-    alternates: {
-      canonical: `/product/${p.slug}`,
-      languages: { ar: `/product/${p.slug}`, en: `/product/${p.slug}?lang=en` },
-    },
+    alternates: alternatesForLang(`/product/${p.slug}`, lang),
     openGraph: { title: name, description: desc, images: [`/${p.image}`] },
   };
 }
@@ -55,7 +54,7 @@ export default async function ProductPage({ params, searchParams }) {
   const sp = await searchParams;
   const lang = sp?.lang === 'en' ? 'en' : 'ar';
   const ar = lang === 'ar';
-  const q = ar ? '' : '?lang=en';
+  const L = p => localePath(p, lang);
 
   const p = await getProduct(slug);
   if (!p) notFound();
@@ -177,7 +176,7 @@ export default async function ProductPage({ params, searchParams }) {
                     label={ar ? 'ضيفه للسلة' : 'Add to cart'}
                     addedLabel={ar ? 'اتضاف للسلة ✓' : 'Added to cart ✓'}
                   />
-                  <Link className="btn btn-line" href={`/checkout${q}`}>
+                  <Link className="btn btn-line" href={L(`/checkout`)}>
                     {ar ? 'إتمام الطلب ←' : 'Checkout →'}
                   </Link>
                 </>
@@ -215,7 +214,7 @@ export default async function ProductPage({ params, searchParams }) {
                   <span className="hairnote-sub">{ar ? hair.ar.short : hair.en.short}</span>
                   {/* Was '/#hair', a scroll position on another page. There
                       is a real page for this type now. */}
-                  <Link href={`/hair-types/${hair.slug}${q}`}>
+                  <Link href={L(`/hair-types/${hair.slug}`)}>
                     {ar ? `كل حاجة عن الشعر ال${hair.ar.name} ←` : `More on ${hair.en.name.toLowerCase()} hair →`}
                   </Link>
                 </span>
@@ -324,7 +323,7 @@ export default async function ProductPage({ params, searchParams }) {
                   const rName = ar ? r.name_ar : r.name_en;
                   return (
                     <div className="card" key={r.sku} style={{ '--c': r.color }}>
-                      <Link className="card-hit" href={`/product/${r.slug}${q}`}>
+                      <Link className="card-hit" href={L(`/product/${r.slug}`)}>
                         <img src={`/${r.image}`} alt={rName} loading="lazy" width="300" height="300" />
                         <h3>{rName}</h3>
                         <div className="sub">{ar ? r.sub_ar : r.sub_en}</div>

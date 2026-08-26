@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { alternatesForLang, localePath } from '../../lib/urls.js';
 import { sql } from '../../lib/db.js';
 import { site } from '../../lib/config.js';
 import { currencyLabel, whole } from '../../lib/money.js';
@@ -11,15 +12,13 @@ export const revalidate = 60;
 export async function generateMetadata({ searchParams }) {
   const sp = await searchParams;
   const ar = sp?.lang !== 'en';
+  const lang = ar ? 'ar' : 'en';
   return {
     title: ar ? 'المنتجات — واكس وجل شعر' : 'Shop — hair wax & gel',
     description: ar
       ? 'كل تشكيلة نيو ستار سفن: واكس وجل شعر بريميوم للرجالة، تثبيت ميجا، بسعر مظبوط. توصيل ودفع عند الاستلام.'
       : 'The full New Star Seven line: premium men’s hair wax and gel, mega hold, priced right. Delivery and cash on receipt.',
-    alternates: {
-      canonical: '/shop',
-      languages: { ar: '/shop', en: '/shop?lang=en' },
-    },
+    alternates: alternatesForLang('/shop', lang),
   };
 }
 
@@ -27,7 +26,7 @@ export default async function ShopPage({ searchParams }) {
   const sp = await searchParams;
   const lang = sp?.lang === 'en' ? 'en' : 'ar';
   const ar = lang === 'ar';
-  const q = ar ? '' : '?lang=en';
+  const L = p => localePath(p, lang);
 
   const kinds = ['all', 'wax', 'gel'];
   const kind = kinds.includes(sp?.kind) ? sp.kind : 'all';
@@ -52,10 +51,9 @@ export default async function ShopPage({ searchParams }) {
     },
   };
 
-  const chipHref = k =>
-    `/shop${k === 'all' ? '' : `?kind=${k}`}${
-      !ar ? (k === 'all' ? '?lang=en' : '&lang=en') : ''
-    }`;
+  // The locale is a path prefix now, so the filter is the only query left and
+  // the '?' vs '&' juggling goes away with it.
+  const chipHref = k => `${L('/shop')}${k === 'all' ? '' : `?kind=${k}`}`;
 
   return (
     <Dir lang={lang}>
@@ -100,7 +98,7 @@ export default async function ShopPage({ searchParams }) {
               const chip = ar ? p.chip_ar : p.chip_en;
               return (
                 <div className="card" key={p.sku} style={{ '--c': p.color }}>
-                  <Link className="card-hit" href={`/product/${p.slug}${q}`}>
+                  <Link className="card-hit" href={L(`/product/${p.slug}`)}>
                     {chip && <span className="chip">{chip}</span>}
                     <img src={`/${p.image}`} alt={name} loading="lazy" width="300" height="300" />
                     <h3>{name}</h3>

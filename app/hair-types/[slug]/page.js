@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { localePath } from '../../../lib/urls.js';
 import { notFound } from 'next/navigation';
 import { sql, hasDb } from '../../../lib/db.js';
 import { site } from '../../../lib/config.js';
@@ -48,7 +49,7 @@ export default async function HairTypePage({ params, searchParams }) {
   const sp = await searchParams;
   const lang = sp?.lang === 'en' ? 'en' : 'ar';
   const ar = lang === 'ar';
-  const q = ar ? '' : '?lang=en';
+  const L = p => localePath(p, lang);
 
   const tile = bySlug(slug);
   if (!tile) notFound();
@@ -150,12 +151,12 @@ export default async function HairTypePage({ params, searchParams }) {
             {best ? (
               <div className="ht-rec">
                 <span className="ht-rec-badge">{ar ? 'الترشيح' : 'Our pick'}</span>
-                <Link href={`/product/${best.slug}${q}`}>
+                <Link href={L(`/product/${best.slug}`)}>
                   <img src={`/${best.image}`} alt={ar ? best.name_ar : best.name_en}
                     width="200" height="200" />
                 </Link>
                 <h3>
-                  <Link href={`/product/${best.slug}${q}`}>{ar ? best.name_ar : best.name_en}</Link>
+                  <Link href={L(`/product/${best.slug}`)}>{ar ? best.name_ar : best.name_en}</Link>
                 </h3>
                 <p className="ht-rec-sub">{ar ? best.sub_ar : best.sub_en}</p>
 
@@ -191,7 +192,7 @@ export default async function HairTypePage({ params, searchParams }) {
                   </span>
                 )}
 
-                <Link className="ht-rec-link" href={`/product/${best.slug}${q}`}>
+                <Link className="ht-rec-link" href={L(`/product/${best.slug}`)}>
                   {ar ? 'تفاصيل المنتج ←' : 'Full product detail →'}
                 </Link>
 
@@ -199,7 +200,7 @@ export default async function HairTypePage({ params, searchParams }) {
                   <div className="ht-rec-alts">
                     <span>{ar ? 'بدائل كمان تناسبك:' : 'Alternates that also suit you:'}</span>
                     {alts.map(a => (
-                      <Link key={a.sku} href={`/product/${a.slug}${q}`}>
+                      <Link key={a.sku} href={L(`/product/${a.slug}`)}>
                         <b>{ar ? a.name_ar : a.name_en}</b>
                         <bdi>{whole(a.price)} <small>{currencyLabel(lang)}</small></bdi>
                       </Link>
@@ -214,15 +215,15 @@ export default async function HairTypePage({ params, searchParams }) {
                     ? 'المنتجات مش ظاهرة دلوقتي. الكلام اللي فوق ثابت مهما كان — وتقدر تشوف التشكيلة كلها من صفحة المنتجات.'
                     : 'Products are not loading right now. The guidance above still stands — and the full line is on the shop page.'}
                 </p>
-                <Link className="btn btn-ink btn-full" href={`/shop${q}`}>
+                <Link className="btn btn-ink btn-full" href={L(`/shop`)}>
                   {ar ? 'صفحة المنتجات ←' : 'Go to the shop →'}
                 </Link>
               </div>
             )}
 
             <div className="ht-back">
-              <Link href={`/hair-types${q}`}>{ar ? 'كل أنواع الشعر ←' : 'All hair types →'}</Link>
-              <Link href={`/shop${q}`}>{ar ? 'كل التشكيلة ←' : 'The full line →'}</Link>
+              <Link href={L(`/hair-types`)}>{ar ? 'كل أنواع الشعر ←' : 'All hair types →'}</Link>
+              <Link href={L(`/shop`)}>{ar ? 'كل التشكيلة ←' : 'The full line →'}</Link>
             </div>
           </aside>
         </div>

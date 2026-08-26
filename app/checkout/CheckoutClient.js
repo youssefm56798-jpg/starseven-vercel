@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { localePath } from '../../lib/urls.js';
 import Link from 'next/link';
 import { readCart, writeCart, setQty as setCartQty, clearCart } from '../../lib/cart.js';
 import { cartTotals } from '../../lib/pricing.js';
@@ -88,7 +89,7 @@ function Field({ id, label, val, set, err, type = 'text', ta, ...rest }) {
 export default function CheckoutClient({ lang, add, catalog, shipping, currency }) {
   const T = COPY[lang] || COPY.ar;
   const ar = lang === 'ar';
-  const q = ar ? '' : '?lang=en';
+  const L = p => localePath(p, lang);
 
   const [cart, setCart] = useState([]);
   const [ready, setReady] = useState(false);
@@ -118,7 +119,7 @@ export default function CheckoutClient({ lang, add, catalog, shipping, currency 
       else next = [...next, { sku: add, qty: 1 }];
       writeCart(next);
       // Drop ?add= so a refresh doesn't add the product again.
-      window.history.replaceState(null, '', `/checkout${q}`);
+      window.history.replaceState(null, '', L(`/checkout`));
     }
     setCart(next);
     setReady(true);
@@ -207,7 +208,7 @@ export default function CheckoutClient({ lang, add, catalog, shipping, currency 
         <div className="ref" dir="ltr">{done.ref}</div>
         <h1>{T.done_h}</h1>
         <p>{done.message || T.done_p}</p>
-        <Link className="btn btn-red btn-full" href={`/shop${q}`}>{T.done_more}</Link>
+        <Link className="btn btn-red btn-full" href={L(`/shop`)}>{T.done_more}</Link>
       </div>
     );
   }
@@ -218,7 +219,7 @@ export default function CheckoutClient({ lang, add, catalog, shipping, currency 
         <div className="big">★</div>
         <h2 style={{ fontWeight: 900, fontSize: 22, margin: '8px 0 6px' }}>{T.empty}</h2>
         <p style={{ marginBottom: 22 }}>{T.empty_p}</p>
-        <Link className="btn btn-red" href={`/shop${q}`}>{T.shop}</Link>
+        <Link className="btn btn-red" href={L(`/shop`)}>{T.shop}</Link>
       </div>
     );
   }
@@ -271,8 +272,8 @@ export default function CheckoutClient({ lang, add, catalog, shipping, currency 
           </button>
 
           <p className="agree">
-            {T.agree_a} <Link href={`/terms${q}`}>{T.agree_terms}</Link> {T.agree_and}{' '}
-            <Link href={`/privacy${q}`}>{T.agree_priv}</Link>.
+            {T.agree_a} <Link href={L(`/terms`)}>{T.agree_terms}</Link> {T.agree_and}{' '}
+            <Link href={L(`/privacy`)}>{T.agree_priv}</Link>.
           </p>
         </form>
       </div>

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { localeUrl, localePath } from '../../../lib/urls.js';
 import { notFound } from 'next/navigation';
 import { sql } from '../../../lib/db.js';
 import { site } from '../../../lib/config.js';
@@ -31,7 +32,11 @@ export async function generateMetadata({ params }) {
   return {
     title: a.meta_title || a.title,
     description: a.meta_desc || a.excerpt,
-    alternates: { canonical: `/article/${a.slug}` },
+    // An article exists in one language per row, so it self-canonicals at its
+    // own language's URL rather than claiming a twin it cannot name. Pairing
+    // AR and EN needs the twin's slug; the schema tracks that in group_key and
+    // nothing reads it yet.
+    alternates: { canonical: localeUrl(`/article/${a.slug}`, a.lang === 'en' ? 'en' : 'ar') },
     openGraph: {
       type: 'article',
       title: a.title,
@@ -127,7 +132,7 @@ export default async function ArticlePage({ params }) {
                   {ar ? prod.sub_ar : prod.sub_en} · {whole(prod.price)} {currencyLabel(lang)}
                 </p>
               </div>
-              <Link className="btn btn-red" href={`/product/${prod.slug}${ar ? '' : '?lang=en'}`}>
+              <Link className="btn btn-red" href={L(`/product/${prod.slug}`)}>
                 {ar ? 'شوف المنتج' : 'View product'}
               </Link>
             </div>

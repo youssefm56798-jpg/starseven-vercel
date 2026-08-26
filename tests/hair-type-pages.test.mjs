@@ -21,6 +21,10 @@ import {
 } from '../app/hair-types/lib.js';
 
 const SLUGS = ['straight', 'wavy', 'curly', 'coily', 'fine', 'thick'];
+// lib/config.js falls back to this when NEXT_PUBLIC_SITE_URL is unset,
+// which is the case in tests.
+const BASE = 'http://localhost:3000';
+
 const LANGS = ['ar', 'en'];
 const SITE = 'https://example.test';
 
@@ -161,22 +165,47 @@ test('gapNote defaults to Arabic for anything that is not "en"', () => {
 
 /* ----------------------------------------------------------- metadata */
 
-test('every type page canonicalises to its own path', () => {
+test('every type page canonicalises to its OWN language URL', () => {
+  // The canonical must follow the language being rendered. When every English
+  // page canonicalled to its Arabic twin, Google filed all 22 of them under
+  // "Alternate page with proper canonical tag" and the English site could not
+  // be indexed at all. Absolute URLs, because relative ones are resolved
+  // against metadataBase and that silently dropped the query on the home page.
   for (const tile of HAIR_TYPES) {
+    const path = `/hair-types/${tile.slug}`;
+    assert.equal(typeMeta(tile, 'ar').alternates.canonical, `${BASE}${path}`);
+    assert.equal(typeMeta(tile, 'en').alternates.canonical, `${BASE}/en${path}`);
+
     for (const lang of LANGS) {
-      const m = typeMeta(tile, lang);
-      assert.equal(m.alternates.canonical, `/hair-types/${tile.slug}`);
-      assert.equal(m.alternates.languages.ar, `/hair-types/${tile.slug}`);
-      assert.equal(m.alternates.languages.en, `/hair-types/${tile.slug}?lang=en`);
+      const L = typeMeta(tile, lang).alternates.languages;
+      assert.equal(L.ar, `${BASE}${path}`);
+      assert.equal(L.en, `${BASE}/en${path}`);
+      // Egypt is the only market that can be fulfilled, so the regional tags
+      // are the ones that matter; x-default falls back to Arabic, not English.
+      assert.equal(L['ar-EG'], `${BASE}${path}`);
+      assert.equal(L['en-EG'], `${BASE}/en${path}`);
+      assert.equal(L['x-default'], `${BASE}${path}`);
     }
   }
 });
 
-test('the index canonicalises to /hair-types in both languages', () => {
+test('the index canonicalises to its own language URL', () => {
+  assert.equal(indexMeta('ar').alternates.canonical, `${BASE}/hair-types`);
+  assert.equal(indexMeta('en').alternates.canonical, `${BASE}/en/hair-types`);
   for (const lang of LANGS) {
-    const m = indexMeta(lang);
-    assert.equal(m.alternates.canonical, '/hair-types');
-    assert.equal(m.alternates.languages.en, '/hair-types?lang=en');
+    const L = indexMeta(lang).alternates.languages;
+    assert.equal(L.en, `${BASE}/en/hair-types`);
+    assert.equal(L['x-default'], `${BASE}/hair-types`);
+  }
+});
+
+test('every alternate resolves to a distinct URL', () => {
+  // A set of alternates that all point at the same address is decoration, not
+  // hreflang — which is exactly what the home page shipped.
+  for (const m of [indexMeta('ar'), ...HAIR_TYPES.map(t => typeMeta(t, 'ar'))]) {
+    const L = m.alternates.languages;
+    assert.notEqual(L.ar, L.en, 'ar and en alternates point at the same URL');
+    assert.equal(new Set(Object.values(L)).size, 2, 'expected exactly two distinct URLs');
   }
 });
 

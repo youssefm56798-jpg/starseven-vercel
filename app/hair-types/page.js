@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { localePath } from '../../lib/urls.js';
 import { sql, hasDb } from '../../lib/db.js';
 import { site } from '../../lib/config.js';
 import { currencyLabel, whole } from '../../lib/money.js';
@@ -39,7 +40,7 @@ export default async function HairTypesPage({ searchParams }) {
   const sp = await searchParams;
   const lang = sp?.lang === 'en' ? 'en' : 'ar';
   const ar = lang === 'ar';
-  const q = ar ? '' : '?lang=en';
+  const L = p => localePath(p, lang);
 
   const products = await loadProducts();
   const counts = formatCounts(products);
@@ -170,7 +171,7 @@ export default async function HairTypesPage({ searchParams }) {
                     </span>
                     <div>
                       <h3>
-                        <Link href={`/hair-types/${t.slug}${q}`}>{c.name}</Link>
+                        <Link href={L(`/hair-types/${t.slug}`)}>{c.name}</Link>
                       </h3>
                       <span className="ht-range" dir={range.dir}>{range.text}</span>
                       <p className="ht-short">{c.short}</p>
@@ -191,7 +192,7 @@ export default async function HairTypesPage({ searchParams }) {
 
                   {best ? (
                     <div className="ht-pick">
-                      <Link className="ht-pick-main" href={`/product/${best.slug}${q}`}>
+                      <Link className="ht-pick-main" href={L(`/product/${best.slug}`)}>
                         <img src={`/${best.image}`} alt={ar ? best.name_ar : best.name_en}
                           width="120" height="120" loading="lazy" />
                         <span>
@@ -207,7 +208,7 @@ export default async function HairTypesPage({ searchParams }) {
                         <p className="ht-alts">
                           <span>{ar ? 'كمان يناسبه:' : 'Also works:'}</span>
                           {alts.map(a => (
-                            <Link key={a.sku} href={`/product/${a.slug}${q}`}>
+                            <Link key={a.sku} href={L(`/product/${a.slug}`)}>
                               {ar ? a.name_ar : a.name_en}
                             </Link>
                           ))}
@@ -224,7 +225,7 @@ export default async function HairTypesPage({ searchParams }) {
 
                   {gap && <p className="ht-gapnote">{gap}</p>}
 
-                  <Link className="ht-more" href={`/hair-types/${t.slug}${q}`}>
+                  <Link className="ht-more" href={L(`/hair-types/${t.slug}`)}>
                     {ar ? `كل تفاصيل شعر ${c.name} ←` : `Everything about ${c.name.toLowerCase()} hair →`}
                   </Link>
                 </article>
@@ -281,7 +282,7 @@ export default async function HairTypesPage({ searchParams }) {
           <ul className="ht-gaplist">
             {gaps.map((g, i) => <li key={i}>{g}</li>)}
           </ul>
-          <Link className="btn btn-ink" href={`/shop${q}`}>
+          <Link className="btn btn-ink" href={L(`/shop`)}>
             {ar ? 'شوف اللي بنعمله فعلاً ←' : 'See what we do make →'}
           </Link>
         </section>

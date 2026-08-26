@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import { headers } from 'next/headers';
 import './globals.css';
 import { site } from '../lib/config.js';
 import PageWipe from './_components/PageWipe.js';
@@ -33,24 +34,17 @@ export const viewport = {
   themeColor: '#12100B',
 };
 
-export default function RootLayout({ children }) {
-  // No `dir` here, deliberately. A layout cannot read `?lang=`, so each
-  // storefront page states its own direction on the <Dir> wrapper it renders.
-  // Asserting dir="rtl" on <html> as well looked harmless but was not: <html>
-  // is an ancestor of everything, so every `[dir="rtl"] ...` rule in the
-  // stylesheets kept matching on English pages — which is how the English hero
-  // lost Anton and fell back to Cairo Black. The wrapper is the only place the
-  // direction is declared.
+export default async function RootLayout({ children }) {
+  // middleware.js resolves the locale from the path and passes it here. The
+  // root layout renders <html> and can read neither params nor search params,
+  // so a request header is the only channel that reaches it — and without it
+  // every English page shipped <html lang="ar">, which also put <title> and
+  // <meta description> in the wrong language for a crawler.
+  const lang = (await headers()).get('x-s7-lang') === 'en' ? 'en' : 'ar';
+  const dir = lang === 'ar' ? 'rtl' : 'ltr';
+
   return (
-    <html lang="ar">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Anton&family=Cairo:wght@400;600;700;900&display=swap"
-          rel="stylesheet"
-        />
-      </head>
+    <html lang={lang} dir={dir}>
       <body>
         {/* The wipe reads the current route, and useSearchParams needs a
             Suspense boundary when it is used this high in the tree. */}

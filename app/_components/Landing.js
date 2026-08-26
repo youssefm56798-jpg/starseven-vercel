@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { localePath } from '../../lib/urls.js';
 import Link from 'next/link';
 import { addToCart, readCart, setQty as writeQty } from '../../lib/cart.js';
 import { cartTotals } from '../../lib/pricing.js';
@@ -100,7 +101,7 @@ const T = {
   },
 };
 
-function Card({ p, lang, d, q, onAdd }) {
+function Card({ p, lang, d, L, onAdd }) {
   const [added, setAdded] = useState(false);
   const t = p[lang];
   const out = p.stock <= 0;
@@ -108,7 +109,7 @@ function Card({ p, lang, d, q, onAdd }) {
 
   return (
     <div className="card" style={{ '--c': p.color }}>
-      <Link className="card-hit" href={`/product/${p.slug}${q}`}>
+      <Link className="card-hit" href={L(`/product/${p.slug}`)}>
         {t.chip && <span className="chip">{t.chip}</span>}
         <img src={`/${p.img}`} alt={t.name} loading="lazy" width="300" height="300" />
         <h3>{t.name}</h3>
@@ -141,7 +142,7 @@ function Card({ p, lang, d, q, onAdd }) {
   );
 }
 
-function Drawer({ open, close, lines, lang, d, q, shipping, freeOver, onQty }) {
+function Drawer({ open, close, lines, lang, d, L, shipping, freeOver, onQty }) {
   const subtotal = lines.reduce((n, l) => n + l.price * l.qty, 0);
   const t = cartTotals(subtotal, 0, shipping, freeOver);
   const money = v => `${Math.round(v * 100) / 100} ${d.egp}`;
@@ -187,11 +188,11 @@ function Drawer({ open, close, lines, lang, d, q, shipping, freeOver, onQty }) {
             <div className="drawer-body">
               {lines.map(l => (
                 <div className="citem" key={l.sku}>
-                  <Link href={`/product/${l.slug}${q}`} onClick={close}>
+                  <Link href={L(`/product/${l.slug}`)} onClick={close}>
                     <img src={`/${l.img}`} alt={l[lang].name} />
                   </Link>
                   <div>
-                    <h4><Link href={`/product/${l.slug}${q}`} onClick={close}>{l[lang].name}</Link></h4>
+                    <h4><Link href={L(`/product/${l.slug}`)} onClick={close}>{l[lang].name}</Link></h4>
                     <div className="pr">{l.price} {d.egp}</div>
                   </div>
                   <div className="qty">
@@ -212,7 +213,7 @@ function Drawer({ open, close, lines, lang, d, q, shipping, freeOver, onQty }) {
                 </span>
               </div>
               <div className="crow tot"><span>{d.cart_tot}</span><span>{money(t.total)}</span></div>
-              <Link className="btn btn-red btn-full" href={`/checkout${q}`}>{d.cart_checkout}</Link>
+              <Link className="btn btn-red btn-full" href={L(`/checkout`)}>{d.cart_checkout}</Link>
               <div className="cart-cod">{d.cod}</div>
             </div>
           </>
@@ -225,7 +226,7 @@ function Drawer({ open, close, lines, lang, d, q, shipping, freeOver, onQty }) {
 export default function Landing({ lang, products, hairTypes, shipping, freeOver }) {
   const d = T[lang] || T.ar;
   const ar = lang === 'ar';
-  const q = ar ? '' : '?lang=en';
+  const L = p => localePath(p, lang);
 
   const [filter, setFilter] = useState('all');
   const [hair, setHair] = useState('wavy');
@@ -368,14 +369,14 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
             <div className="orbit"><i>★</i></div>
             <div className="orbit o2"><i>★</i></div>
 
-            <Link className="jar-wrap" href={`/product/premium-wax-pro-x${q}`} aria-label="Premium Wax Pro X">
+            <Link className="jar-wrap" href={L(`/product/premium-wax-pro-x`)} aria-label="Premium Wax Pro X">
               <img src="/assets/wax-red.webp" alt="Star Seven Premium Wax Pro X" width="390" height="390" />
             </Link>
 
-            <Link className="float-jar j1" href={`/product/premium-gel-blue${q}`} aria-label="Premium Gel Blue">
+            <Link className="float-jar j1" href={L(`/product/premium-gel-blue`)} aria-label="Premium Gel Blue">
               <img src="/assets/gel-blue.webp" alt="Star Seven Premium Gel" width="140" height="140" />
             </Link>
-            <Link className="float-jar j2" href={`/product/premium-wax-shea${q}`} aria-label="Premium Wax Shea Butter">
+            <Link className="float-jar j2" href={L(`/product/premium-wax-shea`)} aria-label="Premium Wax Shea Butter">
               <img src="/assets/wax-purple.webp" alt="Star Seven Shea Wax" width="112" height="112" />
             </Link>
 
@@ -389,7 +390,7 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
             </div>
 
             {hero && (
-              <Link className="price-tag" href={`/product/${hero.slug}${q}`}>
+              <Link className="price-tag" href={L(`/product/${hero.slug}`)}>
                 <span className="pt-num">{hero.price} <small>{d.egp}</small></span>
                 <small>{d.tag_note}</small>
               </Link>
@@ -438,7 +439,7 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
             <p style={{ color: 'var(--grey)', fontWeight: 600 }}>{d.empty_grid}</p>
           ) : (
             <div className="grid">
-              {shown.map(p => <Card key={p.sku} p={p} lang={lang} d={d} q={q} onAdd={add} />)}
+              {shown.map(p => <Card key={p.sku} p={p} lang={lang} d={d} L={L} onAdd={add} />)}
             </div>
           )}
         </div>
@@ -459,13 +460,13 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
                   <div key={b}><b dir="ltr">{b}</b><span>{s}</span></div>
                 ))}
               </div>
-              <Link className="btn btn-red" href={`/product/${hero.slug}${q}`}>
+              <Link className="btn btn-red" href={L(`/product/${hero.slug}`)}>
                 {d.details} — {hero.price} {d.egp}
               </Link>
             </div>
             <div className="prox-visual">
               <div className="big-star" aria-hidden="true">7</div>
-              <Link className="jar" href={`/product/${hero.slug}${q}`}>
+              <Link className="jar" href={L(`/product/${hero.slug}`)}>
                 <img src="/assets/wax-red.webp" alt="Premium Wax Pro X" width="420" height="420" />
               </Link>
             </div>
@@ -525,7 +526,7 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
                   <span>{copy.avoid}</span>
                 </div>
                 {best && (
-                  <Link className="btn btn-red" href={`/product/${best.slug}${q}`}>
+                  <Link className="btn btn-red" href={L(`/product/${best.slug}`)}>
                     {best[lang].name} — {best.price} {d.egp}
                   </Link>
                 )}
@@ -534,7 +535,7 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
               {best && (
                 <div className="hres-pick">
                   <span className="badge">{d.hair_pick}</span>
-                  <Link href={`/product/${best.slug}${q}`}>
+                  <Link href={L(`/product/${best.slug}`)}>
                     <img src={`/${best.img}`} alt={best[lang].name} loading="lazy" width="200" height="200" />
                   </Link>
                   <h4>{best[lang].name}</h4>
@@ -544,7 +545,7 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
                     <div className="hres-alt">
                       <span className="alt-lbl">{d.hair_alt}</span>
                       {alts.map(a => (
-                        <Link key={a.sku} href={`/product/${a.slug}${q}`}>{a[lang].name}</Link>
+                        <Link key={a.sku} href={L(`/product/${a.slug}`)}>{a[lang].name}</Link>
                       ))}
                     </div>
                   )}
@@ -625,7 +626,7 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
         lines={lines}
         lang={lang}
         d={d}
-        q={q}
+        L={L}
         shipping={shipping}
         freeOver={freeOver}
         onQty={qty}
