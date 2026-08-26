@@ -21,7 +21,8 @@ async function getProduct(slug) {
 export async function generateStaticParams() {
   try {
     const rows = await sql`SELECT slug FROM products WHERE active = true`;
-    return rows.map(r => ({ slug: r.slug }));
+    return rows.map(r => r.slug).filter(s => typeof s === 'string' && s)
+      .map(slug => ({ slug }));
   } catch {
     return [];   // no database at build time — pages render on request instead
   }

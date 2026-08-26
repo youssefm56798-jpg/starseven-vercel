@@ -41,6 +41,16 @@ export function middleware(request) {
     return rewrite(url, request, 'en');
   }
 
+  /* ------------------------------------- legacy '-ar' article slugs ---- */
+  // Arabic articles used to live on a '-ar' slug because the table had one
+  // unique index across all languages. Twins share a slug now, so the old
+  // addresses redirect to the shared one rather than 404.
+  if (/^\/article\/.+-ar$/.test(pathname)) {
+    const url = request.nextUrl.clone();
+    url.pathname = pathname.replace(/-ar$/, '');
+    return NextResponse.redirect(url, 301);
+  }
+
   /* --------------------------------------------- legacy ?lang= handling */
   if (searchParams.has('lang')) {
     const value = searchParams.get('lang').toLowerCase();

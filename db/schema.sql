@@ -135,7 +135,12 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_offers_code ON offers (code) WHERE code <>
 
 CREATE TABLE IF NOT EXISTS articles (
   id            INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  slug          TEXT NOT NULL UNIQUE,
+  -- Unique per (slug, lang), not globally: an article and its translation are
+  -- the same article and should share a slug, so /article/wax-or-gel and
+  -- /en/article/wax-or-gel are the pair. A global unique forced the Arabic
+  -- twin onto a '-ar' slug, which is why the language toggle could not
+  -- switch between them: there was no shared key to switch on.
+  slug          TEXT NOT NULL,
   lang          TEXT NOT NULL DEFAULT 'ar' CHECK (lang IN ('ar','en')),
   group_key     TEXT NOT NULL DEFAULT '',
   title         TEXT NOT NULL,
@@ -154,7 +159,17 @@ CREATE TABLE IF NOT EXISTS articles (
   updated_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+CREATE UNIQUE INDEX IF NOT EXISTS idx_articles_slug_lang ON articles (slug, lang);
 CREATE INDEX IF NOT EXISTS idx_articles_live ON articles (status, lang, published_at DESC);
+
+-- Existing databases were created with a global UNIQUE on slug and with the
+-- Arabic rows on '-ar' slugs. Drop the old constraint and fold the twins back
+-- onto a shared slug. Both statements are safe to re-run.
+ALTER TABLE articles DROP CONSTRAINT IF EXISTS articles_slug_key;
+UPDATE articles SET slug = left(slug, length(slug) - 3)
+ WHERE lang = 'ar' AND slug LIKE '%-ar'
+   AND NOT EXISTS (SELECT 1 FROM articles b
+                    WHERE b.lang = 'ar' AND b.slug = left(articles.slug, length(articles.slug) - 3));
 
 CREATE TABLE IF NOT EXISTS quiz_results (
   id          INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

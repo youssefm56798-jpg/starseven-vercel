@@ -434,3 +434,15 @@ button{font:inherit;cursor:pointer}
 .pdp-alsofor{margin-top:14px;padding-top:12px;border-top:1px solid var(--line);
   font-size:13.5px;font-weight:600;color:var(--grey)}
 .pdp-alsofor b{color:var(--ink);font-weight:900;margin-inline-end:4px}
+
+/* 404 and the error boundary. Both replace a whole page, so they carry their
+   own vertical rhythm rather than relying on a layout that may not have run. */
+.nf{max-width:640px;margin-inline:auto;padding:90px 0 120px;text-align:center}
+.nf-code{font-family:'Anton','Cairo',sans-serif;font-size:clamp(80px,18vw,160px);line-height:1;
+  color:var(--paper-2);letter-spacing:.02em;margin-bottom:-14px;user-select:none}
+.nf h1{font-size:clamp(26px,4.5vw,38px);font-weight:900;margin-bottom:14px}
+.nf p{color:var(--grey);font-weight:600;font-size:15.5px;margin-bottom:10px}
+.nf-links{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:26px 0 18px}
+.nf-more{font-size:14px;font-weight:800}
+.nf-more a{color:var(--grey);transition:.2s}
+.nf-more a:hover{color:var(--red-ui)}

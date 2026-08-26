@@ -9,34 +9,74 @@ import { Dir, Nav, Footer, Crumb } from '../../_components/Chrome.js';
 
 export const revalidate = 300;
 
-async function getArticle(slug) {
+/**
+ * An article and its translation share a slug and differ by language, so the
+ * URL decides which row to serve: /article/wax-or-gel is Arabic and
+ * /en/article/wax-or-gel is English.
+ *
+ * If the requested language has no translation, fall back to whichever version
+ * exists rather than 404-ing — a reader who followed an English link to an
+ * Arabic-only piece should still get the piece.
+ */
+async function getArticle(slug, lang) {
   const rows = await sql`
-    SELECT * FROM articles WHERE slug = ${slug} AND status = 'published' LIMIT 1`;
-  return rows[0] || null;
+    SELECT * FROM articles WHERE slug = ${slug} AND status = 'published'`;
+  // Preferring the requested language is a two-row decision, so it is made
+  // here rather than as an ORDER BY expression — the same call made on the
+  // product page, and for the same reason: a plain pick is easier to be sure of.
+  return rows.find(r => r.lang === lang) || rows[0] || null;
 }
 
-export async function generateStaticParams() {
+/** Every language a given slug exists in, for hreflang and the toggle. */
+async function twinLangs(slug) {
   try {
-    const rows = await sql`SELECT slug FROM articles WHERE status = 'published'`;
-    return rows.map(r => ({ slug: r.slug }));
+    const rows = await sql`
+      SELECT lang FROM articles WHERE slug = ${slug} AND status = 'published'`;
+    return rows.map(r => r.lang);
   } catch {
     return [];
   }
 }
 
-export async function generateMetadata({ params }) {
+export async function generateStaticParams() {
+  try {
+    const rows = await sql`SELECT DISTINCT slug FROM articles WHERE status = 'published'`;
+    return rows.map(r => r.slug).filter(s => typeof s === 'string' && s)
+      .map(slug => ({ slug }));
+  } catch {
+    return [];
+  }
+}
+
+export async function generateMetadata({ params, searchParams }) {
   const { slug } = await params;
-  const a = await getArticle(slug);
+  const sp = await searchParams;
+  const want = sp?.lang === 'en' ? 'en' : 'ar';
+  const a = await getArticle(slug, want);
   if (!a) return { title: 'Article not found', robots: { index: false } };
+
+  // Only declare an alternate for a language this article actually exists in.
+  // Pointing hreflang at a translation that is not there is worse than
+  // declaring nothing: it sends Google to a URL that serves the other language.
+  const langs = await twinLangs(slug);
+  const languages = {};
+  if (langs.includes('ar')) {
+    languages['ar-EG'] = localeUrl(`/article/${slug}`, 'ar');
+    languages.ar = localeUrl(`/article/${slug}`, 'ar');
+  }
+  if (langs.includes('en')) {
+    languages['en-EG'] = localeUrl(`/article/${slug}`, 'en');
+    languages.en = localeUrl(`/article/${slug}`, 'en');
+  }
+  languages['x-default'] = localeUrl(`/article/${slug}`, langs.includes('ar') ? 'ar' : 'en');
 
   return {
     title: a.meta_title || a.title,
     description: a.meta_desc || a.excerpt,
-    // An article exists in one language per row, so it self-canonicals at its
-    // own language's URL rather than claiming a twin it cannot name. Pairing
-    // AR and EN needs the twin's slug; the schema tracks that in group_key and
-    // nothing reads it yet.
-    alternates: { canonical: localeUrl(`/article/${a.slug}`, a.lang === 'en' ? 'en' : 'ar') },
+    alternates: {
+      canonical: localeUrl(`/article/${slug}`, a.lang === 'en' ? 'en' : 'ar'),
+      languages,
+    },
     openGraph: {
       type: 'article',
       title: a.title,
@@ -46,13 +86,17 @@ export async function generateMetadata({ params }) {
   };
 }
 
-export default async function ArticlePage({ params }) {
+export default async function ArticlePage({ params, searchParams }) {
   const { slug } = await params;
-  const a = await getArticle(slug);
+  const sp = await searchParams;
+  const a = await getArticle(slug, sp?.lang === 'en' ? 'en' : 'ar');
   if (!a) notFound();
 
-  // The article's own language wins over any ?lang on the URL.
+  // The row that was served decides the language of the page chrome — if only
+  // an Arabic version exists, an English URL still renders Arabic content and
+  // the nav must say so rather than claim otherwise.
   const lang = a.lang === 'en' ? 'en' : 'ar';
+  const L = p => localePath(p, lang);
   const ar = lang === 'ar';
 
   // A recommended product to close on, when the article names one.

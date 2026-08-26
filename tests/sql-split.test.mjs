@@ -111,11 +111,11 @@ for (const [file, min] of [['db/schema.sql', 10], ['db/seed.sql', 3]]) {
   });
 }
 
-test('db/seed.sql is three upserts plus the product-copy update', {
+test('db/seed.sql is three upserts, the copy update and the article wave', {
   skip: existsSync(`${ROOT}db/seed.sql`) ? false : 'db/seed.sql not present',
 }, () => {
   const out = splitStatements(readFileSync(`${ROOT}db/seed.sql`, 'utf8'));
-  assert.equal(out.length, 4);
+  assert.equal(out.length, 5);
   assert.ok(out[0].includes('INSERT INTO products') && out[0].includes('ON CONFLICT (sku)'));
   assert.ok(out[1].includes('INSERT INTO offers') && out[1].includes('ON CONFLICT (code)'));
   assert.ok(out[2].includes('INSERT INTO articles') && out[2].includes('ON CONFLICT (slug)'));
@@ -134,6 +134,23 @@ test('db/seed.sql is three upserts plus the product-copy update', {
   }
   // Eight products, each contributing one tuple to the VALUES list.
   assert.equal((copy.match(/'S7-[A-Z-]+'/g) || []).length, 8);
+
+  // The second article wave. This one DOES upsert on purpose — two of the eight
+  // are rewrites of articles that already exist at 116 and 151 words, and the
+  // new body is the entire point of the rewrite.
+  const articles = out[4];
+  assert.ok(articles.includes('INSERT INTO articles'));
+  assert.ok(articles.includes('ON CONFLICT (slug, lang) DO UPDATE'),
+    'the article wave must upsert, or the two rewrites never land');
+  assert.ok(/body\s*=\s*EXCLUDED\.body/.test(articles),
+    'the rewritten body must be part of the update');
+
+  // Twins share a slug and a group_key so the language toggle has a key to
+  // switch on. Both languages of the two paired articles must be present.
+  for (const slug of ['wax-or-gel', 'make-your-style-last-all-day']) {
+    const hits = articles.match(new RegExp(`'${slug}', '(ar|en)'`, 'g')) || [];
+    assert.equal(hits.length, 2, `${slug} should exist in both languages`);
+  }
 });
 
 test('db/seed.sql keeps the Arabic article bodies whole', {
