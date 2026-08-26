@@ -16,7 +16,14 @@ body{background:var(--paper);color:var(--ink);font-family:var(--font-cairo),sans
    same specificity (0,1,1) so nothing else in the cascade shifts. */
 body [dir="rtl"],body [dir="rtl"] *{letter-spacing:0}
 a{color:inherit;text-decoration:none}
-img{max-width:100%;display:block}
+/* height:auto is load-bearing, not tidiness. Every <img> here carries width and
+   height attributes — correct, they reserve space and stop layout shift — but
+   max-width:100% shrinks the rendered WIDTH while the height attribute keeps
+   the height at its literal value. A 600x600 product shot in a 476px column
+   came out 381x600: stretched a third taller than it is wide, and clipped by
+   the container's overflow:hidden. Rules that pin a height deliberately
+   (.card img, .acard .cov img, ...) are class selectors and still win. */
+img{max-width:100%;height:auto;display:block}
 button{font:inherit;cursor:pointer}
 .en{font-family:var(--font-anton),var(--font-cairo),sans-serif;font-weight:400}
 [dir="rtl"] .en{font-family:var(--font-cairo),sans-serif;font-weight:900}

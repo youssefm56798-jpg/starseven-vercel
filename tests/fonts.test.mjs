@@ -113,3 +113,17 @@ test('the display face is applied to the hero', () => {
   assert.match(rule[0], /font-family:var\(--font-anton\)/,
     'the English hero is not set in Anton');
 });
+
+test('images keep their aspect ratio when a column is narrower than they are', () => {
+  // Every <img> in this codebase carries width and height attributes, which is
+  // right — they reserve space and prevent layout shift. But `max-width:100%`
+  // then shrinks the width while the height attribute holds the height fixed,
+  // so the image stretches. A 600x600 product shot rendered 381x600 and was
+  // clipped by the container. `height:auto` is what stops that.
+  const css = read('app/globals.css');
+  const base = css.match(/(^|\n)img\{([^}]*)\}/);
+  assert.ok(base, 'no base img rule found in globals.css');
+  assert.match(base[2], /height:\s*auto/,
+    'the base img rule sets max-width without height:auto, so any image in a ' +
+    'column narrower than its width attribute will render stretched');
+});
