@@ -78,9 +78,19 @@
 .s7home .btn{display:inline-flex;align-items:center;gap:10px;padding:15px 30px;border-radius:99px;font-weight:900;font-size:15.5px;border:2px solid transparent;transition:transform .2s}
 .s7home .btn svg{width:18px;height:18px;flex:none}
 .s7home .btn-red{background:var(--red-ui);color:#fff;position:relative;overflow:hidden}
+/* The sheen that sweeps across the red buttons on load.
+   No will-change here, deliberately. It promoted the pseudo-element to its own
+   compositor layer, and a promoted child is composited AFTER its parent has
+   painted — so the parent's border-radius:99px + overflow:hidden clip was not
+   applied to it, and the sweep escaped as a hard-edged rectangle around the
+   pill. That was the "glitched glow".
+   Three iterations of a transform on a 60px band needs no layer promotion; the
+   clip matters more. Note .s7home .card solves the same tension the other way,
+   by promoting the rounded parent itself — either works, promoting only the
+   child does not. */
 .s7home .btn-red::after{content:"";position:absolute;top:0;bottom:0;width:45%;left:0;
   background:linear-gradient(105deg,transparent,rgba(255,255,255,.5),transparent);
-  will-change:transform;animation:sheen 3.4s ease-in-out 3;pointer-events:none}
+  animation:sheen 3.4s ease-in-out 3;pointer-events:none}
 @keyframes sheen{0%,55%{transform:translateX(-170%) skewX(-20deg)}100%{transform:translateX(320%) skewX(-20deg)}}
 .s7home .btn-red:hover{box-shadow:0 14px 34px -10px rgba(215,41,29,.45)}
 .s7home .btn-line{border-color:var(--ink);color:var(--ink)}
