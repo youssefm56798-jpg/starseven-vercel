@@ -231,3 +231,86 @@ CREATE TABLE IF NOT EXISTS rate_limits (
   window_start TIMESTAMPTZ NOT NULL DEFAULT now(),
   PRIMARY KEY (bucket, ip)
 );
+
+-- ---------------------------------------------------------------------------
+--  Customer accounts
+--
+--  Separate from `admins` on purpose. An admin can price the catalogue; a
+--  customer can see their own cart. Sharing one table would make a privilege
+--  mistake a single wrong boolean away.
+--
+--  token_version is the blunt revocation lever: bumping it invalidates every
+--  access token ever issued to this user, because the value is baked into the
+--  token and compared on refresh. It is what "log out everywhere" writes.
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS users (
+  id             INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  email          TEXT NOT NULL,
+  password_hash  TEXT NOT NULL,
+  name           TEXT NOT NULL DEFAULT '',
+  phone          TEXT NOT NULL DEFAULT '',
+  token_version  INT NOT NULL DEFAULT 1,
+  created_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
+  last_login_at  TIMESTAMPTZ
+);
+
+-- Case-insensitive uniqueness without the citext extension, which Neon does
+-- not enable by default. Every lookup lowercases too, so the index is used.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users (lower(email));
+
+-- ---------------------------------------------------------------------------
+--  Sessions
+--
+--  refresh_hash is a SHA-256 digest, never the token. A database dump
+--  therefore contains nothing that can be replayed: the raw token exists only
+--  in the cookie the customer holds.
+--
+--  family_id ties every rotation of one login together. Presenting a token
+--  that has already been rotated means two parties hold it, so the whole
+--  family is revoked rather than just that row — the standard refresh-token
+--  reuse response.
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS sessions (
+  id           INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  user_id      INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  family_id    TEXT NOT NULL,
+  refresh_hash TEXT NOT NULL UNIQUE,
+  ua_hash      TEXT NOT NULL DEFAULT '',
+  issued_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  expires_at   TIMESTAMPTZ NOT NULL,
+  rotated_at   TIMESTAMPTZ,
+  revoked_at   TIMESTAMPTZ
+);
+CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions (user_id);
+CREATE INDEX IF NOT EXISTS idx_sessions_family ON sessions (family_id);
+CREATE INDEX IF NOT EXISTS idx_sessions_expiry ON sessions (expires_at);
+
+-- ---------------------------------------------------------------------------
+--  Server-side carts
+--
+--  Guests keep their cart in localStorage exactly as before. This table is
+--  what makes a signed-in cart follow someone from their phone to a laptop,
+--  which is the only reason to have accounts on a cash-on-delivery shop.
+--
+--  One open cart per user, enforced by the unique index rather than by
+--  application code remembering to check.
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS carts (
+  id         INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  user_id    INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_carts_user ON carts (user_id);
+
+CREATE TABLE IF NOT EXISTS cart_items (
+  id      INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  cart_id INT NOT NULL REFERENCES carts(id) ON DELETE CASCADE,
+  sku     TEXT NOT NULL,
+  qty     INT NOT NULL DEFAULT 1 CHECK (qty BETWEEN 1 AND 20)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_cart_items_sku ON cart_items (cart_id, sku);
+
+-- Orders may now belong to an account, and may still not: guest checkout is
+-- untouched, so this is nullable and nothing about the existing flow changes.
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS user_id INT REFERENCES users(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS idx_orders_user ON orders (user_id, created_at DESC);

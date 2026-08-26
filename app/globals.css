@@ -508,3 +508,45 @@ button{font:inherit;cursor:pointer}
   font-weight:800;font-size:14.5px;transition:.2s}
 .article-type a:hover{border-color:var(--c,var(--red-ui));background:var(--paper-2)}
 .article-type img{width:34px;height:34px;flex:0 0 auto}
+
+/* account: sign in, sign up, and the account page */
+.authwrap{max-width:880px;padding:36px 22px 90px}
+.authform{max-width:420px;margin-inline:auto}
+.authform h1{font-size:clamp(24px,4vw,32px);font-weight:900;margin-bottom:8px}
+.authlead{color:var(--grey);font-weight:600;font-size:15px;margin-bottom:22px}
+.authtop{border:1.5px solid var(--red-ui);border-inline-start-width:4px;background:#FFF3F2;
+  color:var(--red-ui);font-weight:800;font-size:14px;padding:11px 14px;margin-bottom:16px}
+.fld{display:block;margin-bottom:14px}
+.fld>span{display:block;font-size:13px;font-weight:800;margin-bottom:5px}
+.fld input{width:100%;height:46px;padding:0 13px;border:1.5px solid var(--line);
+  background:#fff;font:inherit;font-weight:600;transition:border-color .18s}
+.fld input:focus{outline:none;border-color:var(--ink)}
+.fld input[aria-invalid="true"]{border-color:var(--red-ui)}
+.fld-err{display:block;color:var(--red-ui);font-size:12.5px;font-weight:700;
+  font-style:normal;margin-top:5px}
+.authform .btn{margin-top:8px}
+.authswap{text-align:center;margin-top:18px;font-size:14px;font-weight:800}
+.authswap a{color:var(--grey);transition:.2s}
+.authswap a:hover{color:var(--red-ui)}
+
+.acct-sec{margin-bottom:40px}
+.acct-sec h2{font-size:20px;font-weight:900;margin-bottom:14px}
+.acct-empty{color:var(--grey);font-weight:600}
+.acct-orders{list-style:none;display:grid;gap:1px;background:var(--line);
+  border:1px solid var(--line)}
+.acct-orders li{background:var(--paper);display:flex;flex-wrap:wrap;align-items:center;
+  gap:10px 16px;padding:13px 16px;font-weight:800;font-size:14.5px}
+.acct-orders li b{font-weight:900}
+.acct-orders li span{font-size:12.5px;font-weight:800;color:var(--grey);
+  border:1.5px solid var(--line);padding:2px 8px}
+.acct-orders li bdi{margin-inline-start:auto;white-space:nowrap}
+.acct-orders li time{color:var(--grey);font-weight:600;font-size:13px;width:100%}
+.acct-actions{display:flex;gap:12px;flex-wrap:wrap}
+.acct-note{color:var(--grey);font-weight:600;font-size:13px;margin-top:12px;max-width:56ch}
+@media(max-width:560px){
+  .acct-orders li bdi{margin-inline-start:0}
+}
+.s7nav .acct-link{display:flex;align-items:center;justify-content:center;width:38px;height:38px;
+  border:1.5px solid var(--line);transition:border-color .2s,color .2s}
+.s7nav .acct-link:hover{border-color:var(--ink)}
+.s7nav .acct-link svg{width:19px;height:19px}

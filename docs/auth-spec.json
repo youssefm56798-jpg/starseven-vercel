@@ -1,0 +1,132 @@
+{
+  "$schema": "internal://starseven/auth-spec/1",
+  "title": "New Star Seven — customer authentication, sessions and per-user carts",
+  "written": "2026-08-26",
+  "status": "specification — expanded from a one-line brief, to be reviewed before it is trusted",
+
+  "brief_as_given": "add authorization and authentication to login and register, add token sessions so a returning user does not validate again and we do not hit the database every time, hash tokens and sessions, each user sees only their own cart, make it as secure as possible",
+
+  "what_the_brief_leaves_open": [
+    "The site is currently guest-only: checkout takes a name, phone and address and pays cash on delivery. There are no customer accounts at all. An admin login exists and is separate — it must stay separate.",
+    "'Not checking the database every time' and 'being able to revoke a session' are in direct tension. The resolution below is a short-lived stateless token plus a long-lived stored one; the cost is a revocation window, which is stated rather than hidden.",
+    "Password reset and email verification are implied by 'register' but were not asked for. Both are scoped out of this pass and listed under deferred.",
+    "'Each user sees their own cart' is an authorization requirement, not a UI one. It is met by deriving the user id from a verified token on the server, never from anything the client sends."
+  ],
+
+  "threat_model": {
+    "assets": ["customer accounts", "customer addresses and phone numbers", "order history", "cart contents"],
+    "adversaries": [
+      { "who": "credential stuffer", "mitigations": ["bcrypt cost 12", "per-IP and per-account rate limits", "generic failure message", "constant-time path for unknown accounts"] },
+      { "who": "attacker with read access to a database dump", "mitigations": ["passwords bcrypt-hashed", "session tokens stored only as SHA-256 digests, so a dump yields nothing replayable", "no plaintext token anywhere at rest"] },
+      { "who": "attacker who steals a refresh token", "mitigations": ["rotation on every use", "reuse of a rotated token revokes the whole session family", "token bound to a hash of user agent"] },
+      { "who": "cross-site attacker", "mitigations": ["SameSite=Lax cookies", "Origin and Sec-Fetch-Site checks on every mutation", "refresh cookie scoped to its own path", "httpOnly so script cannot read tokens"] },
+      { "who": "another logged-in customer", "mitigations": ["every cart and order query is scoped by the user id in the verified token", "no route accepts a user id from the client"] }
+    ],
+    "explicitly_out_of_scope": ["multi-factor authentication", "device management UI", "account deletion flows", "GDPR export"]
+  },
+
+  "design": {
+    "token_scheme": {
+      "name": "short access JWT + rotating opaque refresh token",
+      "access_token": {
+        "format": "JWT, HS256, signed with SESSION_SECRET via jose",
+        "ttl_seconds": 900,
+        "claims": { "sub": "user id", "sid": "session id", "fam": "session family id", "v": "user token version" },
+        "verification": "signature only — no database read on the hot path, which is the 'do not check the database every time' requirement",
+        "cookie": "__Host-s7_at"
+      },
+      "refresh_token": {
+        "format": "32 cryptographically random bytes, base64url, opaque",
+        "ttl_days": 60,
+        "storage": "SHA-256 digest only. The raw token exists in the cookie and nowhere else.",
+        "rotation": "every use issues a new token and marks the old one rotated",
+        "reuse_detection": "presenting an already-rotated token revokes every session in the family and forces re-login",
+        "cookie": "__Secure-s7_rt, Path=/api/auth so it is not sent on ordinary requests"
+      },
+      "revocation_window": {
+        "value_seconds": 900,
+        "note": "A revoked session keeps working until its access token expires. This is the price of not reading the database per request. 15 minutes is the chosen trade; lowering the access TTL narrows it linearly."
+      }
+    },
+
+    "password_storage": {
+      "algorithm": "bcrypt",
+      "cost": 12,
+      "library": "bcryptjs, already a dependency and already used by the admin login",
+      "runtime": "Node, not Edge — bcryptjs at cost 12 is too slow for an edge function",
+      "policy": { "min_length": 10, "max_length": 200, "rejects": ["passwords on a small embedded common-password list", "password equal to the email local part"] },
+      "note": "Argon2id would be the better choice, but it needs a native dependency this project does not have. Cost 12 bcrypt is the strongest option available without adding one."
+    },
+
+    "cookies": {
+      "shared": { "httpOnly": true, "secure": true, "sameSite": "Lax" },
+      "why_lax_not_strict": "Strict would drop the session on any inbound link from WhatsApp, which is where most of this shop's traffic arrives from. Lax plus an Origin check on mutations gives the same CSRF protection without that cost.",
+      "prefixes": "__Host- for the access cookie (host-locked, path=/); __Secure- for the refresh cookie, which needs a narrow path and therefore cannot use __Host-"
+    },
+
+    "csrf": {
+      "primary": "SameSite=Lax",
+      "secondary": "Origin header must match the site origin on every POST/PATCH/DELETE; requests with Sec-Fetch-Site: cross-site are refused",
+      "note": "The API is JSON-only and rejects form content types, so a simple form post cannot reach it either."
+    },
+
+    "authorization": {
+      "rule": "The user id comes from the verified access token and from nowhere else. No endpoint reads a user id from the body, the query string or a header.",
+      "cart": "SELECT ... WHERE user_id = $sessionUser. A request for someone else's cart cannot be expressed.",
+      "orders": "same rule; a customer sees only orders whose user_id matches"
+    },
+
+    "cart_model": {
+      "anonymous": "stays in localStorage exactly as today, so nothing regresses for guests",
+      "authenticated": "server-side rows in carts/cart_items keyed by user_id",
+      "on_login": "the local cart is merged into the server cart — quantities summed, capped at the per-line max — then the local copy is cleared",
+      "why_server_side": "so the cart follows the customer between phone and desktop, which is the only reason to have accounts on a cash-on-delivery shop"
+    },
+
+    "rate_limits": {
+      "storage": "the existing rate_limits table",
+      "buckets": {
+        "login_ip": [10, 900],
+        "login_account": [5, 900],
+        "register_ip": [5, 3600],
+        "refresh_ip": [60, 3600]
+      }
+    }
+  },
+
+  "schema_changes": [
+    { "table": "users", "action": "create", "columns": ["id", "email citext-ish (lowercased, unique)", "password_hash", "name", "phone", "token_version int", "created_at", "last_login_at"] },
+    { "table": "sessions", "action": "create", "columns": ["id", "user_id", "family_id", "refresh_hash (sha256, unique)", "ua_hash", "issued_at", "expires_at", "rotated_at", "revoked_at"] },
+    { "table": "carts", "action": "create", "columns": ["id", "user_id unique", "updated_at"] },
+    { "table": "cart_items", "action": "create", "columns": ["cart_id", "sku", "qty", "unique (cart_id, sku)"] },
+    { "table": "orders", "action": "alter", "columns": ["user_id nullable — guest orders keep working"] }
+  ],
+
+  "endpoints": [
+    { "method": "POST", "path": "/api/auth/register", "auth": "none", "returns": "sets both cookies, returns the public user" },
+    { "method": "POST", "path": "/api/auth/login", "auth": "none", "returns": "sets both cookies, merges any posted local cart" },
+    { "method": "POST", "path": "/api/auth/refresh", "auth": "refresh cookie", "returns": "rotates the refresh token, issues a new access token" },
+    { "method": "POST", "path": "/api/auth/logout", "auth": "access cookie", "returns": "revokes this session, clears both cookies" },
+    { "method": "POST", "path": "/api/auth/logout-all", "auth": "access cookie", "returns": "bumps token_version, revoking every session everywhere" },
+    { "method": "GET", "path": "/api/auth/me", "auth": "access cookie", "returns": "the public user, or 401" },
+    { "method": "GET", "path": "/api/cart", "auth": "access cookie", "returns": "this user's cart only" },
+    { "method": "PUT", "path": "/api/cart", "auth": "access cookie", "returns": "replaces this user's cart" }
+  ],
+
+  "acceptance_criteria": [
+    "A registered user who closes the browser and returns a week later is still signed in, without re-entering a password.",
+    "An authenticated page render performs zero database reads for the purpose of authentication.",
+    "A database dump contains no value that can be replayed as a session.",
+    "Presenting a refresh token twice revokes the family and forces re-login.",
+    "A request carrying user A's cookies cannot read or write user B's cart, by any parameter.",
+    "Login with a valid email and wrong password is indistinguishable in timing and message from login with an unknown email.",
+    "Guest checkout continues to work untouched."
+  ],
+
+  "deferred": [
+    "email verification on register",
+    "password reset by emailed token",
+    "a customer-facing session list with per-device revoke",
+    "moving the admin login onto this same session machinery"
+  ]
+}
