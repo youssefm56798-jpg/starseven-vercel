@@ -5,6 +5,7 @@ import { sql } from '../../../lib/db.js';
 import { site } from '../../../lib/config.js';
 import { currencyLabel, whole } from '../../../lib/money.js';
 import { renderMarkdown } from '../../../lib/markdown.js';
+import { bySlug } from '../../../lib/hairtypes.js';
 import { Dir, Nav, Footer, Crumb } from '../../_components/Chrome.js';
 
 export const revalidate = 300;
@@ -86,6 +87,30 @@ export async function generateMetadata({ params, searchParams }) {
   };
 }
 
+/** The jar an article recommends, if it names one and it is still stocked. */
+async function loadProduct(sku) {
+  if (!sku) return null;
+  try {
+    const rows = await sql`SELECT * FROM products WHERE sku = ${sku} AND active = true LIMIT 1`;
+    return rows[0] || null;
+  } catch {
+    return null;
+  }
+}
+
+/** Three more articles in the same language — the way out of a leaf page. */
+async function loadMore(slug, lang) {
+  try {
+    return await sql`
+      SELECT slug, title FROM articles
+       WHERE status = 'published' AND lang = ${lang} AND slug <> ${slug}
+       ORDER BY published_at DESC NULLS LAST, id DESC
+       LIMIT 3`;
+  } catch {
+    return [];
+  }
+}
+
 export default async function ArticlePage({ params, searchParams }) {
   const { slug } = await params;
   const sp = await searchParams;
@@ -99,12 +124,21 @@ export default async function ArticlePage({ params, searchParams }) {
   const L = p => localePath(p, lang);
   const ar = lang === 'ar';
 
-  // A recommended product to close on, when the article names one.
-  const prod = a.sku
-    ? (await sql`SELECT * FROM products WHERE sku = ${a.sku} AND active = true LIMIT 1`)[0]
-    : null;
+  // A recommended product to close on, when the article names one — and three
+  // more to go to next. An article used to end in a single product link or in
+  // nothing at all, which made every guide a leaf: traffic that landed on one
+  // had one place to go, and the rest of the blog was invisible from it.
+  const [prod, more] = await Promise.all([
+    loadProduct(a.sku),
+    loadMore(a.slug, lang),
+  ]);
+
+  // The hair type an article was written for is a page on this site, not a
+  // label. Linking it is the only thing tying the blog to the guides.
+  const tile = a.hair_type ? bySlug(a.hair_type) : null;
 
   const published = a.published_at || a.created_at;
+  const canonical = localeUrl(`/article/${a.slug}`, lang);
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -112,15 +146,29 @@ export default async function ArticlePage({ params, searchParams }) {
     headline: a.title,
     description: a.excerpt,
     image: `${site.url}/${a.cover || 'assets/wax-red.png'}`,
+    inLanguage: ar ? 'ar-EG' : 'en',
     datePublished: new Date(published).toISOString(),
     dateModified: new Date(a.updated_at || published).toISOString(),
     author: { '@type': 'Organization', name: a.author || 'New Star Seven' },
     publisher: {
       '@type': 'Organization',
-      name: 'New Star Seven',
+      '@id': `${site.url}/#organization`,
+      name: site.name,
       logo: { '@type': 'ImageObject', url: `${site.url}/assets/logo-s7.png` },
     },
-    mainEntityOfPage: `${site.url}/article/${a.slug}`,
+    // Was the Arabic URL on both language versions, which told Google the
+    // English article was a second copy of the Arabic page.
+    mainEntityOfPage: canonical,
+  };
+
+  const crumbLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: ar ? 'الرئيسية' : 'Home', item: localeUrl('/', lang) },
+      { '@type': 'ListItem', position: 2, name: ar ? 'مقالات' : 'Articles', item: localeUrl('/blog', lang) },
+      { '@type': 'ListItem', position: 3, name: a.title, item: canonical },
+    ],
   };
 
   return (
@@ -128,6 +176,10 @@ export default async function ArticlePage({ params, searchParams }) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbLd).replace(/</g, '\u003c') }}
       />
       <Nav lang={lang} path={`article/${a.slug}`} />
 
@@ -180,6 +232,32 @@ export default async function ArticlePage({ params, searchParams }) {
                 {ar ? 'شوف المنتج' : 'View product'}
               </Link>
             </div>
+          )}
+
+          {tile && (
+            <p className="article-type">
+              <Link href={L(`/hair-types/${tile.slug}`)} style={{ '--c': tile.color }}>
+                <img src={`/${tile.icon}`} alt="" width="34" height="34" loading="lazy" />
+                <span>
+                  {ar
+                    ? `المقال ده مكتوب للشعر ال${tile.ar.name} — كل تفاصيله هنا ←`
+                    : `Written for ${tile.en.name.toLowerCase()} hair — read the full guide →`}
+                </span>
+              </Link>
+            </p>
+          )}
+
+          {more.length > 0 && (
+            <section className="ht-reads">
+              <h2>{ar ? 'اقرأ كمان' : 'Read next'}</h2>
+              <ul>
+                {more.map(m => (
+                  <li key={m.slug}>
+                    <Link href={L(`/article/${m.slug}`)}>{m.title}</Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
           )}
         </article>
       </div>

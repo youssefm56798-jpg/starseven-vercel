@@ -60,8 +60,8 @@ export function Nav({ lang = 'ar', path = '' }) {
             </Link>
             <div className="nav-sub">
               <Link href={L('/shop')}>{ar ? 'كل التشكيلة' : 'The full line'}</Link>
-              <Link href={`${L('/shop')}?kind=wax`}>{ar ? 'واكس' : 'Wax'}</Link>
-              <Link href={`${L('/shop')}?kind=gel`}>{ar ? 'جل' : 'Gel'}</Link>
+              <Link href={L('/shop/wax')}>{ar ? 'واكس' : 'Wax'}</Link>
+              <Link href={L('/shop/gel')}>{ar ? 'جل' : 'Gel'}</Link>
             </div>
           </div>
 
@@ -122,7 +122,11 @@ export function Footer({ lang = 'ar' }) {
               <h5>{ar ? 'روابط' : 'Links'}</h5>
               <ul>
                 <li><Link href={L('/shop')}>{ar ? 'المنتجات' : 'Shop'}</Link></li>
+                <li><Link href={L('/shop/wax')}>{ar ? 'واكس الشعر' : 'Hair wax'}</Link></li>
+                <li><Link href={L('/shop/gel')}>{ar ? 'جل الشعر' : 'Hair gel'}</Link></li>
+                <li><Link href={L('/hair-types')}>{ar ? 'أنواع الشعر' : 'Hair types'}</Link></li>
                 <li><Link href={L('/blog')}>{ar ? 'مقالات' : 'Articles'}</Link></li>
+                <li><Link href={L('/brand')}>{ar ? 'عن البراند' : 'About us'}</Link></li>
                 <li><Link href={L('/privacy')}>{ar ? 'سياسة الخصوصية' : 'Privacy'}</Link></li>
                 <li><Link href={L('/terms')}>{ar ? 'الشروط والأحكام' : 'Terms'}</Link></li>
               </ul>

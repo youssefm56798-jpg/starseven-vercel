@@ -32,13 +32,54 @@ function bilingual(path, { lastModified, changeFrequency, priority }) {
   }));
 }
 
+/**
+ * Article rows grouped by slug, so a twinned pair is emitted as two annotated
+ * URLs and a lone article as one unannotated URL.
+ */
+function articleEntries(rows) {
+  const bySlugMap = new Map();
+  for (const r of rows) {
+    const lang = r.lang === 'en' ? 'en' : 'ar';
+    const bucket = bySlugMap.get(r.slug) || new Map();
+    bucket.set(lang, r);
+    bySlugMap.set(r.slug, bucket);
+  }
+
+  const out = [];
+  for (const [slug, bucket] of bySlugMap) {
+    const path = `/article/${slug}`;
+    const langs = [...bucket.keys()];
+
+    const languages = {};
+    if (bucket.has('ar')) { languages['ar-EG'] = localeUrl(path, 'ar'); languages.ar = localeUrl(path, 'ar'); }
+    if (bucket.has('en')) { languages['en-EG'] = localeUrl(path, 'en'); languages.en = localeUrl(path, 'en'); }
+    languages['x-default'] = localeUrl(path, bucket.has('ar') ? 'ar' : 'en');
+
+    for (const lang of langs) {
+      out.push({
+        url: localeUrl(path, lang),
+        lastModified: new Date(bucket.get(lang).m),
+        changeFrequency: 'monthly',
+        priority: lang === 'ar' ? 0.7 : 0.6,
+        ...(langs.length > 1 ? { alternates: { languages } } : {}),
+      });
+    }
+  }
+  return out;
+}
+
 export default async function sitemap() {
   const now = new Date();
 
   const staticPaths = [
     ['/', { lastModified: now, changeFrequency: 'daily', priority: 1.0 }],
     ['/shop', { lastModified: now, changeFrequency: 'daily', priority: 0.9 }],
+    // The two category pages carry the head terms — "hair wax", "hair gel" —
+    // that /shop cannot rank for while it is titled after the whole line.
+    ['/shop/wax', { lastModified: now, changeFrequency: 'daily', priority: 0.9 }],
+    ['/shop/gel', { lastModified: now, changeFrequency: 'daily', priority: 0.9 }],
     ['/hair-types', { lastModified: now, changeFrequency: 'monthly', priority: 0.8 }],
+    ['/brand', { lastModified: now, changeFrequency: 'monthly', priority: 0.6 }],
     // Built from lib/hairtypes.js rather than the database, so they are listed
     // even on a build with no database, and a seventh tile lists itself.
     ...HAIR_TYPES.map(t => [`/hair-types/${t.slug}`,
@@ -65,16 +106,13 @@ export default async function sitemap() {
         changeFrequency: 'weekly',
         priority: 0.8,
       })),
-      // Articles are the one content type that exists in one language per row,
-      // so each is listed at its own language's URL only. Pairing an AR article
-      // with its EN twin needs the twin's slug, which the schema tracks in
-      // group_key but nothing reads yet.
-      ...articles.map(a => ({
-        url: localeUrl(`/article/${a.slug}`, a.lang === 'en' ? 'en' : 'ar'),
-        lastModified: new Date(a.m),
-        changeFrequency: 'monthly',
-        priority: 0.7,
-      })),
+      // An article and its translation share a slug now, so a twinned pair
+      // gets both URLs and each is annotated with the other. An article that
+      // exists in one language only is listed once and claims no alternate it
+      // cannot serve — pointing hreflang at a missing translation is worse
+      // than declaring none, because the URL resolves and serves the wrong
+      // language.
+      ...articleEntries(articles),
     ];
   } catch {
     return base;

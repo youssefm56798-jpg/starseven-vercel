@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { alternatesForLang, localePath } from '../../../lib/urls.js';
+import { alternatesForLang, localePath, localeUrl } from '../../../lib/urls.js';
 import { notFound } from 'next/navigation';
 import { sql } from '../../../lib/db.js';
 import { site } from '../../../lib/config.js';
@@ -96,20 +96,34 @@ export default async function ProductPage({ params, searchParams }) {
     ? String(long).replace(/\*\*/g, '').replace(/\s+/g, ' ').trim().slice(0, 300)
     : sub;
 
+  // Every URL in the graph has to be the URL of the page it is on. The offer
+  // used to point at the Arabic address from the English page, which is an
+  // offer for a different document than the one carrying it — and the product
+  // itself declared no URL and no language at all.
+  const canonical = localeUrl(`/product/${p.slug}`, lang);
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Product',
+    '@id': `${canonical}#product`,
     name,
+    url: canonical,
+    inLanguage: ar ? 'ar-EG' : 'en',
     image: `${site.url}/${p.image}`,
     description: metaDesc,
     sku: p.sku,
-    brand: { '@type': 'Brand', name: 'New Star Seven' },
+    mpn: p.sku,
+    category: p.kind === 'gel' ? 'Hair Gel' : 'Hair Wax',
+    brand: { '@type': 'Brand', '@id': `${site.url}/#brand`, name: site.name },
     offers: {
       '@type': 'Offer',
       price: String(Number(p.price)),
       priceCurrency: site.currency,
       availability: inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-      url: `${site.url}/product/${p.slug}`,
+      itemCondition: 'https://schema.org/NewCondition',
+      url: canonical,
+      seller: { '@type': 'Organization', '@id': `${site.url}/#organization`, name: site.name },
+      areaServed: { '@type': 'Country', name: 'Egypt' },
     },
     ...(p.size_ml
       ? { additionalProperty: [{ '@type': 'PropertyValue', name: 'Volume', value: `${p.size_ml} ml` }] }
@@ -120,9 +134,9 @@ export default async function ProductPage({ params, searchParams }) {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: ar ? 'الرئيسية' : 'Home', item: site.url },
-      { '@type': 'ListItem', position: 2, name: ar ? 'المنتجات' : 'Shop', item: `${site.url}/shop` },
-      { '@type': 'ListItem', position: 3, name, item: `${site.url}/product/${p.slug}` },
+      { '@type': 'ListItem', position: 1, name: ar ? 'الرئيسية' : 'Home', item: localeUrl('/', lang) },
+      { '@type': 'ListItem', position: 2, name: ar ? 'المنتجات' : 'Shop', item: localeUrl('/shop', lang) },
+      { '@type': 'ListItem', position: 3, name, item: canonical },
     ],
   };
 
@@ -237,10 +251,16 @@ export default async function ProductPage({ params, searchParams }) {
                 {alsoFor.length > 0 && (
                   <p className="pdp-alsofor">
                     <b>{ar ? 'كمان يناسب:' : 'Also suits:'}</b>{' '}
+                    {/* Links, not prose. These were the only mentions of a
+                        hair type anywhere on a product page, and they pointed
+                        nowhere — so eight product pages sent nothing to the
+                        six guides that explain why this jar suits that hair. */}
                     {alsoFor.map((h, i) => (
                       <span key={h.slug}>
-                        {i > 0 && '، '}
-                        {ar ? h.ar.name : h.en.name}
+                        {i > 0 && (ar ? '، ' : ', ')}
+                        <Link href={L(`/hair-types/${h.slug}`)}>
+                          {ar ? h.ar.name : h.en.name}
+                        </Link>
                       </span>
                     ))}
                   </p>

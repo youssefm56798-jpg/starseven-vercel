@@ -488,12 +488,18 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
             {hairTypes.map(x => {
               const c = x[lang] || x.ar;
               return (
-                <button
+                // An anchor, not a button. The click still filters in place —
+                // that is the whole point of the finder — but the tile now
+                // carries a real href, so the six hair-type pages are linked
+                // from the home page instead of being reachable only from the
+                // nav. A crawler follows the href; a mouse never sees it.
+                <Link
                   key={x.slug}
+                  href={L(`/hair-types/${x.slug}`)}
                   className={'htile' + (x.slug === tile.slug ? ' on' : '')}
                   style={{ '--c': x.color }}
-                  onClick={() => pickHair(x.slug)}
-                  aria-pressed={x.slug === tile.slug}
+                  onClick={e => { e.preventDefault(); pickHair(x.slug); }}
+                  aria-current={x.slug === tile.slug ? 'true' : undefined}
                 >
                   <span className="walker" dir={runDir(ar ? x.walker : x.walkerEn)}>
                     {ar ? x.walker : x.walkerEn}
@@ -503,7 +509,7 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
                   </span>
                   <b>{c.name}</b>
                   <span>{c.short}</span>
-                </button>
+                </Link>
               );
             })}
           </div>
@@ -530,6 +536,13 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
                     {best[lang].name} — {best.price} {d.egp}
                   </Link>
                 )}
+                {/* The panel shows an abridged version of what the type page
+                    says at length. Without this link the longer page is the
+                    one nobody reaches, and the two compete for the same
+                    query. */}
+                <Link className="hres-guide" href={L(`/hair-types/${tile.slug}`)}>
+                  {ar ? `كل تفاصيل الشعر ${copy.name} ←` : `The full ${copy.name.toLowerCase()} hair guide →`}
+                </Link>
               </div>
 
               {best && (

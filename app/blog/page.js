@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { alternatesForLang, localePath } from '../../lib/urls.js';
 import { sql } from '../../lib/db.js';
+import { bySlug } from '../../lib/hairtypes.js';
 import { Dir, Nav, Footer, Crumb } from '../_components/Chrome.js';
 
 export const revalidate = 300;
@@ -23,6 +24,12 @@ export default async function BlogPage({ searchParams }) {
   const lang = sp?.lang === 'en' ? 'en' : 'ar';
   const ar = lang === 'ar';
   const L = p => localePath(p, lang);
+
+  // Unknown or empty values render no chip at all rather than a raw slug.
+  const tagLabel = slug => {
+    const t = slug ? bySlug(slug) : null;
+    return t ? (ar ? t.ar.name : t.en.name) : null;
+  };
 
   const posts = await sql`
     SELECT slug, title, excerpt, cover, cover_alt, hair_type, published_at
@@ -63,7 +70,11 @@ export default async function BlogPage({ searchParams }) {
                   </div>
                 )}
                 <div className="body">
-                  {a.hair_type && <span className="tag">{a.hair_type}</span>}
+                  {/* The column stores a slug. Rendering it raw put "THICK"
+                      and "WAVY" — Latin, uppercased by the stylesheet — on
+                      Arabic cards. It is a hair type, so it has a name in
+                      both languages already. */}
+                  {tagLabel(a.hair_type) && <span className="tag">{tagLabel(a.hair_type)}</span>}
                   <h3>{a.title}</h3>
                   <p>{a.excerpt}</p>
                   <span className="more">{ar ? 'اقرأ ←' : 'Read →'}</span>

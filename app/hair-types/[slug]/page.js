@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { sql, hasDb } from '../../../lib/db.js';
 import { site } from '../../../lib/config.js';
 import { currencyLabel, whole } from '../../../lib/money.js';
-import { bySlug, rankProducts } from '../../../lib/hairtypes.js';
+import { HAIR_TYPES, bySlug, rankProducts } from '../../../lib/hairtypes.js';
 import { faqJsonLd } from '../../../lib/faq.js';
 import { Dir, Nav, Footer, Crumb } from '../../_components/Chrome.js';
 import AddButton from '../../_components/AddButton.js';
@@ -44,6 +44,28 @@ async function loadProducts() {
   }
 }
 
+/**
+ * Articles written for this hair type, plus general ones to fill the strip.
+ *
+ * These six pages linked to products and to nothing else — not to each other,
+ * not to a single article. That left every guide the shop publishes orphaned
+ * from the pages whose readers most want them, and gave the type pages no
+ * outbound topical context at all.
+ */
+async function loadReads(hairType, lang) {
+  if (!hasDb()) return [];
+  try {
+    return await sql`
+      SELECT slug, title, excerpt, hair_type
+        FROM articles
+       WHERE status = 'published' AND lang = ${lang}
+       ORDER BY (hair_type = ${hairType}) DESC, published_at DESC NULLS LAST, id DESC
+       LIMIT 3`;
+  } catch {
+    return [];
+  }
+}
+
 export default async function HairTypePage({ params, searchParams }) {
   const { slug } = await params;
   const sp = await searchParams;
@@ -58,7 +80,11 @@ export default async function HairTypePage({ params, searchParams }) {
   const range = typeRange(tile, lang);
   const gap = gapNote(tile.slug, lang);
 
-  const products = await loadProducts();
+  const [products, reads] = await Promise.all([
+    loadProducts(),
+    loadReads(tile.slug, lang),
+  ]);
+  const siblings = HAIR_TYPES.filter(t => t.slug !== tile.slug);
   const matches = rankProducts(products, tile.slug, 3);
   const best = matches[0] || null;
   const alts = matches.slice(1);
@@ -227,6 +253,37 @@ export default async function HairTypePage({ params, searchParams }) {
             </div>
           </aside>
         </div>
+
+        {reads.length > 0 && (
+          <section className="ht-reads">
+            <h2>{ar ? 'اقرأ كمان' : 'Read next'}</h2>
+            <ul>
+              {reads.map(a => (
+                <li key={a.slug}>
+                  <Link href={L(`/article/${a.slug}`)}>
+                    {a.title}
+                    {a.excerpt && <small>{a.excerpt}</small>}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        <section className="ht-siblings">
+          <h2>{ar ? 'أنواع الشعر التانية' : 'The other hair types'}</h2>
+          <div className="ht-sibgrid">
+            {siblings.map(t => {
+              const sc = ar ? t.ar : t.en;
+              return (
+                <Link key={t.slug} href={L(`/hair-types/${t.slug}`)} style={{ '--c': t.color }}>
+                  <img src={`/${t.icon}`} alt="" width="30" height="30" loading="lazy" />
+                  <span>{ar ? `شعر ${sc.name}` : `${sc.name} hair`}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
       </div>
 
       <Footer lang={lang} />

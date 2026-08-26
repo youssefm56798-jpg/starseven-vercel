@@ -446,3 +446,65 @@ button{font:inherit;cursor:pointer}
 .nf-more{font-size:14px;font-weight:800}
 .nf-more a{color:var(--grey);transition:.2s}
 .nf-more a:hover{color:var(--red-ui)}
+
+/* Category footer on the shop pages. Wax and gel are separate pages now, so
+   each one needs a way out to its sibling and to the guide — for the reader
+   who picked wrong, and for the crawler, which otherwise finds /shop/gel
+   linked from the nav and nowhere else. */
+.shop-more{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center;
+  margin:44px 0 10px;padding-top:22px;border-top:1px solid var(--line);
+  font-size:14.5px;font-weight:800}
+.shop-more a{color:var(--grey);transition:.2s}
+.shop-more a:first-child{color:var(--red-ui)}
+.shop-more a:hover{color:var(--ink)}
+
+/* brand page */
+.brandpage{padding:38px 22px 90px;max-width:900px}
+.brand-sec{margin-bottom:48px}
+.brand-sec h2{font-size:clamp(20px,3.2vw,27px);font-weight:900;margin-bottom:14px}
+.brand-sec p{color:var(--grey);font-weight:600;margin-bottom:12px}
+.brand-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  gap:1px;background:var(--line);border:1px solid var(--line)}
+.brand-facts>div{background:var(--paper);padding:16px 18px}
+.brand-facts dt{font-size:12.5px;font-weight:800;color:var(--grey);
+  text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.brand-facts dd{font-size:16px;font-weight:900}
+.brand-range{list-style:none;display:grid;gap:1px;background:var(--line);
+  border:1px solid var(--line)}
+.brand-range li{background:var(--paper)}
+.brand-range a{display:flex;align-items:center;gap:14px;padding:12px 16px;
+  border-inline-start:4px solid var(--c,var(--ink));transition:background .2s}
+.brand-range a:hover{background:var(--paper-2)}
+.brand-range img{width:52px;height:52px;object-fit:contain;flex:0 0 auto}
+.brand-range span{flex:1;min-width:0;display:flex;flex-direction:column}
+.brand-range b{font-weight:900;font-size:15px}
+.brand-range small{color:var(--grey);font-weight:600;font-size:13px}
+.brand-range bdi{font-weight:900;white-space:nowrap}
+.brand-cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:20px}
+
+/* Sibling hair types, and the articles that go with one. Both are strips of
+   links at the foot of a type page, which previously linked to nothing but
+   products — six pages, no path between any two of them. */
+.ht-siblings{margin-top:56px;padding-top:28px;border-top:1px solid var(--line)}
+.ht-siblings h2{font-size:19px;font-weight:900;margin-bottom:14px}
+.ht-sibgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.ht-sibgrid a{display:flex;align-items:center;gap:10px;padding:11px 13px;
+  border:1.5px solid var(--line);border-inline-start:4px solid var(--c,var(--ink));
+  font-weight:800;font-size:14.5px;transition:.2s}
+.ht-sibgrid a:hover{border-color:var(--ink);background:var(--paper-2)}
+.ht-sibgrid img{width:30px;height:30px;flex:0 0 auto}
+.ht-reads{margin-top:34px}
+.ht-reads h2{font-size:19px;font-weight:900;margin-bottom:12px}
+.ht-reads ul{list-style:none;display:grid;gap:8px}
+.ht-reads a{display:block;padding:12px 14px;border:1.5px solid var(--line);
+  font-weight:800;font-size:14.5px;transition:.2s}
+.ht-reads a:hover{border-color:var(--red-ui);color:var(--red-ui)}
+.ht-reads small{display:block;color:var(--grey);font-weight:600;font-size:13px;margin-top:3px}
+
+/* The hair type an article was written for, at the foot of the article. */
+.article-type{margin-top:30px}
+.article-type a{display:flex;align-items:center;gap:12px;padding:13px 16px;
+  border:1.5px solid var(--line);border-inline-start:4px solid var(--c,var(--red-ui));
+  font-weight:800;font-size:14.5px;transition:.2s}
+.article-type a:hover{border-color:var(--c,var(--red-ui));background:var(--paper-2)}
+.article-type img{width:34px;height:34px;flex:0 0 auto}

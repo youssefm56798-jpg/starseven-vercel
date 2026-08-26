@@ -32,6 +32,19 @@ export function middleware(request) {
   const segments = pathname.split('/').filter(Boolean);
   const first = segments[0]?.toLowerCase();
 
+  /* ------------------------------------------------- legacy ?kind= filter */
+  // Wax and gel are paths now, not a filter. This runs before the locale
+  // branches so it catches both /shop?kind=wax and /en/shop?kind=wax, and it
+  // strips an unrecognised value rather than serving the whole catalogue at a
+  // second address — the shape of every crawl trap this site has had.
+  if (/^\/(?:en\/)?shop$/i.test(pathname) && searchParams.has('kind')) {
+    const kind = searchParams.get('kind').toLowerCase();
+    const url = request.nextUrl.clone();
+    url.searchParams.delete('kind');
+    if (kind === 'wax' || kind === 'gel') url.pathname = `${pathname.replace(/\/$/, '')}/${kind}`;
+    return NextResponse.redirect(url, 301);
+  }
+
   /* ---------------------------------------------------------- /en/... */
   if (first === 'en') {
     const rest = '/' + segments.slice(1).join('/');

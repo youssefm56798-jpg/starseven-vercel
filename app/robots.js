@@ -6,7 +6,9 @@ export default function robots() {
     rules: [{
       userAgent: '*',
       allow: '/',
-      disallow: ['/admin/', '/api/', '/checkout'],
+      // '/en/checkout' is spelled out: English lives under a path prefix, so
+      // disallowing '/checkout' alone leaves the English cart crawlable.
+      disallow: ['/admin/', '/api/', '/checkout', '/en/checkout'],
     }],
     // Trailing slash tolerated on NEXT_PUBLIC_SITE_URL, so the sitemap URL
     // never comes out as "https://host//sitemap.xml".
