@@ -4,7 +4,7 @@
  * server-side from the database — whatever the browser sends about money is
  * treated as a suggestion, never as fact.
  *
- * Body: { name, phone, address, city?, notes?, email?, coupon?, consent?,
+ * Body: { name, phone, address, email, city?, notes?, coupon?, consent?,
  *         lang?, hp?, items: [ { sku, qty } ] }
  */
 
@@ -281,8 +281,8 @@ export async function POST(req) {
   // no email double-opt-in step. Email confirmation stays separate.
   if (body.consent === 1 || body.consent === true || body.consent === '1') {
     try {
-      // A synthetic unique key when no email is given, so phone-only
-      // consenters still get one row each without colliding.
+      // Email is mandatory at checkout now, so there is always a real key —
+      // the old synthetic wa+phone@sms.local fallback is gone with it.
       const key = custEmail;
       await sql`
         INSERT INTO subscribers (email, name, phone, lang, source, status, token, ip, confirmed_at)
