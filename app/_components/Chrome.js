@@ -130,7 +130,6 @@ export async function Nav({ lang = 'ar', path = '' }) {
             </svg>
             <CartBadge />
           </Link>
-          <Link className="nav-order" href={L('/shop')}>{ar ? 'اطلب دلوقتي' : 'Shop now'}</Link>
         </div>
       </div>
     </nav>
