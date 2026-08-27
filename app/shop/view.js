@@ -1,10 +1,11 @@
 import Link from 'next/link';
+import { notFound } from 'next/navigation';
 import { localePath, localeUrl } from '../../lib/urls.js';
 import { CATEGORIES, KINDS, shopPath, shopCopy, kindColumn } from './lib.js';
 import { sql } from '../../lib/db.js';
 import { site } from '../../lib/config.js';
 import { currencyLabel, whole } from '../../lib/money.js';
-import { Dir, Nav, Footer, Crumb } from '../_components/Chrome.js';
+import { Dir, Nav, Footer, Crumb, shopCategories } from '../_components/Chrome.js';
 import AddButton from '../_components/AddButton.js';
 
 /**
@@ -26,16 +27,36 @@ export default async function ShopView({ kind, lang }) {
   // Two complete queries rather than a concatenated WHERE clause. The category
   // filters on its `kind` column, which is not the same string as its URL slug
   // — /shop/cream-gel selects kind = 'cream'.
-  const products = active === 'all'
-    ? await sql`SELECT * FROM products WHERE active = true ORDER BY sort, id`
-    : await sql`SELECT * FROM products WHERE active = true AND kind = ${kindColumn(active)} ORDER BY sort, id`;
+  //
+  // Started together rather than awaited one after the other. Neither needs the
+  // other's answer, so serialising them made every shop render wait out two
+  // round trips to Neon where one would do.
+  const [products, live] = await Promise.all([
+    active === 'all'
+      ? sql`SELECT * FROM products WHERE active = true ORDER BY sort, id`
+      : sql`SELECT * FROM products WHERE active = true AND kind = ${kindColumn(active)} ORDER BY sort, id`,
+    // Which categories are live is the question the nav and the footer already
+    // ask, and shopCategories() is cache()d for the request — this render is
+    // paying for that answer whether or not the chips use it, so asking again
+    // here costs nothing. The GROUP BY that used to sit in this file was a
+    // third round trip computing something already in memory.
+    shopCategories(),
+  ]);
 
-  // A category with nothing priced yet would be an empty page inviting a
-  // crawl. Only categories that actually hold something get a chip.
-  const stocked = await sql`
-    SELECT kind, count(*)::int AS n FROM products WHERE active = true GROUP BY kind`;
-  const have = new Set(stocked.map(r => r.kind));
-  const shown = CATEGORIES.filter(c => have.has(c.kind) || c.slug === active);
+  // An unpriced category has to 404 rather than serve a thin indexable page
+  // claiming the shop sells something it currently cannot sell — and the
+  // sitemap agrees, listing only the categories that hold a live product. That
+  // used to be its own SELECT in app/shop/[kind]/page.js, run to completion
+  // before this render was allowed to start; the product list is the same
+  // answer and it is already here. Only a category page 404s this way: an
+  // empty /shop is a broken catalogue rather than a missing page, and the grid
+  // below says so instead.
+  if (active !== 'all' && products.length === 0) notFound();
+
+  // The category being viewed keeps its chip either way, so the row can never
+  // lose the item it is highlighting.
+  const liveSlugs = new Set(live.map(cat => cat.slug));
+  const shown = CATEGORIES.filter(cat => liveSlugs.has(cat.slug) || cat.slug === active);
 
   const itemList = {
     '@context': 'https://schema.org',
@@ -93,12 +114,24 @@ export default async function ShopView({ kind, lang }) {
       </div>
 
       <div className="wrap">
+        {/* The chips ask for a full prefetch rather than the default one.
+            These routes render on demand — app/shop/[kind]/page.js explains
+            why — and Next's default prefetch on a dynamic route with no
+            loading boundary caches nothing it can navigate with, so the click
+            waits out a whole server render before anything moves. A full
+            prefetch pulls the entire payload at low priority while the chips
+            sit in view and keeps it for five minutes, so the click swaps the
+            grid straight out of the client router cache. It costs one
+            background request per live category per shop page load, which a
+            catalogue of seven can afford and a catalogue of hundreds could
+            not. */}
         <div className="chips">
-          <Link href={L('/shop')} className={active === 'all' ? 'on' : ''}>
+          <Link href={L('/shop')} prefetch className={active === 'all' ? 'on' : ''}>
             {ar ? 'الكل' : 'All'}
           </Link>
           {shown.map(c => (
-            <Link key={c.slug} href={L(shopPath(c.slug))} className={active === c.slug ? 'on' : ''}>
+            <Link key={c.slug} href={L(shopPath(c.slug))} prefetch
+              className={active === c.slug ? 'on' : ''}>
               {ar ? c.crumb.ar : c.crumb.en}
             </Link>
           ))}
