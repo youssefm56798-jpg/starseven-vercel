@@ -8,11 +8,10 @@ export default function robots() {
       allow: '/',
       // '/en/checkout' is spelled out: English lives under a path prefix, so
       // disallowing '/checkout' alone leaves the English cart crawlable.
-      // '/account' covers the profile, the order history and both forms.
-      // None of them can render anything for a crawler, and the profile is
-      // per-customer by definition.
+      // '/order' is a customer looking at their own order through a token in
+      // an email. Nothing there is public and nothing there is rankable.
       disallow: ['/admin/', '/api/', '/checkout', '/en/checkout',
-                 '/account', '/en/account'],
+                 '/order', '/en/order'],
     }],
     // Trailing slash tolerated on NEXT_PUBLIC_SITE_URL, so the sitemap URL
     // never comes out as "https://host//sitemap.xml".

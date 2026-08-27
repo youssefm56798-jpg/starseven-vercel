@@ -557,3 +557,45 @@ button{font:inherit;cursor:pointer}
   border:1.5px solid var(--line);transition:border-color .2s,color .2s}
 .s7nav .acct-link:hover{border-color:var(--ink)}
 .s7nav .acct-link svg{width:19px;height:19px}
+
+/* The order page a customer reaches from the link in their confirmation
+   email. No account behind it — see lib/order-access.js. */
+.ordpage{max-width:720px;padding:36px 22px 90px}
+.ord-head{margin-bottom:28px}
+.ord-ref{display:inline-block;background:var(--ink);color:var(--paper);font-weight:900;
+  font-size:13px;padding:6px 14px;border-radius:99px;margin-bottom:12px}
+.ord-head h1{font-size:clamp(24px,4vw,32px);font-weight:900;margin-bottom:4px}
+.ord-status{font-weight:800;color:var(--red-ui);font-size:16px}
+
+.ord-track{list-style:none;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:34px}
+.ord-track li{position:relative;padding-top:20px;font-size:12.5px;font-weight:800;color:var(--grey)}
+.ord-track li::before{content:"";position:absolute;top:0;inset-inline-start:0;right:0;
+  height:5px;background:var(--line)}
+.ord-track li.done{color:var(--ink)}
+.ord-track li.done::before{background:var(--red-ui)}
+
+.ord-sec{margin-bottom:34px}
+.ord-sec h2{font-size:18px;font-weight:900;margin-bottom:12px}
+.ord-items{list-style:none;display:grid;gap:1px;background:var(--line);border:1px solid var(--line)}
+.ord-items li{background:var(--paper);display:flex;align-items:center;gap:12px;padding:11px 14px;
+  font-weight:700;font-size:14.5px}
+.ord-items li b{color:var(--grey);font-weight:800;white-space:nowrap}
+.ord-items li bdi{margin-inline-start:auto;font-weight:900;white-space:nowrap}
+.ord-totals{margin-top:14px;display:grid;gap:6px}
+.ord-totals>div{display:flex;justify-content:space-between;font-weight:700;color:var(--grey);font-size:14.5px}
+.ord-totals .tot{color:var(--ink);font-weight:900;font-size:17px;border-top:1px solid var(--line);padding-top:9px}
+.ord-cod{margin-top:12px;color:var(--grey);font-weight:700;font-size:13px}
+.ord-addr{font-weight:700;line-height:1.8}
+
+.ord-refund textarea{width:100%;padding:11px 13px;border:1.5px solid var(--line);background:#fff;
+  font:inherit;font-weight:600;margin-bottom:12px;resize:vertical}
+.ord-refund textarea:focus{outline:none;border-color:var(--ink)}
+.ord-lead{color:var(--grey);font-weight:600;margin-bottom:12px}
+.ord-note{color:var(--grey);font-weight:600;font-size:12.5px;margin-top:12px;max-width:56ch}
+.ord-err{color:var(--red-ui);font-weight:800;font-size:13.5px;margin-bottom:10px}
+.ord-done{border:1.5px solid var(--green);border-inline-start-width:4px;padding:14px 16px}
+.ord-done b{display:block;font-weight:900;margin-bottom:4px}
+.ord-done p{color:var(--grey);font-weight:600;font-size:14px}
+.ord-help{color:var(--grey);font-weight:700;font-size:14px;border-top:1px solid var(--line);padding-top:20px}
+.ord-help a{color:var(--red-ui)}
+@media(max-width:560px){.ord-track{grid-template-columns:repeat(2,1fr)}}

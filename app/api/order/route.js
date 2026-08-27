@@ -13,6 +13,7 @@ import { ok, fail, readJson, langOf, orderRef, token40 } from '../../../lib/http
 import { discountFor, cartTotals } from '../../../lib/pricing.js';
 import { normalizePhone } from '../../../lib/phone.js';
 import { sendMail, tplOrder, tplOrderAdmin } from '../../../lib/mail.js';
+import { newAccessToken, sha256, orderUrl } from '../../../lib/order-access.js';
 import { site, mail, limits } from '../../../lib/config.js';
 import { str, trapped, isEmail, tooMany, tooBig } from '../_lib/shared.js';
 
@@ -163,6 +164,26 @@ export async function POST(req) {
     couponCode = coupon;
   }
 
+  /* ----------------------------------------------------------------- email */
+
+  // Mandatory now. It is the only way a customer gets back to this order —
+  // there are no accounts — so an order without one is an order nobody can
+  // track, cancel or ask about. Checked here, before the write, so a bad
+  // address fails cleanly rather than producing an unreachable order.
+  const custEmail = str(body.email, 190).toLowerCase();
+  if (!isEmail(custEmail)) {
+    return fail(
+      ar ? 'اكتب إيميل صح — هنبعتلك عليه لينك تتابع بيه الأوردر.'
+         : 'Enter a valid email — we send you a link to follow your order.',
+      422, { field: 'email' },
+    );
+  }
+
+  // The token goes in that email and nowhere else; the database keeps only its
+  // digest. See lib/order-access.js.
+  const accessToken = newAccessToken();
+  const accessHash = await sha256(accessToken);
+
   /* ------------------------------------------------------ shipping + total */
 
   const t = cartTotals(subtotal, discount, site.shipping, site.freeOver);
@@ -186,9 +207,11 @@ export async function POST(req) {
   const writeFor = ref => {
     const stmts = [sql`
       INSERT INTO orders (ref, name, phone, address, city, notes, lang,
-                          subtotal, shipping, discount, total, coupon, source, ip)
+                          subtotal, shipping, discount, total, coupon, source, ip,
+                          email, access_hash)
       VALUES (${ref}, ${name}, ${phone}, ${address}, ${city}, ${notes}, ${lang},
-              ${subtotal}, ${shipping}, ${discount}, ${total}, ${couponCode}, 'web', ${ip})
+              ${subtotal}, ${shipping}, ${discount}, ${total}, ${couponCode}, 'web', ${ip},
+              ${custEmail}, ${accessHash})
       RETURNING id`];
 
     for (const it of items) {
@@ -252,8 +275,6 @@ export async function POST(req) {
   /* --------------------------------------------------------------- consent */
 
   const order = { ref, name, phone, address, city, notes, subtotal, shipping, discount, total };
-  const custEmail = str(body.email, 190).toLowerCase();
-  const hasEmail = isEmail(custEmail);
 
   // Marketing consent given at checkout (unticked by default). Because the
   // customer opted in directly on their own order, the row is stored active —
@@ -262,7 +283,7 @@ export async function POST(req) {
     try {
       // A synthetic unique key when no email is given, so phone-only
       // consenters still get one row each without colliding.
-      const key = hasEmail ? custEmail : `wa+${phone}@sms.local`;
+      const key = custEmail;
       await sql`
         INSERT INTO subscribers (email, name, phone, lang, source, status, token, ip, confirmed_at)
         VALUES (${key}, ${name}, ${phone}, ${lang}, 'checkout', 'active', ${token40()}, ${ip}, now())
@@ -287,10 +308,10 @@ export async function POST(req) {
     const [aSub, aHtml] = tplOrderAdmin(order, items);
     if (mail.notifyTo) await sendMail({ to: mail.notifyTo, subject: aSub, html: aHtml, kind: 'order-admin' });
 
-    if (hasEmail) {
-      const [cSub, cHtml] = tplOrder(order, items, lang);
-      await sendMail({ to: custEmail, subject: cSub, html: cHtml, kind: 'order' });
-    }
+    // The link is the whole point of the confirmation now — it is the only
+    // copy of the token that will ever exist.
+    const [cSub, cHtml] = tplOrder(order, items, lang, orderUrl(ref, accessToken, lang));
+    await sendMail({ to: custEmail, subject: cSub, html: cHtml, kind: 'order' });
   } catch (e) {
     console.error('[s7] order mail failed:', e?.message || e);
   }

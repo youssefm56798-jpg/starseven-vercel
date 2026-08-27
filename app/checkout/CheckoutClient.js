@@ -21,7 +21,7 @@ const COPY = {
     items: 'طلبك', sub: 'المجموع', ship: 'التوصيل', free: 'مجاني', disc: 'الخصم', tot: 'الإجمالي',
     cop_ph: 'كود الخصم', cop_go: 'طبّق', cop_off: 'شيل',
     name: 'الاسم', phone: 'رقم الموبايل', addr: 'العنوان بالتفصيل', city: 'المحافظة / المدينة',
-    email: 'الإيميل (اختياري — نبعتلك تأكيد الأوردر)', notes: 'ملاحظات (اختياري)',
+    email: 'الإيميل — هنبعتلك عليه لينك تتابع بيه الأوردر', notes: 'ملاحظات (اختياري)',
     place: 'أكّد الأوردر — الدفع عند الاستلام', placing: 'بنسجل الأوردر…',
     e_name: 'اكتب اسمك.', e_phone: 'رقم موبايل مصري غير صحيح.', e_addr: 'اكتب العنوان بالتفصيل.',
     e_email: 'اكتب إيميل صحيح.', e_net: 'مفيش اتصال بالسيرفر. جرّب تاني.',
@@ -37,7 +37,7 @@ const COPY = {
     items: 'Your order', sub: 'Subtotal', ship: 'Delivery', free: 'Free', disc: 'Discount', tot: 'Total',
     cop_ph: 'Discount code', cop_go: 'Apply', cop_off: 'Remove',
     name: 'Full name', phone: 'Mobile number', addr: 'Full address', city: 'City / governorate',
-    email: 'Email (optional — we send a confirmation)', notes: 'Notes (optional)',
+    email: 'Email — we send you a link to follow your order', notes: 'Notes (optional)',
     place: 'Confirm order — cash on delivery', placing: 'Placing your order…',
     e_name: 'Please enter your name.', e_phone: 'Enter a valid Egyptian mobile number.',
     e_addr: 'Please enter a full address.', e_email: 'Enter a valid email address.',
@@ -174,7 +174,9 @@ export default function CheckoutClient({ lang, add, catalog, shipping, currency 
     if (f.name.trim().length < 3) next.name = T.e_name;
     if (!/^(?:\+?20|0020)?0?1[0125]\d{8}$/.test(f.phone.replace(/\D/g, ''))) next.phone = T.e_phone;
     if (f.addr.trim().length < 8) next.addr = T.e_addr;
-    if (f.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(f.email.trim())) next.email = T.e_email;
+    // Required. There are no accounts, so this address is the only way the
+    // customer can reach their order again — to check it or to cancel it.
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(f.email.trim())) next.email = T.e_email;
     setErrs(next);
     if (Object.keys(next).length) return;
 
@@ -248,7 +250,7 @@ export default function CheckoutClient({ lang, add, catalog, shipping, currency 
             <Field id="city" label={T.city} val={f.city} set={upd('city')}
               autoComplete="address-level2" />
             <Field id="email" label={T.email} val={f.email} set={upd('email')} err={errs.email}
-              type="email" dir="auto" autoComplete="email" />
+              type="email" dir="auto" autoComplete="email" required />
           </div>
 
           <Field id="notes" label={T.notes} val={f.notes} set={upd('notes')} ta />

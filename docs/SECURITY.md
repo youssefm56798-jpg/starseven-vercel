@@ -17,58 +17,67 @@ This describes the Next.js / Neon Postgres application in this repository.
 | **Quantity abuse** | Clamped 1–20 per line, floored to an integer, capped at 50 lines. Negative, `NaN`, `Infinity` and `1e9` all tested. | `lib/credentials.js`, `tests/credentials.test.mjs` |
 | **Stock races** | The order write is one transaction and the decrement is guarded by `WHERE stock >= ?`, so two customers cannot both take the last jar. | `app/api/order/route.js` |
 | **Stored XSS** | React escapes by default. The three places that use `dangerouslySetInnerHTML` are: article Markdown, which escapes first and then re-enables a whitelist; and JSON-LD, which is serialised then has `<` replaced with `<` so a `</script>` in a product name cannot break out. | `lib/markdown.js`, the `ld()` helper in each page |
-| **CSRF** | Three independent locks: `SameSite=Lax` cookies, an `Origin` / `Sec-Fetch-Site` check, and a required `application/json` content type that a cross-site form post cannot set without a preflight this API never answers. | `lib/auth-guard.js`, `lib/credentials.js` |
-| **Customer auth** | bcrypt cost 12. Short signed access token, opaque rotating refresh token stored as a SHA-256 digest. See below. | `lib/customer-auth.js` |
+| **CSRF** | An `Origin` / `Sec-Fetch-Site` check plus a required `application/json` content type, which a cross-site form post cannot set without a preflight this API never answers. | `lib/credentials.js`, `app/api/order/refund/route.js` |
+| **Order access** | No accounts. A random token in the confirmation email, stored only as a SHA-256, granting exactly one order. See below. | `lib/order-access.js` |
 | **Admin auth** | Separate cookie, separate table, separate module. A customer session cannot become an admin session. | `lib/auth.js` |
-| **Broken access control** | Every cart and order query is scoped by the user id taken from the verified token. No endpoint reads an identity from a body, query string or header — asserted by a test that greps the route files. | `lib/server-cart.js`, `tests/auth-routes.test.mjs` |
-| **User enumeration** | Login runs a real bcrypt compare against a fixed hash when the address is unknown, so an unknown account costs the same time as a wrong password, and both return the same message. | `app/api/auth/login/route.js` |
-| **Rate limiting** | Fixed-window per-IP limiter in a single statement, so concurrent requests cannot race between read and write. Login also has a per-account bucket, keyed by a digest so the table never becomes a list of customer emails. | `lib/db.js`, `lib/config.js` |
+| **Broken access control** | An order is reachable only through its own token, and the refund write goes to the id that token unlocked — no route reads an order id from a body or query string. Asserted by tests that grep the route files. | `lib/order-access.js`, `tests/order-access.test.mjs` |
+| **Order enumeration** | A wrong token, a wrong reference and a reference that does not exist render the same page, from a single failure branch. | `app/order/[ref]/page.js` |
+| **Rate limiting** | Fixed-window per-IP limiter in a single statement, so concurrent requests cannot race between read and write. Covers ordering, the newsletter, the quiz, admin login and refund requests. | `lib/db.js`, `lib/config.js` |
 | **Request body size** | 128 KB cap, checked both from `Content-Length` and from the actual read, so a spoofed length does not get around it. | `lib/http.js` |
 | **Secrets** | Nothing is committed. `.env*` is gitignored; only `.env.example` with placeholders is tracked. Verified against the full history, not just the working tree. | `.gitignore`, `.env.example` |
-| **Indexing of private pages** | `/admin`, `/api`, `/checkout` and `/account` are disallowed in robots.txt in both locales, and the pages themselves send `robots: noindex`. | `app/robots.js` |
+| **Indexing of private pages** | `/admin`, `/api`, `/checkout` and `/order` are disallowed in robots.txt in both locales, and the pages themselves send `robots: noindex`. | `app/robots.js` |
 
 ---
 
-## Customer sessions, and the one trade-off worth understanding
+## Reaching your own order, without an account
 
-The requirement was: do not make a returning customer log in again, do not read
-the database on every request, and still be able to revoke a session. Those do
-not all fit in one token, so there are two.
+The shop briefly had customer accounts — passwords, rotating session tokens,
+per-user carts. They were removed. On a cash-on-delivery shop the only thing a
+customer ever comes back for is the state of one order, and asking them to
+invent a password for that is friction with no payoff.
 
-**Access token** — a 15-minute JWT (HS256, `jose`). Verified by signature alone.
-Every authenticated render uses this and touches no database.
+What replaced it:
 
-**Refresh token** — 32 random bytes, opaque, 60-day life, **stored only as a
-SHA-256 digest**. Rotated on every use. It is the only thing that reads the
-`sessions` table, and only once the access token has expired.
+- **Email is mandatory at checkout.** An order without one is an order nobody
+  can track, cancel or ask about.
+- The confirmation email carries a link: `/order/<ref>?t=<token>`.
+- The token is **32 random bytes, stored only as its SHA-256**. It exists in
+  that one email and nowhere else — not in the database, not in a log. A dump
+  of `orders` yields nothing replayable.
+- Lookup is **by digest, then confirmed against the reference** in the URL.
+  Both halves have to agree, so one valid token cannot be pointed at a
+  different order by editing the path.
+- A wrong token, a wrong reference and a reference that does not exist all
+  render **the same page**. Distinguishing them would turn this into a way to
+  test whether an order reference is real.
+- **No expiry.** A customer chasing a refund six weeks later still needs it,
+  and unlike a session this grants exactly one order rather than an identity.
 
-Consequences to be aware of before changing any of it:
+The refund request re-verifies the token server-side and writes to the id the
+token unlocked — `requestRefund(orderId, …)` takes no reference and the route
+reads no id from the body, so one valid token cannot write to another order.
 
-- **A revoked session survives up to 15 minutes.** That is the price of not
-  reading the database per request. Lowering `ACCESS_TTL` narrows it linearly.
-  `tests/auth-routes.test.mjs` fails if it is raised above 900s.
-- **A refresh token presented twice revokes the whole family.** Two parties
-  holding one token is indistinguishable from theft, so both are logged out.
-  This means a client that fires concurrent refreshes will log itself out —
-  `lib/session-client.js` shares a single in-flight refresh for exactly this
-  reason. Do not remove that.
-- **A database dump contains nothing replayable.** Digests only.
+Consequences to know before changing it:
 
-`docs/auth-spec.json` is the full specification, including what was deliberately
-left out.
-
----
+- **The token cannot be recovered.** If the customer loses the email, the shop
+  has to look the order up by phone. That is the price of not storing it, and
+  the email says to keep it.
+- `/order` is disallowed in robots.txt and the page sends `noindex` and
+  `force-dynamic` — it renders one customer's order and must never be cached.
 
 ## What is deliberately not done yet
 
 These are known gaps, not oversights. Listed so nobody has to rediscover them.
 
-- **No email verification on register.** An address can be claimed without
-  proving control of it.
-- **No password reset.** A customer who forgets theirs has no route back.
-- **No MFA**, and no per-device session list for customers.
-- **The admin login has not been moved onto the customer session machinery.**
-  It still uses the simpler 8-hour signed cookie in `lib/auth.js`.
+- **The order link is not re-sendable.** There is no "email me my link again"
+  flow, because the token is not stored. A customer who loses the email has to
+  ring the shop.
+- **The email address is not verified.** A typo at checkout means the
+  confirmation, and the only copy of the link, goes nowhere. The order still
+  exists and the shop still calls the phone number.
+- **Requesting a refund does not cancel anything.** It records the request and
+  notifies the shop; the decision stays human, because the parcel may already
+  be with the courier.
 - **`ADMIN_SETUP_KEY` should be removed from the environment** once the first
   admin exists; `/admin/setup` is reachable while it is set.
 
@@ -76,23 +85,27 @@ These are known gaps, not oversights. Listed so nobody has to rediscover them.
 
 ## Checklist before a production domain goes live
 
-- [ ] `SESSION_SECRET` set to a long random string. **Every auth route throws
-      without it** — this is not a soft failure.
+- [ ] `SESSION_SECRET` set to a long random string. The **admin login** throws
+      without it — this is not a soft failure. Customer order links do not use
+      it; they are hashed tokens, not signed ones.
 - [ ] `NEXT_PUBLIC_SITE_URL` set to the real origin. The CSRF origin check
       compares against it, so a wrong value refuses every mutation.
 - [ ] `ADMIN_SETUP_KEY` removed after the first admin is created.
 - [ ] `MAIL_FROM` on a domain the client actually controls. It currently
       defaults to `newstarseven.com`, which belongs to an unrelated business —
       see `docs/product-facts.md`.
-- [ ] HTTPS only. The session cookies are `Secure` unconditionally, so they will
-      not be set over plain HTTP at all.
-- [ ] Confirm `robots.txt` in production disallows `/account` and `/checkout`.
+- [ ] HTTPS only. The admin session cookie is `Secure` unconditionally, so it
+      will not be set over plain HTTP at all — and order links travel in email,
+      where a plain-http link would leak the token to every hop.
+- [ ] `RESEND_API_KEY` working. Without it the confirmation email never sends,
+      and **the order link is lost for good** — it is not stored anywhere else.
+- [ ] Confirm `robots.txt` in production disallows `/order` and `/checkout`.
 
 ---
 
 ## Testing
 
-`npm test` — 295 tests, no database required.
+`npm test` — no database required.
 
 Three of the suites exist because a green build hid a real production failure,
 and are worth keeping for that reason:

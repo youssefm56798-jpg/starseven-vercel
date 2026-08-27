@@ -123,6 +123,12 @@ CREATE TABLE IF NOT EXISTS orders (
               CHECK (status IN ('new','confirmed','shipped','delivered','cancelled')),
   source      TEXT NOT NULL DEFAULT 'web',
   ip          TEXT NOT NULL DEFAULT '',
+  -- Mandatory at checkout: it is how the customer gets back to this order.
+  email       TEXT NOT NULL DEFAULT '',
+  -- SHA-256 of the token in the confirmation email. The token is never stored.
+  access_hash TEXT NOT NULL DEFAULT '',
+  refund_requested_at TIMESTAMPTZ,
+  refund_reason       TEXT NOT NULL DEFAULT '',
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS idx_orders_status ON orders (status, created_at DESC);
@@ -216,6 +222,44 @@ UPDATE articles t
    AND t.slug LIKE '%-ar'
    AND t.id NOT IN (SELECT id FROM dupes);
 
+-- ---------------------------------------------------------------------------
+--  Customer accounts, removed
+--
+--  The shop briefly had passwords, sessions and per-user carts. It does not
+--  need them: this is a cash-on-delivery shop where the only thing a customer
+--  ever wants to come back for is the status of one order, and an emailed link
+--  does that without asking anyone to invent a password.
+--
+--  Dropped rather than left in place, because an unused users table is a
+--  liability - it holds addresses and password hashes for an account system
+--  nothing signs into any more.
+-- ---------------------------------------------------------------------------
+DROP TABLE IF EXISTS cart_items;
+DROP TABLE IF EXISTS carts;
+DROP TABLE IF EXISTS sessions;
+ALTER TABLE orders DROP COLUMN IF EXISTS user_id;
+DROP TABLE IF EXISTS users;
+
+-- ---------------------------------------------------------------------------
+--  Looking up your own order
+--
+--  Email is mandatory at checkout now, and the confirmation carries a link to
+--  a page showing the order and its status.
+--
+--  access_hash is the SHA-256 of a random token. The token itself lives in
+--  that one email and nowhere else - not in the database, not in a log - so a
+--  dump of this table cannot be used to read any customer order. Same discipline
+--  the session tokens used, for the same reason.
+--
+--  No expiry: a customer chasing a refund six weeks later still needs it, and
+--  the token guards one order rather than an account.
+-- ---------------------------------------------------------------------------
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS email TEXT NOT NULL DEFAULT '';
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS access_hash TEXT NOT NULL DEFAULT '';
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS refund_requested_at TIMESTAMPTZ;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS refund_reason TEXT NOT NULL DEFAULT '';
+CREATE INDEX IF NOT EXISTS idx_orders_access ON orders (access_hash);
+
 CREATE TABLE IF NOT EXISTS quiz_results (
   id          INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   hair_type   TEXT NOT NULL,
@@ -246,97 +290,5 @@ CREATE TABLE IF NOT EXISTS rate_limits (
   PRIMARY KEY (bucket, ip)
 );
 
--- ---------------------------------------------------------------------------
---  Customer accounts
---
---  Separate from `admins` on purpose. An admin can price the catalogue; a
---  customer can see their own cart. Sharing one table would make a privilege
---  mistake a single wrong boolean away.
---
---  token_version is the blunt revocation lever: bumping it invalidates every
---  access token ever issued to this user, because the value is baked into the
---  token and compared on refresh. It is what "log out everywhere" writes.
--- ---------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS users (
-  id             INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  email          TEXT NOT NULL,
-  password_hash  TEXT NOT NULL,
-  name           TEXT NOT NULL DEFAULT '',
-  phone          TEXT NOT NULL DEFAULT '',
-  token_version  INT NOT NULL DEFAULT 1,
-  created_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
-  last_login_at  TIMESTAMPTZ
-);
 
--- Case-insensitive uniqueness without the citext extension, which Neon does
--- not enable by default. Every lookup lowercases too, so the index is used.
-CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users (lower(email));
 
--- ---------------------------------------------------------------------------
---  Sessions
---
---  refresh_hash is a SHA-256 digest, never the token. A database dump
---  therefore contains nothing that can be replayed: the raw token exists only
---  in the cookie the customer holds.
---
---  family_id ties every rotation of one login together. Presenting a token
---  that has already been rotated means two parties hold it, so the whole
---  family is revoked rather than just that row — the standard refresh-token
---  reuse response.
--- ---------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS sessions (
-  id           INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  user_id      INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  family_id    TEXT NOT NULL,
-  refresh_hash TEXT NOT NULL UNIQUE,
-  ua_hash      TEXT NOT NULL DEFAULT '',
-  issued_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
-  expires_at   TIMESTAMPTZ NOT NULL,
-  rotated_at   TIMESTAMPTZ,
-  revoked_at   TIMESTAMPTZ
-);
-CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions (user_id);
-CREATE INDEX IF NOT EXISTS idx_sessions_family ON sessions (family_id);
-CREATE INDEX IF NOT EXISTS idx_sessions_expiry ON sessions (expires_at);
-
--- ---------------------------------------------------------------------------
---  Server-side carts
---
---  Guests keep their cart in localStorage exactly as before. This table is
---  what makes a signed-in cart follow someone from their phone to a laptop,
---  which is the only reason to have accounts on a cash-on-delivery shop.
---
---  One open cart per user, enforced by the unique index rather than by
---  application code remembering to check.
--- ---------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS carts (
-  id         INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  user_id    INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-CREATE UNIQUE INDEX IF NOT EXISTS idx_carts_user ON carts (user_id);
-
-CREATE TABLE IF NOT EXISTS cart_items (
-  id      INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  cart_id INT NOT NULL REFERENCES carts(id) ON DELETE CASCADE,
-  sku     TEXT NOT NULL,
-  qty     INT NOT NULL DEFAULT 1 CHECK (qty BETWEEN 1 AND 20)
-);
-CREATE UNIQUE INDEX IF NOT EXISTS idx_cart_items_sku ON cart_items (cart_id, sku);
-
--- Orders may now belong to an account, and may still not: guest checkout is
--- untouched, so this is nullable and nothing about the existing flow changes.
-ALTER TABLE orders ADD COLUMN IF NOT EXISTS user_id INT REFERENCES users(id) ON DELETE SET NULL;
-CREATE INDEX IF NOT EXISTS idx_orders_user ON orders (user_id, created_at DESC);
-
--- ---------------------------------------------------------------------------
---  Remove accounts created while testing the auth flow against production
---
---  example.com is reserved by RFC 2606 and cannot receive mail, so no real
---  customer can own an address there. Anything matching is a test artefact.
---  Safe to re-run: after the first pass it matches nothing.
---
---  Sessions and carts go with them through ON DELETE CASCADE; orders would
---  detach rather than vanish, and there are none.
--- ---------------------------------------------------------------------------
-DELETE FROM users WHERE lower(email) LIKE '%@example.com';

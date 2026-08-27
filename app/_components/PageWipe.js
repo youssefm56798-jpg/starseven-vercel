@@ -45,7 +45,20 @@ function isPlainInternalLink(a, e) {
     return false;
   }
   if (a.href === window.location.href) return false;
+
+  // Moving between shop categories is a filter, not a page change.
+  // /shop -> /shop/wax -> /shop/gel reads as one screen with chips on it, and
+  // a 420ms cover plus a 620ms reveal on every chip made the catalogue feel
+  // broken. The routes are prerendered and prefetched, so skipping the wipe
+  // here lands them in a frame or two.
+  if (isShopPath(a.pathname) && isShopPath(window.location.pathname)) return false;
+
   return true;
+}
+
+/** /shop, /shop/wax, /en/shop/cream-gel — the category screen in any locale. */
+function isShopPath(pathname) {
+  return /^\/(?:en\/)?shop(?:\/[^/]+)?\/?$/.test(pathname || '');
 }
 
 export default function PageWipe() {

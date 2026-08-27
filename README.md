@@ -54,8 +54,9 @@ Read in this order:
 
 1. [`docs/SECURITY.md`](docs/SECURITY.md) — where every control lives, the one
    trade-off in the session design, and the checklist before a real domain.
-2. [`docs/auth-spec.json`](docs/auth-spec.json) — the customer auth
-   specification, including what was deliberately left out.
+2. [`lib/order-access.js`](lib/order-access.js) — how a customer gets back to
+   their own order. There are no accounts; the link in the confirmation email
+   is the credential, and the comment there explains why and what it costs.
 3. [`docs/product-facts.md`](docs/product-facts.md) — the catalogue as it
    actually is, with real ingredient lists read off the packaging, and the
    places the site currently contradicts them.

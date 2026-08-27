@@ -146,3 +146,25 @@ test('the depilatory range says out loud that it is not styling wax', () => {
   assert.match(shopCopy('depilatory', 'en').lead, /different thing/i);
   assert.ok(shopCopy('depilatory', 'ar').lead.includes('حاجة تانية'));
 });
+
+test('moving between shop categories does not play the page transition', async () => {
+  // The chips read as filters. A 420ms cover plus a 620ms reveal on each one
+  // made the catalogue feel broken, so PageWipe treats /shop -> /shop/wax as
+  // one screen rather than a navigation. Read as text: PageWipe is a client
+  // component and imports next/navigation, so it cannot be imported here.
+  const { readFileSync } = await import('node:fs');
+  const { join } = await import('node:path');
+  const root = new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1');
+  const src = readFileSync(join(root, 'app/_components/PageWipe.js'), 'utf8');
+
+  const m = src.match(/function isShopPath\(pathname\)\s*\{\s*return (\/.+\/)\.test/);
+  assert.ok(m, 'PageWipe no longer skips the transition between shop categories');
+
+  const re = new RegExp(m[1].slice(1, m[1].lastIndexOf('/')));
+  for (const p of ['/shop', '/shop/wax', '/shop/cream-gel', '/en/shop', '/en/shop/gel-wax']) {
+    assert.ok(re.test(p), `${p} should count as a shop screen`);
+  }
+  for (const p of ['/', '/blog', '/product/premium-wax-pro-x', '/shop/wax/extra', '/en/account']) {
+    assert.ok(!re.test(p), `${p} should NOT count as a shop screen`);
+  }
+});

@@ -93,17 +93,6 @@ export function Nav({ lang = 'ar', path = '' }) {
             </svg>
             <CartBadge />
           </Link>
-          {/* Points at /account either way. The page itself decides whether
-              that means the profile or the sign-in form, because only the
-              server can verify the session cookie — guessing here would show a
-              signed-out link to a signed-in customer on a cached page. */}
-          <Link className="acct-link" href={L('/account')}
-            aria-label={ar ? 'حسابي' : 'My account'}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9">
-              <circle cx="12" cy="8" r="3.6" />
-              <path d="M4.8 20a7.2 7.2 0 0 1 14.4 0" strokeLinecap="round" />
-            </svg>
-          </Link>
           <Link className="nav-order" href={L('/shop')}>{ar ? 'اطلب دلوقتي' : 'Shop now'}</Link>
         </div>
       </div>
@@ -138,7 +127,6 @@ export function Footer({ lang = 'ar' }) {
                 <li><Link href={L('/hair-types')}>{ar ? 'أنواع الشعر' : 'Hair types'}</Link></li>
                 <li><Link href={L('/blog')}>{ar ? 'مقالات' : 'Articles'}</Link></li>
                 <li><Link href={L('/brand')}>{ar ? 'عن البراند' : 'About us'}</Link></li>
-                <li><Link href={L('/account')}>{ar ? 'حسابي' : 'My account'}</Link></li>
                 <li><Link href={L('/privacy')}>{ar ? 'سياسة الخصوصية' : 'Privacy'}</Link></li>
                 <li><Link href={L('/terms')}>{ar ? 'الشروط والأحكام' : 'Terms'}</Link></li>
               </ul>

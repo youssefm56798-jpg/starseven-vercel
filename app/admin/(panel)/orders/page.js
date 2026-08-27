@@ -130,6 +130,15 @@ export default async function OrdersPage({ searchParams }) {
                       <b>{o.ref}</b>
                       <div className="muted">{dt(o.created_at)}</div>
                       {o.coupon ? <div className="muted">code: {o.coupon}</div> : null}
+                      {/* The customer asked to cancel through the link in
+                          their confirmation email. It arrives by mail too, but
+                          mail gets missed — this is the copy that cannot. */}
+                      {o.refund_requested_at ? (
+                        <div className="pill cancelled" style={{ marginTop: '6px' }}
+                             title={o.refund_reason || 'No reason given'}>
+                          cancellation asked {dt(o.refund_requested_at)}
+                        </div>
+                      ) : null}
                     </td>
                     <td>
                       {o.name}
