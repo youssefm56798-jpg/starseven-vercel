@@ -372,6 +372,25 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
   // finder itself works whether or not this call succeeds.
   function pickHair(slug) {
     setHair(slug);
+
+    // Take the visitor to the answer. The panel is below six tiles, so on a
+    // phone picking a type changed something entirely off-screen and the finder
+    // read as doing nothing. pickHold already worked this way; this did not.
+    //
+    // In a rAF because the panel is keyed on the tile and React has to swap it
+    // first - scrolling in the same tick measures the outgoing panel. Honour
+    // prefers-reduced-motion by jumping rather than sliding, and never by
+    // failing to move.
+    if (typeof window !== 'undefined') {
+      const smooth = !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+      window.requestAnimationFrame(() => {
+        document.getElementById('hair-answer')?.scrollIntoView({
+          behavior: smooth ? 'smooth' : 'auto',
+          block: 'start',
+        });
+      });
+    }
+
     fetch('/api/quiz', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -399,7 +418,11 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
               {d.hero_sub_a}<b>{d.hero_sub_b}</b>{d.hero_sub_c}
             </p>
             <div className="hero-ctas">
-              <a className="btn btn-red" href="#shop">{d.hero_cta1}</a>
+              {/* The shop, not the shortlist. This pointed at #shop, which is the
+                  eight-product strip further down this same page - so the
+                  brand's primary call to action never left the home page and
+                  never reached the other 55 products. */}
+              <Link className="btn btn-red" href={L('/shop')}>{d.hero_cta1}</Link>
               <a className="btn btn-line" href="#hair">{d.hero_cta2}</a>
             </div>
           </div>
@@ -595,7 +618,7 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
             })}
           </div>
 
-          <div className="hres" style={{ '--c': tile.color }} key={tile.slug}>
+          <div className="hres" id="hair-answer" style={{ '--c': tile.color }} key={tile.slug}>
             <div className="hres-in">
               <div>
                 <div className="k">
