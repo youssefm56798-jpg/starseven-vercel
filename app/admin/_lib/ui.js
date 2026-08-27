@@ -74,6 +74,7 @@ const MESSAGES = {
   offer_deleted: ['ok', 'Offer deleted.'],
   product_saved: ['ok', 'Product saved.'],
   product_toggled: ['ok', 'Product visibility changed.'],
+  product_featured: ['ok', 'Home page selection changed.'],
   admin_created: ['ok', 'Admin created. Remove ADMIN_SETUP_KEY from the environment now, then log in.'],
   offer_missing: ['err', 'That offer no longer exists.'],
   offer_needs_text: ['err', 'Arabic title and body are required.'],

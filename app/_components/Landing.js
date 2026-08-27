@@ -31,6 +31,10 @@ const T = {
     shop_a: 'اختار', shop_b: 'لونك',
     shop_p: 'كل لون تركيبة مختلفة. نفس التثبيت الميجا، ونفس البرطمان اللي مش هيسيبك في نص اليوم.',
     tabs: [['all', 'الكل'], ['wax', 'واكس'], ['gel', 'جل']],
+    // Ranges the home page does not carry. These are links to the shop, not
+    // filters — the home grid is a shortlist and they are not in it.
+    moreTabs: [['gel-wax', 'جل واكس'], ['cream-gel', 'كريم جل']],
+    shop_all: 'شوف التشكيلة كلها ←',
     buy: 'ضيف للسلة', added: 'اتضاف ✓', details: 'التفاصيل',
     sold: 'خلص', empty_grid: 'المنتجات في الطريق.',
     hair_a: 'شعرك', hair_b: 'نوعه إيه؟',
@@ -41,6 +45,7 @@ const T = {
     hold_tab: 'تثبيت', clear: 'شيل الفلتر',
     holds: [
       { en: 'GEL', h: 'جل بريميوم', lvl: 3, p: 'لمعة ويت لوك وتحكم يومي. للشغل والجامعة — يتغسل بسهولة.', go: 'شوف المنتجات ←', pick: 'gel', c: 'var(--blue)' },
+      { en: 'GEL WAX', h: 'جل واكس', lvl: 3, p: 'الاتنين مع بعض: تحكم الواكس ولمعة الجل. لو الواكس تقيل عليك والجل ناشف أوي.', go: 'شوف المنتجات ←', href: '/shop/gel-wax', c: 'var(--purple)' },
       { en: 'WAX', h: 'واكس مغذي', lvl: 4, p: 'تثبيت قوي مع ترطيب — زبدة الشيا وزيت الأرجان. للاستخدام اليومي.', go: 'شوف المنتجات ←', pick: 'hold:4', c: 'var(--green)' },
       { en: 'MEGA', h: 'ميجا هولد', lvl: 5, p: 'أقوى تثبيت عندنا. الستايل بيقعد مكانه مهما اليوم طال.', go: 'شوف المنتجات ←', pick: 'hold:5', c: 'var(--red-ui)' },
     ],
@@ -70,6 +75,8 @@ const T = {
     shop_a: 'PICK', shop_b: 'YOUR COLOR',
     shop_p: 'Every colour is a different formula. Same mega hold, same jar that will not quit halfway through your day.',
     tabs: [['all', 'All'], ['wax', 'Wax'], ['gel', 'Gel']],
+    moreTabs: [['gel-wax', 'Gel Wax'], ['cream-gel', 'Cream Gel']],
+    shop_all: 'See the whole range →',
     buy: 'Add to cart', added: 'Added ✓', details: 'Details',
     sold: 'Sold out', empty_grid: 'Products are on the way.',
     hair_a: 'WHAT’S YOUR', hair_b: 'HAIR TYPE?',
@@ -80,6 +87,7 @@ const T = {
     hold_tab: 'Hold', clear: 'Clear filter',
     holds: [
       { en: 'GEL', h: 'Premium Gel', lvl: 3, p: 'Wet-look shine and daily control. For work and campus — washes out easy.', go: 'See the products →', pick: 'gel', c: 'var(--blue)' },
+      { en: 'GEL WAX', h: 'Gel Wax', lvl: 3, p: 'Both at once: the control of a wax with the shine of a gel. For when wax feels heavy and gel sets too hard.', go: 'See the products →', href: '/shop/gel-wax', c: 'var(--purple)' },
       { en: 'WAX', h: 'Nourishing Wax', lvl: 4, p: 'Strong hold with conditioning — shea butter and argan oil. Made for daily use.', go: 'See the products →', pick: 'hold:4', c: 'var(--green)' },
       { en: 'MEGA', h: 'Mega Hold', lvl: 5, p: 'The strongest we make. The style stays put no matter how long the day runs.', go: 'See the products →', pick: 'hold:5', c: 'var(--red-ui)' },
     ],
@@ -296,12 +304,24 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
   const inFilter = (f, p) =>
     f === 'all' || (f.startsWith('hold:') ? p.hold === Number(f.slice(5)) : p.kind === f);
 
-  const shown = products.filter(p => inFilter(filter, p));
+  // The home grid is a shortlist, not the catalogue. With 32 products live it
+  // buried the ones the brand leads with, and it made the page enormous.
+  // `featured` is set in the admin; if nobody has chosen yet, fall back to the
+  // first eight in sort order rather than rendering an empty shop section.
+  const featured = products.some(p => p.featured)
+    ? products.filter(p => p.featured)
+    : products.slice(0, 8);
+
+  const shown = featured.filter(p => inFilter(filter, p));
 
   // Only offer a band that has something in it — the old picker advertised a
   // "cream" line with no SKUs behind it and quietly showed the whole shop.
+  // A tile with an href points at a shop category and is always offered — the
+  // home page does not stock that range, so counting it against `products`
+  // would hide it. A tile with a `pick` filters the shortlist and is only shown
+  // when the shortlist actually contains something for it.
   const holdTiles = d.holds
-    .map(h => ({ ...h, n: products.filter(p => inFilter(h.pick, p)).length }))
+    .map(h => (h.href ? { ...h, n: 1 } : { ...h, n: products.filter(p => inFilter(h.pick, p)).length }))
     .filter(h => h.n > 0);
 
   const holdFilter = filter.startsWith('hold:') ? filter.slice(5) : null;
@@ -433,6 +453,14 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
                 {d.hold_tab} <span dir="ltr">{holdFilter}/5</span> ×
               </button>
             )}
+            {/* Ranges the home page does not carry. Links, not filters: there
+                is nothing here to filter to, and pretending otherwise would
+                show an empty grid. */}
+            {(d.moreTabs || []).map(([slug, label]) => (
+              <Link key={slug} className="tab tab-out" href={L(`/shop/${slug}`)}>
+                {label}
+              </Link>
+            ))}
           </div>
 
           {shown.length === 0 ? (
@@ -442,6 +470,10 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
               {shown.map(p => <Card key={p.sku} p={p} lang={lang} d={d} L={L} onAdd={add} />)}
             </div>
           )}
+
+          <p className="shop-all">
+            <Link className="btn btn-line" href={L('/shop')}>{d.shop_all}</Link>
+          </p>
         </div>
       </section>
 
@@ -579,17 +611,28 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
             <p>{d.hold_p}</p>
           </div>
           <div className="hold-grid">
-            {holdTiles.map(h => (
-              <button className="hcard" key={h.en} style={{ '--c': h.c }} onClick={() => pickHold(h.pick)}>
-                <div className="en">{h.en}</div>
-                <h3>{h.h}</h3>
-                <div className="lvl" aria-hidden="true">
-                  {[1, 2, 3, 4, 5].map(n => <i key={n} className={n <= h.lvl ? 'on' : ''} />)}
-                </div>
-                <p className="use">{h.p}</p>
-                <span className="go">{h.go}</span>
-              </button>
-            ))}
+            {holdTiles.map(h => {
+              const body = (
+                <>
+                  <div className="en">{h.en}</div>
+                  <h3>{h.h}</h3>
+                  <div className="lvl" aria-hidden="true">
+                    {[1, 2, 3, 4, 5].map(n => <i key={n} className={n <= h.lvl ? 'on' : ''} />)}
+                  </div>
+                  <p className="use">{h.p}</p>
+                  <span className="go">{h.go}</span>
+                </>
+              );
+              return h.href ? (
+                <Link className="hcard" key={h.en} style={{ '--c': h.c }} href={L(h.href)}>
+                  {body}
+                </Link>
+              ) : (
+                <button className="hcard" key={h.en} style={{ '--c': h.c }} onClick={() => pickHold(h.pick)}>
+                  {body}
+                </button>
+              );
+            })}
           </div>
         </div>
       </section>

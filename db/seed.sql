@@ -1690,3 +1690,141 @@ UPDATE products
  WHERE price = 0 AND active = FALSE
    AND kind IN ('gel', 'cream')
    AND size_ml = 250;
+
+
+-- ---------------------------------------------------------------------------
+--  Take each accent colour from the product photograph
+--
+--  color drives the --c custom property: the card border, the price tint and
+--  the wash behind the jar on the product page. It has to be the colour of the
+--  pack.
+--
+--  The first pass derived it from the ingredient name - argan meant blue,
+--  olive meant green - which was a guess about packs nobody had looked at, and
+--  it was wrong on most of them. An olive-oil wax is a green jar; a jojoba
+--  cream gel is a blue one; the argan cream gel is orange.
+--
+--  These are sampled from the images now: every opaque pixel bucketed by hue
+--  and weighted by saturation, dominant bucket wins, and a genuinely neutral
+--  pack - the black and silver cartons - gets a grey at its own lightness
+--  rather than whatever faint cast the render happened to carry.
+--
+--  Guarded on active = FALSE is NOT possible here, because 24 of these are now
+--  live. Guarded on the value instead: only rows still carrying the guessed
+--  colour are corrected, so a colour picked by hand in the admin survives.
+-- ---------------------------------------------------------------------------
+UPDATE products SET color = CASE
+    WHEN sku = 'S7-W120-COCONU' THEN '#6292CF'
+    WHEN sku = 'S7-W135-OLIVE' THEN '#00C740'
+    WHEN sku = 'S7-W135-ARGAN' THEN '#FEFF32'
+    WHEN sku = 'S7-W135-COCONU' THEN '#0072DE'
+    WHEN sku = 'S7-W135-SHEA' THEN '#965F00'
+    WHEN sku = 'S7-W125-BLACKS' THEN '#D39008'
+    WHEN sku = 'S7-GW140-ARGAN' THEN '#FE1E50'
+    WHEN sku = 'S7-GW140-JOJOBA' THEN '#3F3F3F'
+    WHEN sku = 'S7-GW140-COCONU' THEN '#0056E4'
+    WHEN sku = 'S7-GW140-ROSEMA' THEN '#69B800'
+    WHEN sku = 'S7-GW140-SHEA' THEN '#FDC418'
+    WHEN sku = 'S7-GW140-ALOEVE' THEN '#C69E6B'
+    WHEN sku = 'S7-G250-WHITE' THEN '#674327'
+    WHEN sku = 'S7-G250-BLACK' THEN '#898989'
+    WHEN sku = 'S7-SG250-WHITE' THEN '#BE007C'
+    WHEN sku = 'S7-SG250-BLACK' THEN '#AF0074'
+    WHEN sku = 'S7-SG250-BLUE' THEN '#001A8E'
+    WHEN sku = 'S7-SG250-YELLOW' THEN '#E6CD00'
+    WHEN sku = 'S7-SG650-WHITE' THEN '#D20082'
+    WHEN sku = 'S7-SG650-BLACK' THEN '#D10083'
+    WHEN sku = 'S7-SG650-BLUE' THEN '#0069D9'
+    WHEN sku = 'S7-SG650-YELLOW' THEN '#E4C200'
+    WHEN sku = 'S7-SG850-WHITE' THEN '#D00082'
+    WHEN sku = 'S7-SG850-BLACK' THEN '#CF0083'
+    WHEN sku = 'S7-SG850-BLUE' THEN '#0068DB'
+    WHEN sku = 'S7-SG850-YELLOW' THEN '#E3CC00'
+    WHEN sku = 'S7-GS20-SACHET' THEN '#B01888'
+    WHEN sku = 'S7-GS14-SACHET' THEN '#B01888'
+    WHEN sku = 'S7-CG250-BEESWA' THEN '#DDB300'
+    WHEN sku = 'S7-CG250-OLIVE' THEN '#1F840A'
+    WHEN sku = 'S7-CG250-ARGAN' THEN '#C96000'
+    WHEN sku = 'S7-CG250-JOJOBA' THEN '#008DCF'
+    WHEN sku = 'S7-CG250-BLACKS' THEN '#515151'
+    WHEN sku = 'S7-CG250-COCONU' THEN '#727272'
+    WHEN sku = 'S7-HS500-ULTRAS' THEN '#936701'
+    WHEN sku = 'S7-HS500-STRONG' THEN '#966801'
+    WHEN sku = 'S7-C180-MAGIC' THEN '#AB7A00'
+    WHEN sku = 'S7-C180-FRESH' THEN '#3CBD0A'
+    WHEN sku = 'S7-C180-AQUA' THEN '#03ADCF'
+    WHEN sku = 'S7-C180-ECHO' THEN '#F23F45'
+    WHEN sku = 'S7-C180-ESSENC' THEN '#6B7AC6'
+    WHEN sku = 'S7-C180-SENSE' THEN '#5805C9'
+    WHEN sku = 'S7-DW400-BEESWA' THEN '#C36100'
+    WHEN sku = 'S7-DW400-ROSE' THEN '#B4255E'
+    WHEN sku = 'S7-DW400-COAL' THEN '#8F8F8F'
+    WHEN sku = 'S7-WR100-BEESWA' THEN '#834E0B'
+    WHEN sku = 'S7-WR100-COAL' THEN '#454545'
+    WHEN sku = 'S7-WR100-ROSE' THEN '#AC492F'
+    WHEN sku = 'S7-RP100-WATERM' THEN '#008E59'
+    WHEN sku = 'S7-RP100-COALOU' THEN '#954C00'
+    WHEN sku = 'S7-RP100-POMEGR' THEN '#C0001C'
+    WHEN sku = 'S7-RP100-PASSIO' THEN '#C02F00'
+    WHEN sku = 'S7-RP100-COCONU' THEN '#8D3B01'
+    WHEN sku = 'S7-SP100-BEESWA' THEN '#CE4E00'
+    WHEN sku = 'S7-SP100-COAL' THEN '#AFAFAF'
+  END
+WHERE sku IN ('S7-W120-COCONU', 'S7-W135-OLIVE', 'S7-W135-ARGAN', 'S7-W135-COCONU', 'S7-W135-SHEA', 'S7-W125-BLACKS', 'S7-GW140-ARGAN', 'S7-GW140-JOJOBA', 'S7-GW140-COCONU', 'S7-GW140-ROSEMA', 'S7-GW140-SHEA', 'S7-GW140-ALOEVE', 'S7-G250-WHITE', 'S7-G250-BLACK', 'S7-SG250-WHITE', 'S7-SG250-BLACK', 'S7-SG250-BLUE', 'S7-SG250-YELLOW', 'S7-SG650-WHITE', 'S7-SG650-BLACK', 'S7-SG650-BLUE', 'S7-SG650-YELLOW', 'S7-SG850-WHITE', 'S7-SG850-BLACK', 'S7-SG850-BLUE', 'S7-SG850-YELLOW', 'S7-GS20-SACHET', 'S7-GS14-SACHET', 'S7-CG250-BEESWA', 'S7-CG250-OLIVE', 'S7-CG250-ARGAN', 'S7-CG250-JOJOBA', 'S7-CG250-BLACKS', 'S7-CG250-COCONU', 'S7-HS500-ULTRAS', 'S7-HS500-STRONG', 'S7-C180-MAGIC', 'S7-C180-FRESH', 'S7-C180-AQUA', 'S7-C180-ECHO', 'S7-C180-ESSENC', 'S7-C180-SENSE', 'S7-DW400-BEESWA', 'S7-DW400-ROSE', 'S7-DW400-COAL', 'S7-WR100-BEESWA', 'S7-WR100-COAL', 'S7-WR100-ROSE', 'S7-RP100-WATERM', 'S7-RP100-COALOU', 'S7-RP100-POMEGR', 'S7-RP100-PASSIO', 'S7-RP100-COCONU', 'S7-SP100-BEESWA', 'S7-SP100-COAL')
+  AND color = CASE
+    WHEN sku = 'S7-W120-COCONU' THEN '#E8E2D3'
+    WHEN sku = 'S7-W135-OLIVE' THEN '#6E8B3D'
+    WHEN sku = 'S7-W135-ARGAN' THEN '#2A6DE8'
+    WHEN sku = 'S7-W135-COCONU' THEN '#E8E2D3'
+    WHEN sku = 'S7-W135-SHEA' THEN '#8B4DC9'
+    WHEN sku = 'S7-W125-BLACKS' THEN '#3A3A3A'
+    WHEN sku = 'S7-GW140-ARGAN' THEN '#2A6DE8'
+    WHEN sku = 'S7-GW140-JOJOBA' THEN '#C8A24A'
+    WHEN sku = 'S7-GW140-COCONU' THEN '#E8E2D3'
+    WHEN sku = 'S7-GW140-ROSEMA' THEN '#4E7A4E'
+    WHEN sku = 'S7-GW140-SHEA' THEN '#8B4DC9'
+    WHEN sku = 'S7-GW140-ALOEVE' THEN '#5E9C2B'
+    WHEN sku = 'S7-G250-WHITE' THEN '#E9E9E9'
+    WHEN sku = 'S7-G250-BLACK' THEN '#2A2A2A'
+    WHEN sku = 'S7-SG250-WHITE' THEN '#E9E9E9'
+    WHEN sku = 'S7-SG250-BLACK' THEN '#2A2A2A'
+    WHEN sku = 'S7-SG250-BLUE' THEN '#2A6DE8'
+    WHEN sku = 'S7-SG250-YELLOW' THEN '#D9A81E'
+    WHEN sku = 'S7-SG650-WHITE' THEN '#E9E9E9'
+    WHEN sku = 'S7-SG650-BLACK' THEN '#2A2A2A'
+    WHEN sku = 'S7-SG650-BLUE' THEN '#2A6DE8'
+    WHEN sku = 'S7-SG650-YELLOW' THEN '#D9A81E'
+    WHEN sku = 'S7-SG850-WHITE' THEN '#E9E9E9'
+    WHEN sku = 'S7-SG850-BLACK' THEN '#2A2A2A'
+    WHEN sku = 'S7-SG850-BLUE' THEN '#2A6DE8'
+    WHEN sku = 'S7-SG850-YELLOW' THEN '#D9A81E'
+    WHEN sku = 'S7-GS20-SACHET' THEN '#2A6DE8'
+    WHEN sku = 'S7-GS14-SACHET' THEN '#2A6DE8'
+    WHEN sku = 'S7-CG250-BEESWA' THEN '#D9A81E'
+    WHEN sku = 'S7-CG250-OLIVE' THEN '#6E8B3D'
+    WHEN sku = 'S7-CG250-ARGAN' THEN '#2A6DE8'
+    WHEN sku = 'S7-CG250-JOJOBA' THEN '#C8A24A'
+    WHEN sku = 'S7-CG250-BLACKS' THEN '#3A3A3A'
+    WHEN sku = 'S7-CG250-COCONU' THEN '#E8E2D3'
+    WHEN sku = 'S7-HS500-ULTRAS' THEN '#D7291D'
+    WHEN sku = 'S7-HS500-STRONG' THEN '#2A6DE8'
+    WHEN sku = 'S7-C180-MAGIC' THEN '#8B4DC9'
+    WHEN sku = 'S7-C180-FRESH' THEN '#5E9C2B'
+    WHEN sku = 'S7-C180-AQUA' THEN '#2A9DE8'
+    WHEN sku = 'S7-C180-ECHO' THEN '#4A6A8B'
+    WHEN sku = 'S7-C180-ESSENC' THEN '#C48A2E'
+    WHEN sku = 'S7-C180-SENSE' THEN '#B0455E'
+    WHEN sku = 'S7-DW400-BEESWA' THEN '#D9A81E'
+    WHEN sku = 'S7-DW400-ROSE' THEN '#D46A8A'
+    WHEN sku = 'S7-DW400-COAL' THEN '#4A4A4A'
+    WHEN sku = 'S7-WR100-BEESWA' THEN '#D9A81E'
+    WHEN sku = 'S7-WR100-COAL' THEN '#4A4A4A'
+    WHEN sku = 'S7-WR100-ROSE' THEN '#D46A8A'
+    WHEN sku = 'S7-RP100-WATERM' THEN '#E4595F'
+    WHEN sku = 'S7-RP100-COALOU' THEN '#5A4632'
+    WHEN sku = 'S7-RP100-POMEGR' THEN '#B02B4A'
+    WHEN sku = 'S7-RP100-PASSIO' THEN '#E0A32E'
+    WHEN sku = 'S7-RP100-COCONU' THEN '#E8E2D3'
+    WHEN sku = 'S7-SP100-BEESWA' THEN '#D9A81E'
+    WHEN sku = 'S7-SP100-COAL' THEN '#4A4A4A'
+  END;

@@ -41,6 +41,10 @@ CREATE TABLE IF NOT EXISTS products (
   hair_types   TEXT NOT NULL DEFAULT '',
   stock        INT NOT NULL DEFAULT 100,
   active       BOOLEAN NOT NULL DEFAULT TRUE,
+  -- Shown on the home page. The home grid is a shortlist, not the catalogue:
+  -- with 32 products live and more to come, listing everything there buries
+  -- the products the brand actually leads with.
+  featured     BOOLEAN NOT NULL DEFAULT FALSE,
   sort         SMALLINT NOT NULL DEFAULT 0,
   -- Long-form page content, all optional. Each is plain text rendered through
   -- lib/markdown.js; howto_* and highlights_* are one item per line.
@@ -72,6 +76,16 @@ ALTER TABLE products DROP CONSTRAINT IF EXISTS products_kind_check;
 ALTER TABLE products ADD CONSTRAINT products_kind_check
   CHECK (kind IN ('wax','gel','gelwax','cream','spray',
                   'cologne','shampoo','depilatory'));
+
+ALTER TABLE products ADD COLUMN IF NOT EXISTS featured BOOLEAN NOT NULL DEFAULT FALSE;
+
+-- The eight the shop launched with are the featured set, unless someone has
+-- since chosen otherwise. Runs once: after any row is featured, the NOT EXISTS
+-- guard stops it, so a selection made in the admin is never overwritten.
+UPDATE products SET featured = TRUE
+ WHERE sku IN ('S7-WAX-RED','S7-WAX-PUR','S7-WAX-BLU','S7-WAX-BLK',
+               'S7-WAX-YEL','S7-GEL-YEL','S7-GEL-GRN','S7-GEL-BLU')
+   AND NOT EXISTS (SELECT 1 FROM products WHERE featured = TRUE);
 
 CREATE TABLE IF NOT EXISTS subscribers (
   id           INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

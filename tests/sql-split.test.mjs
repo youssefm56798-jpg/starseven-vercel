@@ -115,7 +115,7 @@ test('db/seed.sql is the seeds, the copy update, the article wave, the link fix 
   skip: existsSync(`${ROOT}db/seed.sql`) ? false : 'db/seed.sql not present',
 }, () => {
   const out = splitStatements(readFileSync(`${ROOT}db/seed.sql`, 'utf8'));
-  assert.equal(out.length, 9);
+  assert.equal(out.length, 10);
   assert.ok(out[0].includes('INSERT INTO products') && out[0].includes('ON CONFLICT (sku)'));
   assert.ok(out[1].includes('INSERT INTO offers') && out[1].includes('ON CONFLICT (code)'));
   // Both article statements must target the (slug, lang) index. The old
@@ -189,14 +189,14 @@ test('db/seed.sql is the seeds, the copy update, the article wave, the link fix 
   // The two pricing statements that follow. Both must stay guarded on
   // price = 0 AND active = false, so a row is priced once and a price the
   // client later sets in the admin is never overwritten by a redeploy.
-  for (const stmt of out.slice(7)) {
+  for (const stmt of out.slice(7, 9)) {
     assert.match(stmt, /UPDATE products/);
     assert.match(stmt, /price = 0 AND active = FALSE/,
       'a pricing statement is unguarded and would overwrite an admin edit');
   }
 
   // And neither may reach a format whose size makes the copied price wrong.
-  const priced = out.slice(7).join('\n');
+  const priced = out.slice(7, 9).join('\n');
   assert.ok(!/'spray'|'cologne'|'depilatory'/.test(priced),
     'a format with no priced sibling is being given a copied price');
   assert.ok(/size_ml = 250/.test(priced),

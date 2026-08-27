@@ -40,6 +40,12 @@ async function saveProduct(formData) {
     redirect('/admin/products?m=product_toggled');
   }
 
+  // The home page shows a shortlist, not the catalogue. This is what picks it.
+  if (act === 'feature') {
+    await sql`UPDATE products SET featured = NOT featured WHERE id = ${id}`;
+    redirect('/admin/products?m=product_featured');
+  }
+
   const price = Math.max(0, Number(formData.get('price')) || 0);
   const rawCompare = String(formData.get('compare_at') || '').trim();
   const compareAt = rawCompare === '' ? null : Math.max(0, Number(rawCompare) || 0);
@@ -100,12 +106,21 @@ export default async function ProductsPage({ searchParams }) {
               <span dir="rtl">{p.name_ar}</span>
               <span className="muted" style={{ fontWeight: 600 }}>· {p.name_en} · {p.sku}</span>
               <span className={p.active ? 'pill active' : 'pill cancelled'}>{p.active ? 'live' : 'hidden'}</span>
+              {p.featured && <span className="pill active" title="Shown on the home page">home</span>}
               <span className="right">
                 <form action={saveProduct}>
                   <input type="hidden" name="_csrf" value={token} />
                   <input type="hidden" name="id" value={p.id} />
                   <input type="hidden" name="act" value="toggle" />
                   <button className="btn sm ghost" type="submit">{p.active ? 'Hide' : 'Show'}</button>
+                </form>
+                <form action={save}>
+                  <input type="hidden" name="id" value={p.id} />
+                  <input type="hidden" name="act" value="feature" />
+                  <button className="btn sm ghost" type="submit"
+                          title="Show this product on the home page">
+                    {p.featured ? 'Unfeature' : 'Feature'}
+                  </button>
                 </form>
               </span>
             </h2>

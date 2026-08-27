@@ -90,7 +90,21 @@
    child does not. */
 .s7home .btn-red::after{content:"";position:absolute;top:0;bottom:0;width:45%;left:0;
   background:linear-gradient(105deg,transparent,rgba(255,255,255,.5),transparent);
-  animation:sheen 3.4s ease-in-out 3;pointer-events:none}
+  /* Parked off the right edge by default, and `forwards` so it stays there
+     once the three passes are done. Without a fill-mode the animation ends and
+     the band snaps back to its un-animated position - which is left:0, i.e.
+     sitting in plain view across the left half of every red button, for good.
+     That was the "glow" on every button, and it is why it looked static.
+     The base transform also covers the moment before the animation starts and
+     the case where animations never run at all. */
+  transform:translateX(320%) skewX(-20deg);
+  animation:sheen 3.4s ease-in-out 3 forwards;pointer-events:none}
+
+/* Someone who has asked for less motion gets no sweep at all, rather than a
+   band parked over the button. */
+@media (prefers-reduced-motion:reduce){
+  .s7home .btn-red::after{animation:none}
+}
 @keyframes sheen{0%,55%{transform:translateX(-170%) skewX(-20deg)}100%{transform:translateX(320%) skewX(-20deg)}}
 .s7home .btn-red:hover{box-shadow:0 14px 34px -10px rgba(215,41,29,.45)}
 .s7home .btn-line{border-color:var(--ink);color:var(--ink)}
@@ -330,3 +344,12 @@
 .s7home .hres-guide{display:inline-block;margin-top:14px;font-size:13.5px;font-weight:800;
   color:var(--grey);border-bottom:1.5px solid transparent;transition:.2s}
 .s7home .hres-guide:hover{color:var(--c);border-bottom-color:var(--c)}
+
+/* A tab that leaves the page. The home grid is a shortlist, so the ranges it
+   does not carry are links to the shop rather than filters over nothing. */
+.s7home .tab-out{display:inline-flex;align-items:center;gap:6px;text-decoration:none}
+.s7home .tab-out::after{content:"→";font-size:12px;opacity:.55}
+[dir="rtl"] .s7home .tab-out::after{content:"←"}
+
+/* The way from the shortlist to the whole catalogue. */
+.s7home .shop-all{margin-top:26px;text-align:center}
