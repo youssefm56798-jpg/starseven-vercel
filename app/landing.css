@@ -13,9 +13,58 @@
 .s7home{scroll-behavior:auto}
 .s7home{background:var(--paper);color:var(--ink);font-family:var(--font-cairo),sans-serif;font-size:16px;line-height:1.7;overflow-x:hidden;-webkit-font-smoothing:antialiased}
 .s7home .en-display{font-family:var(--font-anton),var(--font-cairo),sans-serif;font-weight:400;letter-spacing:.01em}
-[dir="rtl"] .s7home .en-display{font-family:var(--font-cairo),sans-serif;font-weight:900}
+/* The Arabic display tier: the hero and the section headings, and nothing else.
+   These were set in Cairo, which is the body face, and then in Changa, and the
+   customer rejected each in turn — see the note above the Tajawal declaration in
+   app/layout.js for what was wrong with both. Cairo stays the fallback so a
+   failed Tajawal fetch lands on a face that at least has the Arabic subset.
+
+   The hero needs naming separately: in Arabic the h1 drops the .en-display class
+   — that class carries Anton, which has no Arabic — so it was picking up Cairo by
+   inheritance and 700 from the UA's default h1 bold, lighter than the headings
+   below it. 900 is Tajawal's heaviest weight and the only one downloaded, so
+   nothing on this tier is synthesised. */
+[dir="rtl"] .s7home .en-display,
+[dir="rtl"] .s7home .hero-title{font-family:var(--font-tajawal),var(--font-cairo),sans-serif;font-weight:900}
+/* Arabic is cursive: letters join, and spacing them apart severs the joins and
+   turns a word into rubble. Anton's .01em tracking above would inherit straight
+   into the RTL hero, so it is zeroed here for the whole subtree. */
 [dir="rtl"] .s7home *{letter-spacing:0!important}
-[dir="rtl"] .s7home .hero-title{line-height:1.1}
+/* The Arabic hero is sized on its own curve, and this is the rule that keeps
+   طول اليوم on one line. The shared rule further down is 20cqw, which in Tajawal
+   sets that line at 95% of the hero column — the same margin Changa had at 94%,
+   and Changa was reported wrapping onto a fourth line on a real viewport even
+   though it measures as fitting in this browser. Six per cent is not a margin,
+   it is a rounding error: anything that measures the line slightly wider — the
+   fallback face during the swap, a device that resolves the fallback chain to
+   something else, a different rasteriser — breaks طول اليوم in two and pushes
+   the paragraph beneath the hero off the bottom of the viewport.
+
+   18cqw holds the longest line at 85.5% of the column at every width from 320px
+   up, which absorbs a substitute face 17% wider than Tajawal before anything
+   breaks. It is scoped to [dir="rtl"] so the Latin hero keeps its own 22cqw. */
+[dir="rtl"] .s7home .hero-title{font-size:clamp(40px,18cqw,148px)}
+/* Arabic needs more leading than the Latin's .96 — its ascenders and descenders
+   both run past the line box, where Anton's all-caps hero has no descender at
+   all. Measured in Tajawal 900: "طول اليوم" reaches .315em below the baseline
+   and "ستايلك" .68em above it, both a little shallower than the Changa this
+   replaces, so the leading did not need reopening.
+
+   1.12 rather than the 1.1 that was here, and not more: it puts .23em between
+   the tail of ستايلك and the head of طول اليوم, which is the same optical gap
+   the Latin hero gets from .96, so the two languages keep one rhythm. Leading
+   any looser would fix the clipping below at the cost of the poster look. */
+[dir="rtl"] .s7home .hero-title{line-height:1.12}
+/* The clipping is a separate problem, and this is where it belongs. .row is an
+   overflow:hidden mask whose padding-bottom is cancelled by an equal negative
+   margin, so widening it buys room under the baseline without adding a pixel of
+   height or touching the leading. .08em is enough for Latin caps and was never
+   enough for Arabic: at 1.12 the descender of طول اليوم lands past the clip
+   edge, which is the shaved tail visible on the old Cairo hero. .26em still
+   clears Tajawal, whose descender on that line is .315em against Changa's
+   .334em — measured in the browser it leaves .18em of daylight under the ink at
+   every width from 320px to 1440px, so the value stands unchanged. */
+[dir="rtl"] .s7home .hero-title .row{padding-bottom:.26em;margin-bottom:-.26em}
 [dir="rtl"] .s7home h2{line-height:1.22}
 .s7home a{color:inherit;text-decoration:none}
 .s7home img{max-width:100%;display:block}
@@ -27,11 +76,6 @@
 @media (prefers-reduced-motion: reduce){.s7home .stage .ring,.s7home .hero-stamp,.s7home .orbit,.s7home .ticker-track{animation:none}}
 .s7home.s7-bg,.s7home.s7-bg *,.s7home.s7-bg *::before,.s7home.s7-bg *::after{animation-play-state:paused!important}
 [data-anim="off"] .s7home *,[data-anim="off"] .s7home *::before,[data-anim="off"] .s7home *::after{animation-play-state:paused!important}
-.s7home .annc{background:var(--ink);color:var(--paper);padding:9px 0}
-.s7home .annc-in{display:flex;justify-content:center;align-items:center;gap:20px;flex-wrap:nowrap;padding:0 16px}
-.s7home .annc-in b{font-weight:900;font-size:13px;white-space:nowrap}
-.s7home .annc-in i{font-style:normal;font-size:10px;color:var(--red);flex:none}
-@media(max-width:900px){.s7home .annc-in b:nth-of-type(n+3),.s7home .annc-in i:nth-of-type(n+2){display:none}}
 @keyframes slide{to{transform:translateX(50%)}}
 [dir="ltr"] .s7home .ticker-track{animation-name:slide-ltr}
 @keyframes slide-ltr{to{transform:translateX(-50%)}}
@@ -167,7 +211,7 @@
 .s7home .card h3{position:relative;z-index:1;font-size:16.5px;font-weight:900;line-height:1.35}
 .s7home .card .sub{position:relative;z-index:1;color:var(--grey);font-size:12.5px;font-weight:600;margin-bottom:12px}
 .s7home .card-hit{display:flex;flex-direction:column;position:relative;z-index:1}
-.s7home .card-hit:hover h3{color:var(--red-ui)}
+.s7home .card-hit:hover h3{color:inherit}
 .s7home .card .row{position:relative;z-index:1;margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:8px}
 .s7home .price{font-family:var(--font-anton),var(--font-cairo),sans-serif;font-size:22px}
 .s7home .price small{font-size:12px;color:var(--grey);font-family:var(--font-cairo),sans-serif;font-weight:700}

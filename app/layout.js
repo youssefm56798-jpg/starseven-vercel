@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import { headers } from 'next/headers';
-import { Anton, Cairo } from 'next/font/google';
+import { Anton, Cairo, Tajawal } from 'next/font/google';
 import './globals.css';
 import { site } from '../lib/config.js';
 import PageWipe from './_components/PageWipe.js';
@@ -49,6 +49,54 @@ const cairo = Cairo({
   display: 'swap',
   variable: '--font-cairo',
 });
+
+/**
+ * The Arabic display face.
+ *
+ * Two faces have been rejected here, and both rejections were about drawing
+ * rather than loading — the Cairo above is genuine, and has been since the
+ * fonts were wired up.
+ *
+ * Cairo went first. It is a text face, drawn to stay even and quiet at
+ * paragraph sizes, which is exactly what makes it fall apart on the hero: at
+ * 148px its Black weight has no stroke contrast to hold the eye, the counters
+ * open up, and the whole line reads as a UI font that someone dragged bigger.
+ *
+ * Changa replaced it and was rejected in turn, with the note that modern and
+ * bold was what was wanted. Changa is a modern kufi: squared terminals, angular
+ * joins, an architectural silhouette rather than a typographic one. That kufi
+ * flavour is the thing being objected to, not the weight, so the answer is not
+ * a heavier kufi but a different construction altogether.
+ *
+ * Tajawal is that construction. It is a geometric Arabic sans — even stroke,
+ * round unmodulated bowls, clean joins, no calligraphic contrast — which is the
+ * neo-grotesque register contemporary Gulf and Egyptian brands are set in. Its
+ * Black is the heaviest thing in the comparison: set on the hero's own three
+ * lines it is visibly denser in colour than Cairo 900 or Changa 800, which is
+ * what bold was asking for. It also partners the Latin hero properly. That is
+ * set in Anton — tall, condensed, flat-terminalled, near-uniform stroke — and
+ * Tajawal Black is the Arabic face that matches its density and its flatness,
+ * so the two halves of a bilingual site read as one design.
+ *
+ * The rest of the shortlist was set on the same three lines and put aside.
+ * Alexandria 900 is wider than the hero column and wraps outright. Zain 900 and
+ * Noto Sans Arabic 900 carry real stroke modulation and read editorial next to
+ * Anton's blunt grotesque. Almarai stops at 800 and is lighter in colour there.
+ * Mada 900, Vazirmatn 900, Readex Pro 700 and IBM Plex Sans Arabic 700 all top
+ * out at a strong UI bold rather than a poster black.
+ *
+ * Cairo stays. Everything below the display tier — body copy, buttons, nav,
+ * product cards, the whole Arabic UI — is still set in it, because that is the
+ * work it is good at. This is a second face for the headlines, not a swap.
+ */
+const tajawal = Tajawal({
+  subsets: ['arabic', 'latin'],
+  // 900 only. It is the single weight the stylesheet asks Tajawal for, and the
+  // top of the family's range — anything heavier would have to be synthesised.
+  weight: ['900'],
+  display: 'swap',
+  variable: '--font-tajawal',
+});
 export const metadata = {
   metadataBase: new URL(site.url),
   title: {
@@ -83,7 +131,7 @@ export default async function RootLayout({ children }) {
   const dir = lang === 'ar' ? 'rtl' : 'ltr';
 
   return (
-    <html lang={lang} dir={dir} className={`${anton.variable} ${cairo.variable}`}>
+    <html lang={lang} dir={dir} className={`${anton.variable} ${cairo.variable} ${tajawal.variable}`}>
       <body>
         {/* The wipe reads the current route, and useSearchParams needs a
             Suspense boundary when it is used this high in the tree. */}
