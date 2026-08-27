@@ -258,7 +258,7 @@ button{font:inherit;cursor:pointer}
 
 /* footer */
 .s7foot{border-top:1.5px solid var(--ink);padding:52px 0 28px;background:var(--ink);color:var(--paper);margin-top:20px}
-.s7foot .fgrid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:38px;margin-bottom:38px}
+.s7foot .fgrid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:38px;margin-bottom:38px}
 .s7foot h5{font-size:13px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:#8B867B;margin-bottom:15px}
 .s7foot ul{list-style:none;display:flex;flex-direction:column;gap:10px;font-size:14.5px;font-weight:600}
 .s7foot ul a{color:#B9B4A8;transition:.2s}
@@ -294,12 +294,16 @@ button{font:inherit;cursor:pointer}
   /* A hover submenu is meaningless on touch; the strip shows the top level and
      the shop page has its own filter chips. */
   .nav-item.has-sub > a svg,.nav-sub{display:none}
-  .s7foot .fgrid{grid-template-columns:1fr}
+  .s7foot .fgrid{grid-template-columns:1fr 1fr}
+  .s7foot .fbrand{grid-column:1 / -1}
 }
 @media(max-width:560px){
   .grid{grid-template-columns:1fr 1fr;gap:10px}
   .bloglist{grid-template-columns:1fr}
   .ff2{grid-template-columns:1fr}
+  /* The range column carries full product names for the anchor text, which
+     wrap badly in a half-width column on a phone. One column from here down. */
+  .s7foot .fgrid{grid-template-columns:1fr}
 }
 
 /* checkout consent + agreement */

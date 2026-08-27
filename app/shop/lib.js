@@ -29,8 +29,8 @@ export const CATEGORIES = [
       en: 'New Star Seven men’s hair wax: medium-high hold with a natural finish, built for short to medium hair and texture. Delivered across Egypt, cash on receipt.',
     },
     lead: {
-      ar: 'الواكس بيدي تكستشر وتثبيت من غير ما يلزّق الشعر ولا يعمل قشرة. كل لون تركيبة مختلفة — بس التثبيت واحد.',
-      en: 'Wax gives texture and hold without gluing hair down or going crunchy. Every colour is a different formula; the hold is the constant.',
+      ar: 'الواكس بيدي تكستشر وتثبيت من غير ما يلزّق الشعر ولا يعمل قشرة. كل لون تركيبة مختلفة وتثبيت مختلف: برو وبرو إكس أقوى واحد فيهم، والشيا والأرجان والبلاك أمرن ومرجّعين للشكل.',
+      en: 'Wax gives texture and hold without gluing hair down or going crunchy. Every colour is a different formula and a different hold: Pro and Pro X are the strongest here, Shea, Argan and Black the more flexible ones.',
     },
   },
   {
@@ -142,6 +142,21 @@ const BY_SLUG = new Map(CATEGORIES.map(c => [c.slug, c]));
 /** Category URL slugs, in display order. */
 export const KINDS = CATEGORIES.map(c => c.slug);
 
+/**
+ * The categories a set of live `kind` values actually fills, in display order.
+ *
+ * The shop chips, the sitemap and the nav all have to answer the same
+ * question, and it is not "what does the catalogue contain" — it is "what has
+ * the client priced and switched on". A category with nothing live is an empty
+ * page that 404s, so linking to it costs a crawl and a customer.
+ *
+ * Pure, so the callers can each fetch their own counts however they like.
+ */
+export function liveCategories(kinds) {
+  const have = new Set(Array.isArray(kinds) ? kinds : []);
+  return CATEGORIES.filter(c => have.has(c.kind));
+}
+
 /** The `kind` column value a category filters on. */
 export const kindColumn = slug => BY_SLUG.get(slug)?.kind || null;
 
@@ -166,11 +181,11 @@ export function shopCopy(slug, lang) {
     h1: ar ? 'كل التشكيلة' : 'The full line',
     title: ar ? 'المنتجات — واكس وجل شعر' : 'Shop — hair wax & gel',
     desc: ar
-      ? 'كل تشكيلة نيو ستار سفن: واكس وجل شعر بريميوم للرجالة، تثبيت ميجا، بسعر مظبوط. توصيل ودفع عند الاستلام.'
-      : 'The full New Star Seven line: premium men’s hair wax and gel, mega hold, priced right. Delivery and cash on receipt.',
+      ? 'كل تشكيلة نيو ستار سفن: واكس وجل شعر بريميوم للرجالة، من تثبيت متوسط لحد أولترا سترونج، بسعر مظبوط. توصيل ودفع عند الاستلام.'
+      : 'The full New Star Seven line: premium men’s hair wax and gel, medium hold up to ultra strong, priced right. Delivery and cash on receipt.',
     lead: ar
-      ? 'كل لون تركيبة مختلفة. نفس التثبيت الميجا. اختار منتجك أو دوس عليه تشوف تفاصيله.'
-      : 'Every colour is a different formula, same mega hold. Pick a product or open it for the full detail.',
+      ? 'كل لون تركيبة مختلفة، وكل شكل تثبيت مختلف. اختار منتجك أو دوس عليه تشوف تفاصيله.'
+      : 'Every colour is a different formula, every format a different hold. Pick a product or open it for the full detail.',
   };
 }
 

@@ -1,6 +1,9 @@
+import { cache } from 'react';
 import Link from 'next/link';
 import { site } from '../../lib/config.js';
 import { localePath } from '../../lib/urls.js';
+import { sql, hasDb } from '../../lib/db.js';
+import { liveCategories } from '../shop/lib.js';
 import CartBadge from './CartBadge.js';
 
 /**
@@ -33,12 +36,43 @@ export function waLink(text = '') {
   return `https://wa.me/${site.whatsapp}${text ? `?text=${encodeURIComponent(text)}` : ''}`;
 }
 
-export function Nav({ lang = 'ar', path = '' }) {
+/**
+ * The shop categories the nav and the footer are allowed to offer.
+ *
+ * The submenu named wax and gel because for a while that was the entire shop.
+ * The range is seven categories now and four of them are live, so gel wax and
+ * cream gel were reachable only by guessing the URL — the chips on /shop and
+ * the sitemap both knew about them and the nav did not.
+ *
+ * The question asked here is the same one app/shop/view.js asks for its chips
+ * and app/sitemap.js asks before listing a page: not what the catalogue holds,
+ * but what the client has priced and switched on. An unpriced category is an
+ * empty page.
+ *
+ * cache() so a page that renders both the nav and the footer asks once.
+ *
+ * The fallback is wax and gel rather than nothing: those two have been live
+ * since launch and a transient database error should shorten the menu, not
+ * empty it. It is also what a build with no DATABASE_URL renders.
+ */
+export const shopCategories = cache(async () => {
+  if (!hasDb()) return liveCategories(['wax', 'gel']);
+  try {
+    const rows = await sql`SELECT DISTINCT kind FROM products WHERE active = true`;
+    const live = liveCategories(rows.map(r => r.kind));
+    return live.length ? live : liveCategories(['wax', 'gel']);
+  } catch {
+    return liveCategories(['wax', 'gel']);
+  }
+});
+
+export async function Nav({ lang = 'ar', path = '' }) {
   const ar = lang === 'ar';
   // Every href goes through localePath so the nav can never disagree with the
   // canonical and hreflang tags about what a page's URL is.
   const L = p => localePath(p, lang);
   const other = ar ? 'en' : 'ar';
+  const cats = await shopCategories();
 
   return (
     <nav className="s7nav">
@@ -47,9 +81,9 @@ export function Nav({ lang = 'ar', path = '' }) {
           <img src="/assets/logo-s7.png" alt="New Star Seven" width="123" height="30" />
         </Link>
 
-        {/* Shop carries a submenu because the two formats are the split
-            customers actually shop by. CSS-only: :hover for pointers,
-            :focus-within so it opens from the keyboard too. */}
+        {/* Shop carries a submenu of the live categories. CSS-only: :hover for
+            pointers, :focus-within so it opens from the keyboard too. It is
+            hidden below 900px, where /shop's own chips do the same job. */}
         <div className="nav-links">
           <div className="nav-item has-sub">
             <Link href={L('/shop')} className={path.startsWith('shop') ? 'on' : ''}>
@@ -60,8 +94,11 @@ export function Nav({ lang = 'ar', path = '' }) {
             </Link>
             <div className="nav-sub">
               <Link href={L('/shop')}>{ar ? 'كل التشكيلة' : 'The full line'}</Link>
-              <Link href={L('/shop/wax')}>{ar ? 'واكس' : 'Wax'}</Link>
-              <Link href={L('/shop/gel')}>{ar ? 'جل' : 'Gel'}</Link>
+              {cats.map(c => (
+                <Link key={c.slug} href={L(`/shop/${c.slug}`)}>
+                  {ar ? c.crumb.ar : c.crumb.en}
+                </Link>
+              ))}
             </div>
           </div>
 
@@ -100,9 +137,10 @@ export function Nav({ lang = 'ar', path = '' }) {
   );
 }
 
-export function Footer({ lang = 'ar' }) {
+export async function Footer({ lang = 'ar' }) {
   const ar = lang === 'ar';
   const L = p => localePath(p, lang);
+  const cats = await shopCategories();
 
   return (
     <>
@@ -118,12 +156,24 @@ export function Footer({ lang = 'ar' }) {
               </p>
             </div>
 
+            {/* The range gets its own column rather than two hand-written
+                links inside Links. Same source as the nav submenu, so a
+                category the client switches on appears in both at once. */}
+            <div>
+              <h5>{ar ? 'التشكيلة' : 'The range'}</h5>
+              <ul>
+                {cats.map(c => (
+                  <li key={c.slug}>
+                    <Link href={L(`/shop/${c.slug}`)}>{ar ? c.h1.ar : c.h1.en}</Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
             <div>
               <h5>{ar ? 'روابط' : 'Links'}</h5>
               <ul>
-                <li><Link href={L('/shop')}>{ar ? 'المنتجات' : 'Shop'}</Link></li>
-                <li><Link href={L('/shop/wax')}>{ar ? 'واكس الشعر' : 'Hair wax'}</Link></li>
-                <li><Link href={L('/shop/gel')}>{ar ? 'جل الشعر' : 'Hair gel'}</Link></li>
+                <li><Link href={L('/shop')}>{ar ? 'كل المنتجات' : 'The full line'}</Link></li>
                 <li><Link href={L('/hair-types')}>{ar ? 'أنواع الشعر' : 'Hair types'}</Link></li>
                 <li><Link href={L('/blog')}>{ar ? 'مقالات' : 'Articles'}</Link></li>
                 <li><Link href={L('/brand')}>{ar ? 'عن البراند' : 'About us'}</Link></li>

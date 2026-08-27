@@ -16,7 +16,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { CATEGORIES, KINDS, shopPath, shopCopy, shopMeta, kindColumn } from '../app/shop/lib.js';
+import { CATEGORIES, KINDS, shopPath, shopCopy, shopMeta, kindColumn, liveCategories } from '../app/shop/lib.js';
 
 // lib/config.js falls back to this when NEXT_PUBLIC_SITE_URL is unset.
 const BASE = 'http://localhost:3000';
@@ -167,4 +167,32 @@ test('moving between shop categories does not play the page transition', async (
   for (const p of ['/', '/blog', '/product/premium-wax-pro-x', '/shop/wax/extra', '/en/account']) {
     assert.ok(!re.test(p), `${p} should NOT count as a shop screen`);
   }
+});
+
+test('liveCategories offers only what is switched on, in display order', () => {
+  assert.deepEqual(liveCategories(['gel', 'wax']).map(c => c.slug), ['wax', 'gel']);
+  assert.deepEqual(liveCategories(['cream', 'gelwax']).map(c => c.slug), ['gel-wax', 'cream-gel']);
+
+  // An unpriced category is an empty page. Neither a kind nobody sells nor a
+  // slug mistaken for a kind may open one.
+  assert.deepEqual(liveCategories([]), []);
+  assert.deepEqual(liveCategories(['cologne']).map(c => c.slug), ['cologne']);
+  assert.deepEqual(liveCategories(['cream-gel', 'gel-wax']), []);
+  for (const junk of [null, undefined, 'wax', 42]) assert.deepEqual(liveCategories(junk), []);
+});
+
+test('the nav submenu is generated, not a hand-written pair of links', async () => {
+  // Wax and gel were the whole shop once, so the submenu named them literally.
+  // The range grew to four live categories and gel wax and cream gel were then
+  // reachable only by guessing the URL - /shop knew about them, the sitemap
+  // knew about them, and the nav did not. Read as text: Chrome.js is a server
+  // component that imports next/link and the database.
+  const { readFileSync } = await import('node:fs');
+  const { join } = await import('node:path');
+  const root = new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1');
+  const src = readFileSync(join(root, 'app/_components/Chrome.js'), 'utf8');
+
+  assert.ok(src.includes('liveCategories'), 'the nav no longer asks which categories are live');
+  assert.doesNotMatch(src, /['"`]\/shop\/(wax|gel)['"`]/,
+    'a category is hard-coded into the nav or the footer again');
 });
