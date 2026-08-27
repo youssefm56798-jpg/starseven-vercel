@@ -75,7 +75,10 @@
 .s7home .hero-sub{margin:26px 0 34px;color:var(--grey);font-size:clamp(15px,1.5vw,18.5px);font-weight:600;max-width:44ch}
 .s7home .hero-sub b{color:var(--ink)}
 .s7home .hero-ctas{display:flex;gap:12px;flex-wrap:wrap}
-.s7home .btn{display:inline-flex;align-items:center;gap:10px;padding:15px 30px;border-radius:99px;font-weight:900;font-size:15.5px;border:2px solid transparent;transition:transform .2s}
+/* 38px, not 30. The cap radius on a 60px-tall pill is 30px, so text inset by
+   30px begins exactly where the curve is widest and reads as jammed against
+   the edge. A pill needs more horizontal room than a rounded rectangle. */
+.s7home .btn{display:inline-flex;align-items:center;gap:10px;padding:15px 38px;border-radius:99px;font-weight:900;font-size:15.5px;border:2px solid transparent;transition:transform .2s}
 .s7home .btn svg{width:18px;height:18px;flex:none}
 .s7home .btn-red{background:var(--red-ui);color:#fff;position:relative;overflow:hidden}
 /* The sheen that sweeps across the red buttons on load.
@@ -150,10 +153,14 @@
 .s7home .tab.on{color:#fff;border-color:var(--red-ui);background:var(--red-ui)}
 .s7home .shop{padding:90px 0}
 .s7home .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
-.s7home .card{--c:var(--red);position:relative;background:color-mix(in srgb,var(--c) 9%,#fff);border:1.5px solid color-mix(in srgb,var(--c) 38%,transparent);border-radius:16px;padding:22px 18px 20px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 10px 26px -12px color-mix(in srgb,var(--c) 35%,transparent);will-change:transform;transition:border-color .25s,box-shadow .25s}
+.s7home .card{--c:var(--red);position:relative;background:color-mix(in srgb,var(--c) 9%,#fff);border:1.5px solid color-mix(in srgb,var(--c) 38%,transparent);border-radius:16px;padding:22px 18px 20px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 10px 26px -12px color-mix(in srgb,var(--c) 35%,transparent);will-change:transform;transition:transform .2s,border-color .25s,box-shadow .25s}
 .s7home .card::before{content:"";position:absolute;inset:0;background:radial-gradient(260px circle at var(--mx,50%) var(--my,-20%),color-mix(in srgb,var(--c) 22%,transparent),transparent 72%);opacity:0;transition:opacity .3s}
 .s7home .card:hover::before{opacity:1}
-.s7home .card:hover{border-color:var(--c);box-shadow:0 20px 44px -14px color-mix(in srgb,var(--c) 55%,transparent)}
+/* The lift the shop grid has. The home card carried will-change:transform and
+   then never transformed, so it sat still while the same card on /shop rose —
+   which is the difference that read as "no hover animation" on the home page. */
+.s7home .card:hover{transform:translateY(-6px);border-color:var(--c);
+  box-shadow:0 20px 44px -14px color-mix(in srgb,var(--c) 55%,transparent)}
 .s7home .card .chip{position:relative;z-index:1;align-self:flex-start;background:color-mix(in srgb,var(--c) 88%,var(--ink));color:#fff;border:none;font-size:11px;font-weight:900;padding:4px 12px;border-radius:99px}
 .s7home .card img{position:relative;z-index:1;height:170px;width:auto;margin:18px auto 14px;object-fit:contain;filter:drop-shadow(0 16px 18px rgba(18,16,11,.22));transition:transform .3s}
 .s7home .card:hover img{transform:scale(1.07) rotate(-3deg)}

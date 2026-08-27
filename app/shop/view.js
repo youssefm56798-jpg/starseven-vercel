@@ -123,11 +123,27 @@ export default async function ShopView({ kind, lang }) {
                     <div className="sub">{sub}</div>
                   </Link>
                   <div className="foot">
-                    <div className="price">
-                      <bdi className="now">{whole(p.price)} <small>{currencyLabel(lang)}</small></bdi>
-                      {p.compare_at != null && <bdi className="was">{whole(p.compare_at)}</bdi>}
-                    </div>
-                    <AddButton sku={p.sku} label={ar ? 'ضيف للسلة' : 'Add'} />
+                    {/* A price of zero is not free — it is a product the client
+                        has not priced yet. The catalogue still shows it, but
+                        with a way to ask rather than a way to buy. */}
+                    {Number(p.price) > 0 ? (
+                      <>
+                        <div className="price">
+                          <bdi className="now">{whole(p.price)} <small>{currencyLabel(lang)}</small></bdi>
+                          {p.compare_at != null && <bdi className="was">{whole(p.compare_at)}</bdi>}
+                        </div>
+                        <AddButton sku={p.sku} label={ar ? 'ضيف للسلة' : 'Add'} />
+                      </>
+                    ) : (
+                      <>
+                        <div className="price ask">{ar ? 'اسأل عن السعر' : 'Ask for price'}</div>
+                        <a className="buy" target="_blank" rel="noopener"
+                          href={`https://wa.me/${site.whatsapp}?text=${encodeURIComponent(
+                            ar ? `عايز أعرف سعر ${p.name_ar}` : `What is the price of ${p.name_en}?`)}`}>
+                          {ar ? 'واتساب' : 'WhatsApp'}
+                        </a>
+                      </>
+                    )}
                   </div>
                 </div>
               );

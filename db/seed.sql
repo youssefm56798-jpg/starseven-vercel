@@ -1828,3 +1828,28 @@ WHERE sku IN ('S7-W120-COCONU', 'S7-W135-OLIVE', 'S7-W135-ARGAN', 'S7-W135-COCON
     WHEN sku = 'S7-SP100-BEESWA' THEN '#D9A81E'
     WHEN sku = 'S7-SP100-COAL' THEN '#4A4A4A'
   END;
+
+-- ---------------------------------------------------------------------------
+--  Show the rest of the range, without inventing a price for it
+--
+--  These are the products where "same price as the others" does not map onto
+--  anything: the 650ml and 850ml gels are 2.6x and 3.4x the volume of the
+--  250ml the price would come from, the sachets are a fraction of it, and the
+--  spray, cologne and depilatory ranges share a format with nothing on the
+--  shop.
+--
+--  Hiding them answered the pricing question and lost the range. So they go
+--  live at price 0, and the storefront reads a zero price as "ask us" - the
+--  card shows the pack, the name and a WhatsApp button instead of Add to cart.
+--  Nothing can be ordered at a wrong price, and the catalogue stops pretending
+--  the brand makes eight things.
+--
+--  stock stays 0 on purpose: it is a second lock, so even a bug that rendered
+--  a buy button could not place the order.
+--
+--  Guarded on price = 0 AND active = FALSE, so this touches a row once and a
+--  price set later in the admin is never disturbed.
+-- ---------------------------------------------------------------------------
+UPDATE products
+   SET active = TRUE
+ WHERE price = 0 AND active = FALSE;

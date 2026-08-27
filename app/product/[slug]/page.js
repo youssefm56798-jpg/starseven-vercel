@@ -76,6 +76,9 @@ export default async function ProductPage({ params, searchParams }) {
   const sub = ar ? p.sub_ar : p.sub_en;
   const chip = ar ? p.chip_ar : p.chip_en;
   const inStock = Number(p.stock) > 0;
+  // A price of zero is a product the client has not priced yet, not a free
+  // one. It is listed so the range is complete, but it cannot be bought.
+  const priced = Number(p.price) > 0;
 
   // First slug in the CSV is the primary recommendation for this jar.
   const hairSlugs = String(p.hair_types || '').split(',').map(s => s.trim()).filter(Boolean);
@@ -115,16 +118,21 @@ export default async function ProductPage({ params, searchParams }) {
     mpn: p.sku,
     category: p.kind === 'gel' ? 'Hair Gel' : 'Hair Wax',
     brand: { '@type': 'Brand', '@id': `${site.url}/#brand`, name: site.name },
-    offers: {
-      '@type': 'Offer',
-      price: String(Number(p.price)),
-      priceCurrency: site.currency,
-      availability: inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-      itemCondition: 'https://schema.org/NewCondition',
-      url: canonical,
-      seller: { '@type': 'Organization', '@id': `${site.url}/#organization`, name: site.name },
-      areaServed: { '@type': 'Country', name: 'Egypt' },
-    },
+    // No offer at all when there is no price. Declaring `price: "0"` would
+    // tell Google the product is free, and a rich result advertising a free
+    // hair wax is worse than no rich result.
+    ...(priced ? {
+      offers: {
+        '@type': 'Offer',
+        price: String(Number(p.price)),
+        priceCurrency: site.currency,
+        availability: inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+        itemCondition: 'https://schema.org/NewCondition',
+        url: canonical,
+        seller: { '@type': 'Organization', '@id': `${site.url}/#organization`, name: site.name },
+        areaServed: { '@type': 'Country', name: 'Egypt' },
+      },
+    } : {}),
     ...(p.size_ml
       ? { additionalProperty: [{ '@type': 'PropertyValue', name: 'Volume', value: `${p.size_ml} ml` }] }
       : {}),
@@ -169,9 +177,13 @@ export default async function ProductPage({ params, searchParams }) {
             <div className="sub">{sub}</div>
 
             <div className="pdp-price">
-              <bdi className="p">
-                {whole(p.price)} <small>{currencyLabel(lang)}</small>
-              </bdi>
+              {priced ? (
+                <bdi className="p">
+                  {whole(p.price)} <small>{currencyLabel(lang)}</small>
+                </bdi>
+              ) : (
+                <span className="p ask">{ar ? 'اسأل عن السعر' : 'Ask for the price'}</span>
+              )}
               {p.compare_at != null && (
                 <>
                   <bdi className="was">{whole(p.compare_at)}</bdi>
@@ -183,7 +195,13 @@ export default async function ProductPage({ params, searchParams }) {
             </div>
 
             <div className="pdp-buy">
-              {inStock ? (
+              {!priced ? (
+                <a className="btn btn-red" target="_blank" rel="noopener"
+                  href={`https://wa.me/${site.whatsapp}?text=${encodeURIComponent(
+                    ar ? `عايز أعرف سعر ${name}` : `What is the price of ${name}?`)}`}>
+                  {ar ? 'اسأل على واتساب' : 'Ask on WhatsApp'}
+                </a>
+              ) : inStock ? (
                 <>
                   <AddButton
                     sku={p.sku}

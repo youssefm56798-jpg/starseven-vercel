@@ -82,7 +82,8 @@ button{font:inherit;cursor:pointer}
 .nav-order:hover{background:var(--red-ui)}
 
 /* buttons */
-.btn{display:inline-flex;align-items:center;gap:10px;padding:14px 28px;border-radius:99px;
+/* See the note in landing.css: a pill cap eats horizontal padding. */
+.btn{display:inline-flex;align-items:center;gap:10px;padding:14px 34px;border-radius:99px;
   font-weight:900;font-size:15px;border:2px solid transparent;transition:transform .2s,background .2s;cursor:pointer}
 .btn svg{width:18px;height:18px;flex:none}
 .btn-red{background:var(--red-ui);color:#fff}
@@ -111,6 +112,16 @@ button{font:inherit;cursor:pointer}
   padding:22px 18px 18px;display:flex;flex-direction:column;transition:transform .2s,box-shadow .2s,border-color .2s}
 .card:hover{transform:translateY(-6px);border-color:var(--c);
   box-shadow:0 20px 40px -16px color-mix(in srgb,var(--c) 55%,transparent)}
+/* The same cursor spotlight the home grid has. The CSS lived only in
+   landing.css, so a card on /shop lit up and a card on / tracked the pointer —
+   two different behaviours for the same component. */
+.card::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:radial-gradient(260px circle at var(--mx,50%) var(--my,-20%),
+    color-mix(in srgb,var(--c) 20%,transparent),transparent 72%);
+  opacity:0;transition:opacity .3s}
+.card:hover::before{opacity:1}
+.card>*{position:relative;z-index:1}
+
 .card .chip{align-self:flex-start;background:color-mix(in srgb,var(--c) 88%,var(--ink));color:#fff;
   font-size:11px;font-weight:900;padding:4px 12px;border-radius:99px}
 .card img{height:160px;width:auto;margin:16px auto 12px;object-fit:contain;
@@ -599,3 +610,9 @@ button{font:inherit;cursor:pointer}
 .ord-help{color:var(--grey);font-weight:700;font-size:14px;border-top:1px solid var(--line);padding-top:20px}
 .ord-help a{color:var(--red-ui)}
 @media(max-width:560px){.ord-track{grid-template-columns:repeat(2,1fr)}}
+
+/* A product the client has not priced yet. Shown, not hidden — the catalogue
+   should not pretend the brand makes fewer things than it does — but with a
+   way to ask rather than a way to buy. */
+.price.ask{font-family:var(--font-cairo),sans-serif;font-size:13.5px;font-weight:800;
+  color:var(--grey);display:block}

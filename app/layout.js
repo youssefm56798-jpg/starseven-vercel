@@ -4,6 +4,7 @@ import { Anton, Cairo } from 'next/font/google';
 import './globals.css';
 import { site } from '../lib/config.js';
 import PageWipe from './_components/PageWipe.js';
+import CardSpotlight from './_components/CardSpotlight.js';
 
 /**
  * Root layout for the storefront.
@@ -87,6 +88,10 @@ export default async function RootLayout({ children }) {
         {/* The wipe reads the current route, and useSearchParams needs a
             Suspense boundary when it is used this high in the tree. */}
         <Suspense fallback={null}><PageWipe /></Suspense>
+        {/* One delegated pointer listener for every product card on the site —
+            the home grid and the shop grid are both server-rendered, so this
+            cannot live in either of them. */}
+        <CardSpotlight />
         {children}
       </body>
     </html>
