@@ -82,8 +82,8 @@ export function formatCounts(rows) {
 
 const GAPS = {
   fine: {
-    ar: 'ملحوظة بصراحة: الحاجة المتعملة مخصوص للشعر الخفيف اللي عايز حجم هي الطين (clay) أو المعجون المطفي — وإحنا لسه مبنعملهاش. وكل الواكس عندنا أساسه فازلين وشمع وبينهي بلمعة، مش بمات. اللي بنرشحه تحت هو أمرن واحد فيهم بأقل كمية ممكنة، وده الأساس الوحيد اللي بنرشحه عليه.',
-    en: 'Said plainly: the format built for fine hair that needs volume is a clay or a matte paste, and we do not make one yet. Every wax here is petrolatum and wax and finishes with shine, not matte. What is recommended below is the most flexible of them in the smallest amount, and that is the only basis it is recommended on.',
+    ar: 'الشعر الخفيف اللي عايز حجم محتاج كلاي أو معجون مطفي. إحنا مبنعملهمش. كل الواكس عندنا شمع وفازلين وكله بيلمع، فاللي تحت هو أقل واحد فيهم وحشة بكمية صغيرة — مش حاجة اتعملت ليك.',
+    en: 'Fine hair that wants volume needs a clay or a matte paste. We do not make one. Every wax here is wax and petrolatum and every one of them shines, so what is below is the least bad of them used sparingly — not something built for you.',
   },
   curly: {
     ar: 'ملحوظة بصراحة: مفيش عندنا كريم. الكريم أخف شكل وأسهله في التعامل، وهو غالباً أنسب بداية لحد شعره كيرلي وشايف إن الواكس تقيل عليه. لسه مش في التشكيلة.',

@@ -167,7 +167,10 @@ test('an Arabic gap note is written in Arabic and states the absence', () => {
   for (const slug of ['fine', 'curly', 'coily']) {
     const note = gapNote(slug, 'ar');
     assert.ok(/[\u0600-\u06FF]/.test(note), slug);
-    assert.ok(/مفيش|مبنعملهاش|لسه/.test(note), `${slug}: "${note}"`);
+    // The claim, not one spelling of it. This used to pin the exact inflection
+    // "مبنعملهاش", so rewriting the note in the plural broke a test that has
+    // no opinion about the plural.
+    assert.ok(/مفيش|مبنعمل|لسه/.test(note), `${slug} does not say the thing is absent: "${note}"`);
   }
 });
 
