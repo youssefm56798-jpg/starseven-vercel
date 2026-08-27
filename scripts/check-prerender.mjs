@@ -56,6 +56,7 @@ const MUST_BE_STATIC = [
   '/', '/en',
   '/shop', '/en/shop',
   '/hair-types', '/en/hair-types',
+  '/hair-styles', '/en/hair-styles',
   '/blog', '/en/blog',
   '/brand', '/en/brand',
   '/privacy', '/en/privacy',

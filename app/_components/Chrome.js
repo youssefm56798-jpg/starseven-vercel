@@ -127,6 +127,17 @@ export async function Nav({ lang = 'ar', path = '' }) {
             </Link>
           </div>
 
+          {/* The two finders sit next to each other because they are the same
+              question asked from two ends: what your hair is, and what you want
+              it to look like. No prefix collision to worry about — the active
+              check is startsWith on the path string, and "hair-styles" does not
+              start with "hair-types". */}
+          <div className="nav-item">
+            <Link href={L('/hair-styles')} className={path.startsWith('hair-styles') ? 'on' : ''}>
+              {ar ? 'ستايلك' : 'Hair styles'}
+            </Link>
+          </div>
+
           <div className="nav-item">
             <Link href={L('/blog')} className={path.startsWith('blog') || path.startsWith('article') ? 'on' : ''}>
               {ar ? 'مقالات' : 'Articles'}
@@ -203,6 +214,7 @@ export async function Footer({ lang = 'ar' }) {
               <ul>
                 <li><Link href={L('/shop')}>{ar ? 'كل المنتجات' : 'The full line'}</Link></li>
                 <li><Link href={L('/hair-types')}>{ar ? 'أنواع الشعر' : 'Hair types'}</Link></li>
+                <li><Link href={L('/hair-styles')}>{ar ? 'ستايلات الشعر' : 'Hair styles'}</Link></li>
                 <li><Link href={L('/blog')}>{ar ? 'مقالات' : 'Articles'}</Link></li>
                 <li><Link href={L('/brand')}>{ar ? 'عن البراند' : 'About us'}</Link></li>
                 <li><Link href={L('/privacy')}>{ar ? 'سياسة الخصوصية' : 'Privacy'}</Link></li>

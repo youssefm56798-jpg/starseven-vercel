@@ -1,5 +1,6 @@
 import { sql, hasDb } from '../lib/db.js';
 import { HAIR_TYPES } from '../lib/hairtypes.js';
+import { HAIR_STYLES } from '../lib/hairstyles.js';
 import { localeUrl } from '../lib/urls.js';
 import { CATEGORIES } from './shop/lib.js';
 
@@ -80,6 +81,13 @@ export default async function sitemap() {
     // Built from lib/hairtypes.js rather than the database, so they are listed
     // even on a build with no database, and a seventh tile lists itself.
     ...HAIR_TYPES.map(t => [`/hair-types/${t.slug}`,
+      { lastModified: now, changeFrequency: 'monthly', priority: 0.7 }]),
+    ['/hair-styles', { lastModified: now, changeFrequency: 'monthly', priority: 0.8 }],
+    // Built from lib/hairstyles.js for the same reason the type pages are built
+    // from lib/hairtypes.js: the list has to be complete on a build with no
+    // database, and tests/locale-tree.test.mjs deletes DATABASE_URL before it
+    // checks that every URL emitted here has a route file that can serve it.
+    ...HAIR_STYLES.map(s => [`/hair-styles/${s.slug}`,
       { lastModified: now, changeFrequency: 'monthly', priority: 0.7 }]),
     ['/blog', { lastModified: now, changeFrequency: 'daily', priority: 0.7 }],
     ['/privacy', { lastModified: now, changeFrequency: 'yearly', priority: 0.3 }],

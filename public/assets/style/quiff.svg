@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-hidden="true">
+  <!-- The tallest mark in the set, and the only one whose lines all start at the same baseline and climb. Height at the front is the whole style, so the drawing is three strokes lifting off one floor and folding back at the top — the fold matters, because a quiff that only goes up is a spike. The heaviest stroke is the outermost one, which is the shape a dryer actually builds. -->
+  <!-- currentColor, resolved to ink by the color attribute below, so the file still
+       reads as an ink drawing when it is loaded as an <img> on the style detail hero,
+       which inherits nothing from the page around it. On the cards and the home strip
+       the same file is a CSS mask, where only the alpha matters and the tile paints it. -->
+  <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" color="#12100B">
+    <path stroke-width="4" d="M9 43C9 26 14 10 26 7 34.5 4.9 38.5 12 34 18"/>
+    <path stroke-width="3" d="M16 43C16 29 19.5 15.5 28 12.5 33 10.8 35 14.4 32.6 17.8"/>
+    <path stroke-width="2.3" d="M22.5 43C22.5 32 25.5 20.5 31 17.5"/>
+  </g>
+</svg>

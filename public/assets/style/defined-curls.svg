@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-hidden="true">
+  <!-- Definition is separation, so this is three closed ringlets that never touch, not one corkscrew. public/assets/hair/curly.svg already owns the corkscrew and answers a different question: that one says what your hair IS, this one says each curl keeps its own shape instead of merging with its neighbour into a single cloud. Three sizes, because a real head has three sizes. -->
+  <!-- currentColor, resolved to ink by the color attribute below, so the file still
+       reads as an ink drawing when it is loaded as an <img> on the style detail hero,
+       which inherits nothing from the page around it. On the cards and the home strip
+       the same file is a CSS mask, where only the alpha matters and the tile paints it. -->
+  <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" color="#12100B">
+    <path stroke-width="3.4" d="M14 8.5C20.5 8.5 20.5 19 14 19 7.5 19 7.5 8.5 14 8.5"/>
+    <path stroke-width="3.4" d="M14 19v9"/>
+    <path stroke-width="2.9" d="M33.5 7.5C39 7.5 39 16.5 33.5 16.5 28 16.5 28 7.5 33.5 7.5"/>
+    <path stroke-width="2.9" d="M33.5 16.5v7.5"/>
+    <path stroke-width="3.2" d="M24 28C29 28 29 36.5 24 36.5 19 36.5 19 28 24 28"/>
+    <path stroke-width="3.2" d="M24 36.5V43"/>
+  </g>
+</svg>

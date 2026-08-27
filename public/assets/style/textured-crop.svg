@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-hidden="true">
+  <!-- The crop is the gap tile, and the drawing says so before the words do: butt caps, so every stroke stops dead instead of tapering, and six lengths that end nowhere near each other so the hem is ragged rather than cut. All six lean the same way, which is the fringe pushed forward. Two short pieces below are the separation the look needs and the reason it cannot be done with anything that shines. -->
+  <!-- currentColor, resolved to ink by the color attribute below, so the file still
+       reads as an ink drawing when it is loaded as an <img> on the style detail hero,
+       which inherits nothing from the page around it. On the cards and the home strip
+       the same file is a CSS mask, where only the alpha matters and the tile paints it. -->
+  <g fill="none" stroke="currentColor" stroke-linecap="butt" stroke-linejoin="round" color="#12100B">
+    <path stroke-width="3" d="M9.5 9.5 6.5 26"/>
+    <path stroke-width="3.6" d="M16 6.5 13.5 29.5"/>
+    <path stroke-width="2.6" d="M22.5 9 20 23.5"/>
+    <path stroke-width="3.4" d="M28.5 6 26.5 28.5"/>
+    <path stroke-width="2.9" d="M35 9.5 33 25.5"/>
+    <path stroke-width="2.4" d="M41 8 39.5 27"/>
+    <path stroke-width="2.2" d="M12 33.5 11 39"/>
+    <path stroke-width="2" d="M30.5 34.5 29.5 40"/>
+  </g>
+</svg>

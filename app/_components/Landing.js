@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { addToCart, readCart, setQty as writeQty } from '../../lib/cart.js';
 import { cartTotals } from '../../lib/pricing.js';
 import { rankProducts } from '../../lib/hairtypes.js';
+import { HAIR_STYLES, rankForStyle } from '../../lib/hairstyles.js';
 import { currencyLabel, whole, discountPercent } from '../../lib/money.js';
 import { runDir } from '../hair-types/lib.js';
 
@@ -19,6 +20,26 @@ import { runDir } from '../hair-types/lib.js';
  *   - the jars and cards are links to real product pages;
  *   - ordering finishes at /checkout. WhatsApp is support only.
  */
+
+/**
+ * How the finder's six tiles are grouped and what each one puts in its corner.
+ *
+ * lib/hairtypes.js already says in its header that these six are not peers:
+ * four are Andre Walker curl families and two are density states. Rendering
+ * them as one row of six equal cards contradicted the data. These two groups
+ * are that header, made visible.
+ *
+ * The glyph is the tile's display mark. The four curl families already own a
+ * number the market recognises, so the tile shows that number rather than an
+ * icon of a squiggle; the two density tiles are not Walker types and carry the
+ * density word instead. Latin in both language trees, which is the pattern the
+ * hold cards already set with `en: 'GEL WAX'` in Anton on the Arabic page.
+ */
+const HAIR_GROUPS = [
+  { key: 'curl', slugs: ['straight', 'wavy', 'curly', 'coily'] },
+  { key: 'density', slugs: ['fine', 'thick'] },
+];
+const HAIR_GLYPH = { straight: '1', wavy: '2', curly: '3', coily: '4', fine: 'LOW', thick: 'HIGH' };
 
 const T = {
   ar: {
@@ -40,6 +61,11 @@ const T = {
     hair_a: 'شعرك', hair_b: 'نوعه إيه؟',
     hair_p: 'مش كل شعر بياخد نفس المنتج. اختار نوع شعرك وهنقولك بالظبط أنهي واحد ليك — وليه.',
     hair_k: 'اختيارك', hair_pick: 'الاختيار الصح لشعرك', hair_alt: 'كمان يناسبك:',
+    hair_g: { curl: 'نمط الكيرلة', density: 'الكثافة' },
+    style_a: 'عايز', style_b: 'شكل معيّن؟',
+    style_p: 'اختار الشكل اللي في دماغك، ونقولك بأنهي منتج توصله وإزاي — وفي حالة واحدة نقولك إننا مش بنعمل اللي إنت محتاجه.',
+    style_k: 'الستة استايلات', style_gets: 'بـ', style_close: 'أقرب حاجة:',
+    style_all: 'كل الاستايلات بالخطوات ←',
     hold_a: 'اختار', hold_b: 'تثبيتك',
     hold_p: 'مش عارف تبدأ منين؟ دوس على اللي يناسبك وهنوريك منتجاته.',
     hold_tab: 'تثبيت', clear: 'شيل الفلتر',
@@ -86,6 +112,11 @@ const T = {
     hair_a: 'WHAT’S YOUR', hair_b: 'HAIR TYPE?',
     hair_p: 'Not every head takes the same product. Pick your hair type and we’ll tell you exactly which one is yours — and why.',
     hair_k: 'Your type', hair_pick: 'The right one for you', hair_alt: 'Also works for you:',
+    hair_g: { curl: 'Curl pattern', density: 'Density' },
+    style_a: 'OR PICK', style_b: 'THE LOOK',
+    style_p: 'Got a look in mind? Pick it and we’ll tell you which product gets you there and how — and in one case, that we don’t make what you need.',
+    style_k: 'The six styles', style_gets: 'with', style_close: 'Closest:',
+    style_all: 'All six, step by step →',
     hold_a: 'PICK', hold_b: 'YOUR HOLD',
     hold_p: 'Not sure where to start? Tap the one that fits and we’ll show you its products.',
     hold_tab: 'Hold', clear: 'Clear filter',
@@ -358,13 +389,17 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
   const holdFilter = FILTER.exec(filter)?.[2] || null;
   const hero = products.find(p => p.sku === 'S7-WAX-RED') || products[0];
 
+  // Both finders rank the same catalogue, and both rankers expect the column
+  // names the database uses rather than the shortened ones productPublic ships
+  // to the browser. Mapping once means the style strip cannot end up ranking a
+  // differently shaped list from the hair finder above it.
+  const rankable = products.map(p => ({
+    ...p, hair_types: p.hair.join(','), hold_level: p.hold,
+  }));
+
   const tile = hairTypes.find(t => t.slug === hair) || hairTypes[0];
   const copy = tile[lang] || tile.ar;
-  const matches = rankProducts(
-    products.map(p => ({ ...p, hair_types: p.hair.join(','), hold_level: p.hold })),
-    tile.slug,
-    3
-  );
+  const matches = rankProducts(rankable, tile.slug, 3);
   const best = matches[0];
   const alts = matches.slice(1);
 
@@ -578,44 +613,68 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
             <p>{d.hair_p}</p>
           </div>
 
-          <div className="hair-grid">
-            {hairTypes.map(x => {
-              const c = x[lang] || x.ar;
-              return (
-                // An anchor, not a button. The click still filters in place —
-                // that is the whole point of the finder — but the tile now
-                // carries a real href, so the six hair-type pages are linked
-                // from the home page instead of being reachable only from the
-                // nav. A crawler follows the href; a mouse never sees it.
-                //
-                // Which makes this the strongest case in the app for
-                // data-no-transition: the tile does not navigate at all, so a
-                // page transition here would cover the screen for a navigation
-                // that is about to be called off. PageWipe cannot work this out
-                // for itself. It listens in the capture phase, which runs
-                // before the onClick below, so at the moment it has to decide,
-                // the preventDefault has not happened yet and the href looks
-                // like any other link to /hair-types/<slug>.
-                <Link
-                  key={x.slug}
-                  href={L(`/hair-types/${x.slug}`)}
-                  className={'htile' + (x.slug === tile.slug ? ' on' : '')}
-                  style={{ '--c': x.color }}
-                  onClick={e => { e.preventDefault(); pickHair(x.slug); }}
-                  aria-current={x.slug === tile.slug ? 'true' : undefined}
-                  data-no-transition=""
-                >
-                  <span className="walker" dir={runDir(ar ? x.walker : x.walkerEn)}>
-                    {ar ? x.walker : x.walkerEn}
-                  </span>
-                  <span className="medal">
-                    <img src={`/${x.icon}`} alt="" loading="lazy" width="76" height="76" />
-                  </span>
-                  <b>{c.name}</b>
-                  <span>{c.short}</span>
-                </Link>
-              );
-            })}
+          <div className="hair-sets">
+            {HAIR_GROUPS.map(g => (
+              <div className="hair-set" key={g.key}>
+                <div className="hair-lbl">{d.hair_g[g.key]}</div>
+                <div className={'hair-grid' + (g.key === 'density' ? ' density' : '')}>
+                  {g.slugs
+                    .map(slug => hairTypes.find(t => t.slug === slug))
+                    .filter(Boolean)
+                    .map(x => {
+                      const c = x[lang] || x.ar;
+                      return (
+                        // An anchor, not a button. The click still filters in
+                        // place — that is the whole point of the finder — but
+                        // the tile now carries a real href, so the six
+                        // hair-type pages are linked from the home page
+                        // instead of being reachable only from the nav. A
+                        // crawler follows the href; a mouse never sees it.
+                        //
+                        // Which makes this the strongest case in the app for
+                        // data-no-transition: the tile does not navigate at
+                        // all, so a page transition here would cover the
+                        // screen for a navigation that is about to be called
+                        // off. PageWipe cannot work this out for itself. It
+                        // listens in the capture phase, which runs before the
+                        // onClick below, so at the moment it has to decide,
+                        // the preventDefault has not happened yet and the href
+                        // looks like any other link to /hair-types/<slug>.
+                        //
+                        // --m carries the drawing to the CSS as a mask rather
+                        // than an <img>, so the mark takes the tile's own
+                        // currentColor and inverts with the selected state.
+                        // --c is the type's accent, which the answer panel
+                        // below is tinted with as well: the same colour on the
+                        // tile you pressed and the panel that opened.
+                        <Link
+                          key={x.slug}
+                          href={L(`/hair-types/${x.slug}`)}
+                          className={
+                            'htile' +
+                            (g.key === 'density' ? ' wide' : '') +
+                            (x.slug === tile.slug ? ' on' : '')
+                          }
+                          style={{ '--c': x.color, '--m': `url(/${x.icon})` }}
+                          onClick={e => { e.preventDefault(); pickHair(x.slug); }}
+                          aria-current={x.slug === tile.slug ? 'true' : undefined}
+                          data-no-transition=""
+                        >
+                          <span className="hnum" aria-hidden="true">{HAIR_GLYPH[x.slug]}</span>
+                          <span className="hmark" aria-hidden="true" />
+                          <span className="htxt">
+                            <b>{c.name}</b>
+                            <span className="hrange" dir={runDir(ar ? x.walker : x.walkerEn)}>
+                              {ar ? x.walker : x.walkerEn}
+                            </span>
+                            <span className="hshort">{c.short}</span>
+                          </span>
+                        </Link>
+                      );
+                    })}
+                </div>
+              </div>
+            ))}
           </div>
 
           <div className="hres" id="hair-answer" style={{ '--c': tile.color }} key={tile.slug}>
@@ -676,6 +735,77 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
               )}
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* -------------------------------------------------- style finder */}
+      {/* The second finder is a strip of six real links, not a second stateful
+          panel. Two interactive finders on one page compete for the same scroll
+          and the same visitor, and this file is already a 779-line client
+          component — a second useState, a second answer panel and a second
+          fetch would double the weight of the heaviest thing the home page
+          ships. It still answers the question inline: each tile names the
+          product that gets you the look, ranked from the live catalogue by the
+          same pure function the /hair-styles pages use, so the home page and
+          the guide can never recommend different jars. The detail — the steps,
+          what to avoid, and what we cannot make — is one tap away.
+
+          It sits after the hair-type finder deliberately. Which hair you have
+          is the question a first-time visitor can answer; which look you want
+          is the one someone who already knows what they are doing arrives
+          with. */}
+      <section className="looks" id="styles">
+        <div className="wrap">
+          <div className="shead">
+            <h2 className="en-display">
+              <span>{d.style_a}</span> <span className="red">{d.style_b}</span>
+            </h2>
+            <p>{d.style_p}</p>
+          </div>
+
+          <div className="hair-lbl">{d.style_k}</div>
+
+          <div className="look-grid">
+            {HAIR_STYLES.map(s => {
+              const c = s[lang] || s.ar;
+              const label = ar ? s.label : s.labelEn;
+              const pick = rankForStyle(rankable, s, 1)[0] || null;
+              // A look the range cannot serve gets its jar labelled as the
+              // nearest thing rather than as the answer. The verdict is on the
+              // tile itself, so the home strip and /hair-styles cannot disagree
+              // about which look we can actually deliver.
+              const gapTile = s.served === 'no';
+
+              return (
+                <Link
+                  key={s.slug}
+                  href={L(`/hair-styles/${s.slug}`)}
+                  className="ltile"
+                  style={{ '--c': s.color, '--m': `url(/${s.icon})` }}
+                >
+                  {/* dir="ltr": a bare digit is a Latin run and reorders inside
+                      an Arabic line without it. The hold number is the figure
+                      the whole finder turns on, set in Anton and bleeding off
+                      the corner the way the hair tiles carry the Walker code. */}
+                  <span className="lnum" dir="ltr" aria-hidden="true">{s.hold}</span>
+                  <span className="lmark" aria-hidden="true" />
+                  <span className="ltxt">
+                    <b>{c.name}</b>
+                    <span className="llabel" dir={runDir(label)}>{label}</span>
+                    <span className="lshort">{c.short}</span>
+                  </span>
+                  {pick && (
+                    <span className={'lpick' + (gapTile ? ' gap' : '')}>
+                      <span>{gapTile ? d.style_close : d.style_gets}</span>
+                      <i>{pick[lang].name}</i>
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+
+          <Link className="look-all" href={L('/hair-styles')}>{d.style_all}</Link>
         </div>
       </section>
 

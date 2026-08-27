@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-hidden="true">
+  <!-- A spike is defined by the gap beside it: four peaks that do not touch, standing on one implied line. The joins are mitred rather than rounded, which is the only file in this set that overrides the group, because a rounded apex is a wave and the whole tile is about the point staying up. The centre peak is the tallest and heaviest so the mark has a subject. -->
+  <!-- currentColor, resolved to ink by the color attribute below, so the file still
+       reads as an ink drawing when it is loaded as an <img> on the style detail hero,
+       which inherits nothing from the page around it. On the cards and the home strip
+       the same file is a CSS mask, where only the alpha matters and the tile paints it. -->
+  <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="miter" color="#12100B">
+    <path stroke-width="3.4" d="M8 41L12.5 16 17 41"/>
+    <path stroke-width="3.9" d="M20.5 41L24 9.5 27.5 41"/>
+    <path stroke-width="3" d="M31 41L34.5 19 38 41"/>
+    <path stroke-width="2.2" d="M40.8 41L43.2 26"/>
+  </g>
+</svg>

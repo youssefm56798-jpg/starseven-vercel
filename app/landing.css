@@ -279,22 +279,82 @@
 .s7home footer ul a{color:#B9B4A8;transition:.2s}
 .s7home footer ul a:hover{color:var(--red)}
 .s7home .hair{padding:90px 0;border-top:1.5px solid var(--line)}
-.s7home .hair-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:34px}
-.s7home .htile{--c:var(--red-ui);position:relative;border:1.5px solid var(--line);border-radius:16px;
-  background:#fff;padding:16px 10px 14px;cursor:pointer;text-align:center;color:var(--ink);
-  transition:border-color .22s,transform .22s,box-shadow .22s;font-family:inherit;width:100%}
-.s7home .htile:hover{transform:translateY(-4px);border-color:var(--c);box-shadow:0 16px 32px -16px color-mix(in srgb,var(--c) 60%,transparent)}
-.s7home .htile.on{border-color:var(--c);border-width:2px;box-shadow:0 0 0 4px color-mix(in srgb,var(--c) 14%,transparent)}
-.s7home .htile .medal{width:76px;height:76px;margin:0 auto 10px;border-radius:50%;overflow:hidden;
-  background:color-mix(in srgb,var(--c) 7%,#FFFDF8);border:1.5px solid color-mix(in srgb,var(--c) 28%,transparent);
-  display:grid;place-items:center;transition:background .22s,border-color .22s}
-.s7home .htile.on .medal{background:color-mix(in srgb,var(--c) 14%,#FFFDF8);border-color:var(--c)}
-.s7home .htile .medal img{width:100%;height:100%;object-fit:contain;padding:17%;transition:transform .3s}
-.s7home .htile:hover .medal img{transform:scale(1.06)}
-.s7home .htile b{display:block;font-size:14px;font-weight:900;line-height:1.3}
-.s7home .htile span{display:block;font-size:11px;color:var(--grey);font-weight:700;margin-top:3px;line-height:1.4}
-.s7home .htile .walker{position:absolute;top:9px;inset-inline-end:11px;font-size:9.5px;font-weight:900;
-  color:color-mix(in srgb,var(--c) 70%,var(--grey));letter-spacing:.04em}
+.s7home .hair-sets{margin-bottom:34px}
+
+/* The six types are not peers, and lib/hairtypes.js says so in its own header:
+   four are Andre Walker curl families and two are density states. One row of
+   six identical cards threw that away and left the reader with six
+   interchangeable buttons and no way in. Two labelled groups put the two axes
+   back, which is also the one move that stops every tile being weighted the
+   same. */
+.s7home .hair-set + .hair-set{margin-top:26px}
+.s7home .hair-lbl{display:flex;align-items:center;gap:12px;margin-bottom:12px;
+  font-size:12.5px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:var(--grey)}
+.s7home .hair-lbl::after{content:"";flex:1;height:1.5px;background:var(--line)}
+.s7home .hair-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.s7home .hair-grid.density{grid-template-columns:repeat(2,1fr)}
+
+/* The tile is a plate, not a medallion. Idle it is warm paper and the same
+   solid ink rule every other control on this page carries, so the grid reads
+   as one material rather than six tinted washes. The type's own accent only
+   arrives on hover and on the chosen tile, where it is the thread to the
+   answer panel underneath, which is already tinted with exactly that colour,
+   so the colour comes to mean "this answer" instead of decorating a circle. */
+.s7home .htile{--c:var(--red-ui);position:relative;overflow:hidden;
+  border:1.5px solid var(--ink);border-radius:14px;background:var(--paper-2);
+  padding:14px 15px 15px;cursor:pointer;text-align:start;color:var(--ink);
+  font-family:inherit;width:100%;
+  transition:transform .18s,box-shadow .18s,background-color .18s,color .18s}
+/* The hard offset shadow the hold cards already use, mirrored for Arabic the
+   same way, so the two selectors on this page finally behave alike. */
+.s7home .htile:hover{transform:translate(-2px,-2px);box-shadow:4px 4px 0 var(--c)}
+[dir="rtl"] .s7home .htile:hover{transform:translate(2px,-2px);box-shadow:-4px 4px 0 var(--c)}
+/* Selection is a filled tile, not a 14%-alpha ring on a white body. It has to
+   be readable across a room, and it has to survive on the grey tile, where
+   the old ring was invisible. */
+.s7home .htile.on{background:var(--ink);color:var(--paper);border-color:var(--ink);
+  transform:translate(-2px,-2px);box-shadow:5px 5px 0 var(--c)}
+[dir="rtl"] .s7home .htile.on{transform:translate(2px,-2px);box-shadow:-5px 5px 0 var(--c)}
+.s7home .htile.on:hover{box-shadow:8px 8px 0 var(--c)}
+[dir="rtl"] .s7home .htile.on:hover{box-shadow:-8px 8px 0 var(--c)}
+
+/* The Walker code is the one piece of genuinely specific, market-legitimate
+   content the tile carries, and it used to be 9.5px in a corner and hidden
+   below 560px. In Anton, bleeding off the top corner at low contrast, it is
+   the same device .hcard .en already uses one section further down, so the
+   tile is finally set in the brand's own display face. */
+.s7home .htile .hnum{position:absolute;top:-10px;inset-inline-end:8px;line-height:1;
+  font-family:var(--font-anton),var(--font-cairo),sans-serif;font-size:58px;
+  color:color-mix(in srgb,var(--ink) 15%,transparent);
+  pointer-events:none;user-select:none;transition:color .18s}
+.s7home .htile.on .hnum{color:color-mix(in srgb,var(--c) 62%,#FFFDF8)}
+
+/* The drawing is a mask rather than an image, so it takes the tile's own
+   currentColor and turns to paper when the tile fills with ink. The same file
+   is still loaded as an image on the hair-type pages, where the color
+   attribute inside it resolves currentColor to ink. */
+.s7home .htile .hmark{display:block;width:34px;height:34px;margin-bottom:11px;
+  background-color:currentColor;opacity:.55;
+  -webkit-mask:var(--m) center/contain no-repeat;mask:var(--m) center/contain no-repeat;
+  transition:opacity .18s}
+.s7home .htile:hover .hmark,.s7home .htile.on .hmark{opacity:1}
+
+.s7home .htile .htxt{position:relative;display:block;min-width:0}
+.s7home .htile b{display:block;font-size:14.5px;font-weight:900;line-height:1.3}
+.s7home .htile .hrange{display:block;font-size:11.5px;font-weight:900;margin-top:3px;
+  color:color-mix(in srgb,var(--ink) 52%,transparent)}
+.s7home .htile.on .hrange{color:color-mix(in srgb,var(--c) 55%,#FFFDF8)}
+.s7home .htile .hshort{display:block;font-size:11.5px;font-weight:700;line-height:1.45;
+  margin-top:5px;color:var(--grey)}
+.s7home .htile.on .hshort{color:#B9B4A8}
+
+/* The two density tiles are wider than they are tall on purpose: they are the
+   second axis, not two more curl families, and the shape says so before the
+   label above them is read. */
+.s7home .htile.wide{display:flex;align-items:center;gap:15px;padding:16px 18px}
+.s7home .htile.wide .hmark{width:40px;height:40px;margin-bottom:0;flex:none}
+.s7home .htile.wide .htxt{padding-inline-end:88px}
+.s7home .htile.wide .hnum{top:50%;transform:translateY(-50%);inset-inline-end:14px;font-size:44px}
 .s7home .hres{--c:var(--red);background:radial-gradient(ellipse 70% 100% at 82% 40%,color-mix(in srgb,var(--c) 26%,transparent),transparent 68%),#12100B;
   color:var(--paper);border-radius:22px;overflow:hidden;border:1.5px solid var(--ink)}
 .s7home .hres-in{display:grid;grid-template-columns:1.15fr .85fr;gap:30px;padding:clamp(24px,4vw,42px);align-items:center}
@@ -323,12 +383,21 @@
 .s7home .hres-alt a,.s7home .hres-alt button{background:none;border:1px solid var(--line-invert);color:#B9B4A8;font-family:inherit;
   font-size:11.5px;font-weight:800;padding:6px 13px;border-radius:99px;transition:.2s}
 .s7home .hres-alt a:hover,.s7home .hres-alt button:hover{border-color:var(--c);color:#fff}
-@media(max-width:1020px){.s7home .hair-grid{grid-template-columns:repeat(3,1fr)}
+@media(max-width:1020px){.s7home .hair-grid{grid-template-columns:repeat(2,1fr)}
 .s7home .hres-in{grid-template-columns:1fr;gap:24px}
 .s7home .hres-pick{order:-1}}
-@media(max-width:560px){.s7home .hair-grid{grid-template-columns:repeat(2,1fr);gap:9px}
-.s7home .htile .medal{width:64px;height:64px}
-.s7home .htile .walker{display:none}}
+/* The curl row stays 2-up on a phone; the density pair stacks, because a
+   horizontal tile squeezed into half of 375px has no room left beside its
+   word. The range line stays visible at every width, because hiding the only
+   specific thing on the tile is part of why the rest read as filler. */
+@media(max-width:560px){.s7home .hair-grid{gap:9px}
+.s7home .hair-grid.density{grid-template-columns:1fr}
+.s7home .htile{padding:12px 13px 13px}
+.s7home .htile .hmark{width:30px;height:30px;margin-bottom:9px}
+.s7home .htile .hnum{font-size:48px;top:-8px}
+.s7home .htile.wide{padding:14px 15px}
+.s7home .htile.wide .htxt{padding-inline-end:78px}
+.s7home .htile.wide .hnum{font-size:38px}}
 .s7home .scrim{position:fixed;inset:0;background:rgba(18,16,11,.55);z-index:400;backdrop-filter:blur(2px)}
 .s7home .drawer{position:fixed;top:0;bottom:0;inset-inline-end:0;width:min(430px,100%);z-index:401;
   background:var(--paper);display:flex;flex-direction:column;box-shadow:0 0 60px rgba(18,16,11,.4)}
@@ -410,3 +479,66 @@
 
 /* The way from the shortlist to the whole catalogue. */
 .s7home .shop-all{margin-top:26px;text-align:center}
+
+/* ------------------------------------------------------------ style finder
+   Six looks, as a strip of real links into /hair-styles. It borrows the plate
+   the hair-type tiles were redesigned into rather than inventing a second card:
+   warm paper, one solid ink rule, the accent arriving only on hover and only as
+   the hard offset shadow, and the drawing carried as a CSS mask so it takes the
+   tile own colour. Nothing here is selectable, so there is no filled state -
+   the whole tile navigates, which is the one thing that separates this section
+   from the finder above it. */
+.s7home .looks{padding:90px 0;border-top:1.5px solid var(--line)}
+.s7home .look-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+
+.s7home a.ltile{--c:var(--red-ui);position:relative;overflow:hidden;display:block;
+  border:1.5px solid var(--ink);border-radius:14px;background:var(--paper-2);
+  padding:16px 17px 15px;text-align:start;color:var(--ink);
+  transition:transform .18s,box-shadow .18s}
+.s7home a.ltile:hover{transform:translate(-2px,-2px);box-shadow:5px 5px 0 var(--c)}
+[dir="rtl"] .s7home a.ltile:hover{transform:translate(2px,-2px);box-shadow:-5px 5px 0 var(--c)}
+
+/* The hold number is the figure the whole finder turns on, and it is the same
+   device .hcard .en and the redesigned hair tiles already use: Anton, bleeding
+   off the top inline-end corner at low contrast. */
+.s7home .ltile .lnum{position:absolute;top:-12px;inset-inline-end:10px;line-height:1;
+  font-family:var(--font-anton),var(--font-cairo),sans-serif;font-size:62px;
+  color:color-mix(in srgb,var(--ink) 13%,transparent);
+  pointer-events:none;user-select:none}
+
+.s7home .ltile .lmark{display:block;width:36px;height:36px;margin-bottom:12px;
+  background-color:currentColor;opacity:.55;
+  -webkit-mask:var(--m) center/contain no-repeat;mask:var(--m) center/contain no-repeat;
+  transition:opacity .18s}
+.s7home a.ltile:hover .lmark{opacity:1}
+
+.s7home .ltile .ltxt{position:relative;display:block;min-width:0;padding-inline-end:40px}
+.s7home .ltile b{display:block;font-size:15px;font-weight:900;line-height:1.3}
+.s7home .ltile .llabel{display:block;font-size:11.5px;font-weight:900;margin-top:3px;
+  color:color-mix(in srgb,var(--ink) 52%,transparent)}
+.s7home .ltile .lshort{display:block;font-size:11.5px;font-weight:700;line-height:1.45;
+  margin-top:6px;color:var(--grey)}
+
+/* The answer, on the tile. This is what makes the strip a finder rather than a
+   menu: the jar that gets you the look is named before you tap anything. */
+.s7home .ltile .lpick{display:flex;flex-wrap:wrap;align-items:baseline;gap:5px;
+  margin-top:12px;padding-top:11px;border-top:1px solid var(--line);
+  font-size:11.5px;font-weight:700;color:var(--grey)}
+.s7home .ltile .lpick i{font-style:normal;font-weight:900;font-size:12.5px;color:var(--ink)}
+/* The crop tile is not offered an answer, because there is not one. Its jar is
+   the nearest thing that exists and the dashed rule says so before the label
+   above it is read. */
+.s7home .ltile .lpick.gap{border-top-style:dashed}
+
+.s7home .look-all{display:inline-block;margin-top:22px;font-size:14px;font-weight:900;
+  color:var(--grey);border-bottom:1.5px solid transparent;transition:.2s}
+.s7home .look-all:hover{color:var(--red-ui);border-bottom-color:var(--red-ui)}
+
+@media(max-width:1020px){.s7home .look-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){
+  .s7home .looks{padding:64px 0}
+  .s7home .look-grid{grid-template-columns:1fr;gap:9px}
+  .s7home a.ltile{padding:14px 15px}
+  .s7home .ltile .lmark{width:32px;height:32px;margin-bottom:10px}
+  .s7home .ltile .lnum{font-size:52px;top:-10px}
+}

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-hidden="true">
+  <!-- The slick back is the only style in this set where nothing is out of place, so it is the only icon drawn as four parallel strands at even spacing. They lift at the front, cross a single crest and run back together — that is the whole instruction on the tile, drawn. The weights taper from top to bottom so the mark still has a light source and does not read as a barcode. -->
+  <!-- currentColor, resolved to ink by the color attribute below, so the file still
+       reads as an ink drawing when it is loaded as an <img> on the style detail hero,
+       which inherits nothing from the page around it. On the cards and the home strip
+       the same file is a CSS mask, where only the alpha matters and the tile paints it. -->
+  <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" color="#12100B">
+    <path stroke-width="3.6" d="M8 30C12 14 24 10 41 15"/>
+    <path stroke-width="3.2" d="M8 35C13 20 25 16 41 21"/>
+    <path stroke-width="2.8" d="M9 40C14 26 26 22 41 27"/>
+    <path stroke-width="2.4" d="M10 44.5C15 32 27 28 41 33"/>
+  </g>
+</svg>

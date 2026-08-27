@@ -1,0 +1,417 @@
+/* NEW STAR SEVEN — /hair-styles index and the six style pages.
+   Scoped under .hs so nothing here can reach the shop, the PDP or the landing.
+
+   A separate stylesheet from hairtypes.css rather than a shared layer extracted
+   out of it. hairtypes.css is deliberately scoped so nothing in it can leak, and
+   refactoring both files into a common base is a larger change than this
+   feature — with the whole storefront riding on the result.
+
+   The card here is the plate the home-page finder tiles were just redesigned
+   into: warm paper, one solid ink rule, the accent arriving only on hover and
+   only as a hard offset shadow, and the drawing carried as a CSS mask so it
+   takes the card's own colour. hairtypes.css still paints a tinted medal, and
+   the two will be brought together when that file is next touched.
+
+   Every directional value is a logical property (inline-start/end,
+   margin-inline, text-align:start). The site is Arabic-first and flips to LTR
+   under /en, so a single `left` or `right` here would be wrong in one of the
+   two languages. */
+
+.hs { padding-bottom: 80px; }
+.hs section { margin-top: 46px; }
+.hs h2 {
+  font-size: clamp(21px, 3vw, 30px);
+  font-weight: 900;
+  line-height: 1.2;
+  margin-bottom: 14px;
+}
+.hs h3 { font-size: 17px; font-weight: 900; line-height: 1.35; }
+.hs p { font-size: 15px; }
+.hs .hs-lead { color: var(--grey); font-weight: 600; max-width: 70ch; margin-bottom: 18px; }
+
+/* ---------------------------------------------------- how the finder works */
+
+.hs-why { margin-top: 30px; }
+.hs-why > p { color: var(--grey); font-weight: 600; max-width: 72ch; margin-bottom: 14px; }
+
+.hs-honest {
+  background: var(--paper-2);
+  border-inline-start: 4px solid var(--red-ui);
+  border-radius: 0 16px 16px 0;
+  padding: 22px 24px;
+  margin-top: 22px;
+  max-width: 76ch;
+}
+/* The rounded corners have to follow the text direction too. */
+[dir="rtl"] .hs-honest { border-radius: 16px 0 0 16px; }
+.hs-honest h3 { margin-bottom: 10px; }
+.hs-honest p { color: var(--grey); font-weight: 600; }
+.hs-honest p + p { margin-top: 12px; }
+
+/* -------------------------------------------------------- the six cards --- */
+
+.hs-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+
+.hs-card {
+  --c: var(--red);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: var(--paper-2);
+  border: 1.5px solid var(--ink);
+  border-radius: 18px;
+  padding: 22px;
+  color: var(--ink);
+  transition: transform .18s, box-shadow .18s;
+}
+/* The same hard offset shadow the home tiles and the hold cards use, mirrored
+   for Arabic the same way, so a card behaves identically in both trees. */
+.hs-card:hover { transform: translate(-2px, -2px); box-shadow: 5px 5px 0 var(--c); }
+[dir="rtl"] .hs-card:hover { transform: translate(2px, -2px); box-shadow: -5px 5px 0 var(--c); }
+
+/* The hold number is the one genuinely specific figure each style carries, and
+   it is the number the whole finder turns on. In Anton, bleeding off the top
+   corner at low contrast, it is the device .hcard .en and the redesigned home
+   tiles already use. */
+.hs-hold {
+  position: absolute;
+  top: -14px;
+  inset-inline-end: 12px;
+  line-height: 1;
+  font-family: var(--font-anton), var(--font-cairo), sans-serif;
+  font-size: 74px;
+  color: color-mix(in srgb, var(--ink) 12%, transparent);
+  pointer-events: none;
+  user-select: none;
+}
+
+.hs-card-head { position: relative; display: flex; gap: 14px; align-items: flex-start; }
+.hs-card-head h3 { margin-bottom: 6px; }
+.hs-card-head h3 a:hover { color: var(--c); }
+.hs-card-head > div { min-width: 0; padding-inline-end: 44px; }
+
+/* The drawing is a mask, not an image, so it takes the card's own currentColor.
+   The same file is loaded as an <img> on the detail hero, where the color
+   attribute inside it resolves currentColor to ink. */
+.hs-mark {
+  flex: none;
+  display: block;
+  width: 46px; height: 46px;
+  background-color: currentColor;
+  opacity: .62;
+  -webkit-mask: var(--m) center/contain no-repeat;
+  mask: var(--m) center/contain no-repeat;
+  transition: opacity .18s;
+}
+.hs-card:hover .hs-mark { opacity: 1; }
+.hs-mark-lg { width: 96px; height: 96px; opacity: 1; }
+
+.hs-label {
+  display: inline-block;
+  font-size: 10.5px; font-weight: 900; letter-spacing: .05em;
+  background: color-mix(in srgb, var(--c) 16%, transparent);
+  color: color-mix(in srgb, var(--c) 78%, var(--ink));
+  padding: 3px 10px; border-radius: 99px;
+}
+.hs-short { color: var(--grey); font-weight: 700; font-size: 13px; margin-top: 7px; }
+
+.hs-look { color: var(--grey); font-weight: 600; }
+.hs-why-line {
+  border-inline-start: 3px solid var(--c);
+  padding-inline-start: 14px;
+  font-weight: 700;
+}
+.hs-why-big { font-size: 16px; padding-block: 2px; }
+
+.hs-avoid {
+  display: flex; gap: 9px; align-items: flex-start;
+  color: var(--grey); font-weight: 600; font-size: 13.5px;
+}
+.hs-avoid svg { width: 16px; height: 16px; flex: none; margin-top: 3px; stroke: var(--c); }
+
+.hs-gapnote {
+  background: color-mix(in srgb, var(--yellow) 13%, transparent);
+  border: 1px dashed color-mix(in srgb, var(--yellow) 62%, transparent);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 13px; font-weight: 600; color: #6B5A16;
+}
+
+.hs-empty {
+  border: 1px dashed var(--line);
+  border-radius: 12px; padding: 14px;
+  color: var(--grey); font-weight: 700; font-size: 13.5px;
+}
+
+.hs-pick { margin-top: auto; display: flex; flex-direction: column; gap: 10px; }
+.hs-pick-main {
+  display: flex; gap: 14px; align-items: center;
+  background: var(--paper);
+  border: 1.5px solid var(--ink);
+  border-radius: 14px; padding: 12px 14px;
+  transition: box-shadow .18s;
+}
+.hs-pick-main:hover { box-shadow: 3px 3px 0 var(--c); }
+[dir="rtl"] .hs-pick-main:hover { box-shadow: -3px 3px 0 var(--c); }
+.hs-pick-main img { flex: none; width: 74px; height: 74px; object-fit: contain; }
+.hs-pick-main > span { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.hs-pick-lbl {
+  font-size: 10px; font-weight: 900; letter-spacing: .1em;
+  color: color-mix(in srgb, var(--c) 80%, var(--ink));
+}
+.hs-pick-name { font-size: 14.5px; font-weight: 900; line-height: 1.3; }
+.hs-pick-price { font-size: 18px; font-weight: 900; }
+.hs-pick-price small { font-size: 11px; color: var(--grey); font-weight: 700; }
+
+.hs-alts { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; font-size: 12.5px; }
+.hs-alts > span { color: var(--grey); font-weight: 700; }
+.hs-alts a {
+  border: 1px solid var(--line); border-radius: 99px;
+  padding: 4px 11px; font-weight: 800;
+  transition: border-color .2s, color .2s;
+}
+.hs-alts a:hover { border-color: var(--c); color: var(--c); }
+
+.hs-more { font-weight: 900; font-size: 13.5px; color: var(--red-ui); }
+.hs-more:hover { text-decoration: underline; }
+
+/* ------------------------------------------------------------ the grid --- */
+
+.hs-tablewrap { overflow-x: auto; border: 1.5px solid var(--line); border-radius: 16px; }
+.hs-table { width: 100%; min-width: 660px; border-collapse: collapse; font-size: 13.5px; }
+.hs-table th, .hs-table td { text-align: start; padding: 12px 14px; vertical-align: top; }
+.hs-table thead th {
+  background: var(--paper-2);
+  font-weight: 900; font-size: 12px; letter-spacing: .04em;
+  white-space: nowrap;
+}
+.hs-table tbody tr + tr th, .hs-table tbody tr + tr td { border-top: 1px solid var(--line); }
+.hs-table tbody th { font-weight: 900; }
+.hs-table td { color: var(--grey); font-weight: 600; }
+.hs-yes { color: var(--green); font-weight: 900; white-space: nowrap; }
+.hs-no { color: var(--grey); font-weight: 800; }
+
+/* ---------------------------------------------------------------- gaps --- */
+
+.hs-gaplist { list-style: none; display: grid; gap: 10px; max-width: 76ch; margin-bottom: 22px; }
+.hs-gaplist li {
+  position: relative;
+  padding-inline-start: 26px;
+  color: var(--grey); font-weight: 600; font-size: 14.5px;
+}
+.hs-gaplist li::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  top: .62em;
+  width: 9px; height: 9px; border-radius: 50%;
+  background: var(--red-ui);
+}
+
+/* ------------------------------------------------------ one style page --- */
+
+.hs-one { --c: var(--red); }
+
+.hs-hero {
+  position: relative;
+  display: flex; gap: 22px; align-items: center;
+  padding: 8px 0 4px;
+}
+.hs-hero h1 {
+  font-size: clamp(28px, 4.6vw, 46px);
+  font-weight: 900; line-height: 1.1;
+  margin-top: 8px;
+}
+.hs-hero .hs-short { font-size: 15px; }
+.hs-hero img { flex: none; width: 96px; height: 96px; object-fit: contain; }
+
+.hs-cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, .6fr);
+  gap: 34px;
+  align-items: start;
+  margin-top: 26px;
+}
+.hs-main .hs-sec { margin-top: 30px; }
+.hs-main .hs-sec:first-child { margin-top: 0; }
+.hs-main .hs-sec h2 { font-size: 20px; margin-bottom: 10px; }
+.hs-main .hs-sec > p { color: var(--grey); font-weight: 600; max-width: 68ch; }
+.hs-main .hs-why-big { color: var(--ink); }
+
+/* The steps are the content of a style page, not a summary of it, so they are
+   set as a numbered run with the count in the display face rather than as a
+   default ordered list. */
+.hs-steps { list-style: none; counter-reset: s; display: grid; gap: 14px; max-width: 68ch; }
+.hs-steps li {
+  counter-increment: s;
+  position: relative;
+  padding-inline-start: 46px;
+  min-height: 32px;
+  color: var(--grey); font-weight: 600; font-size: 15px;
+  padding-top: 3px;
+}
+.hs-steps li::before {
+  content: counter(s);
+  position: absolute;
+  inset-inline-start: 0;
+  top: 0;
+  width: 32px; height: 32px;
+  display: grid; place-items: center;
+  border: 1.5px solid var(--ink); border-radius: 10px;
+  background: var(--paper-2);
+  font-family: var(--font-anton), var(--font-cairo), sans-serif;
+  font-size: 17px; color: var(--ink);
+}
+
+.hs-faq details { border-bottom: 1px solid var(--line); }
+.hs-faq summary {
+  cursor: pointer; list-style: none;
+  padding: 14px 0; font-weight: 900; font-size: 14.5px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.hs-faq summary::-webkit-details-marker { display: none; }
+.hs-faq summary::after {
+  content: "+";
+  font-weight: 900; color: var(--c); flex: none;
+}
+.hs-faq details[open] summary::after { content: "\2212"; }
+.hs-faq details > div { padding-bottom: 14px; color: var(--grey); font-weight: 600; font-size: 14px; }
+
+/* the recommendation rail */
+
+.hs-rail { position: sticky; top: 84px; display: flex; flex-direction: column; gap: 14px; }
+.hs-rec {
+  background:
+    radial-gradient(ellipse 80% 90% at 50% 0%, color-mix(in srgb, var(--c) 34%, transparent), transparent 70%),
+    #12100B;
+  border: 1px solid var(--line-invert);
+  color: var(--paper);
+  border-radius: 20px;
+  padding: 22px;
+  text-align: center;
+}
+.hs-rec-badge {
+  display: inline-block;
+  background: var(--c); color: #fff;
+  font-size: 10.5px; font-weight: 900; letter-spacing: .1em;
+  padding: 4px 12px; border-radius: 99px; margin-bottom: 14px;
+}
+.hs-rec img { height: 168px; width: auto; margin: 0 auto 12px; object-fit: contain;
+  filter: drop-shadow(0 16px 20px rgba(0,0,0,.5)); }
+.hs-rec h3 { color: var(--paper); }
+.hs-rec h3 a:hover { color: var(--c); }
+.hs-rec-sub { color: #8B867B; font-size: 12.5px; font-weight: 600; margin-top: 4px; }
+.hs-rec-price {
+  display: block;
+  font-size: 27px; font-weight: 900; margin: 12px 0 4px;
+}
+.hs-rec-price small { font-size: 12px; color: #8B867B; font-weight: 700; }
+
+.hs-rec-spec {
+  display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;
+  margin: 12px 0 16px;
+}
+.hs-rec-spec span {
+  display: flex; flex-direction: column; gap: 2px;
+  background: rgba(255,253,248,.06);
+  border: 1px solid var(--line-invert);
+  border-radius: 12px;
+  padding: 8px 14px;
+  font-size: 11px; font-weight: 700; color: #8B867B;
+}
+.hs-rec-spec b { font-size: 15px; font-weight: 900; color: var(--paper); }
+
+.hs-rec .btn-full { justify-content: center; }
+.hs-rec-link { display: inline-block; margin-top: 12px; font-size: 13px; font-weight: 800; color: #B9B4A8; }
+.hs-rec-link:hover { color: var(--paper); }
+
+.hs-rec-alts {
+  margin-top: 18px; padding-top: 16px;
+  border-top: 1px solid var(--line-invert);
+  display: flex; flex-direction: column; gap: 8px;
+}
+.hs-rec-alts > span { font-size: 11.5px; font-weight: 800; color: #8B867B; }
+.hs-rec-alts a {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  border: 1px solid var(--line-invert); border-radius: 12px;
+  padding: 9px 12px;
+  font-size: 12.5px; text-align: start;
+  transition: border-color .2s;
+}
+.hs-rec-alts a:hover { border-color: var(--c); }
+.hs-rec-alts a b { font-weight: 800; }
+.hs-rec-alts a bdi { font-weight: 900; white-space: nowrap; }
+.hs-rec-alts a small { font-size: 10.5px; color: #8B867B; font-weight: 700; }
+
+.hs-rec-empty { text-align: start; }
+.hs-rec-empty p { color: #B9B4A8; font-weight: 600; font-size: 14px; margin-bottom: 16px; }
+
+.hs-back { display: flex; flex-direction: column; gap: 8px; font-size: 13.5px; font-weight: 800; }
+.hs-back a { color: var(--grey); }
+.hs-back a:hover { color: var(--red-ui); }
+
+/* ------------------------------------------------------------- read next */
+
+.hs-reads ul { list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.hs-reads a {
+  display: block;
+  border: 1.5px solid var(--line); border-radius: 16px;
+  padding: 16px 18px;
+  font-weight: 900; font-size: 14.5px; line-height: 1.35;
+  transition: border-color .2s;
+}
+.hs-reads a:hover { border-color: var(--ink); }
+.hs-reads a small {
+  display: block; margin-top: 7px;
+  color: var(--grey); font-weight: 600; font-size: 12.5px; line-height: 1.5;
+}
+
+/* ------------------------------------------------------------- siblings */
+
+.hs-sibgrid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+.hs-sibgrid a {
+  --c: var(--red);
+  display: flex; flex-direction: column; gap: 10px;
+  border: 1.5px solid var(--ink); border-radius: 14px;
+  background: var(--paper-2);
+  padding: 14px 15px;
+  font-weight: 900; font-size: 13.5px; line-height: 1.3;
+  color: var(--ink);
+  transition: transform .18s, box-shadow .18s;
+}
+.hs-sibgrid a:hover { transform: translate(-2px, -2px); box-shadow: 4px 4px 0 var(--c); }
+[dir="rtl"] .hs-sibgrid a:hover { transform: translate(2px, -2px); box-shadow: -4px 4px 0 var(--c); }
+.hs-sibgrid .hs-mark { width: 30px; height: 30px; }
+
+/* ---------------------------------------------------------- responsive */
+
+@media (max-width: 1020px) {
+  .hs-grid { grid-template-columns: 1fr; }
+  .hs-cols { grid-template-columns: 1fr; gap: 26px; }
+  .hs-rail { position: static; order: -1; }
+  .hs-rec img { height: 150px; }
+  .hs-reads ul { grid-template-columns: 1fr; }
+  .hs-sibgrid { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 620px) {
+  .hs { padding-bottom: 56px; }
+  .hs section { margin-top: 34px; }
+  .hs-card { padding: 18px; }
+  .hs-honest { padding: 18px; }
+  .hs-hero { flex-direction: column; align-items: flex-start; gap: 14px; }
+  .hs-hero img { width: 74px; height: 74px; }
+  .hs-hold { font-size: 60px; top: -11px; }
+  .hs-pick-main { flex-direction: column; align-items: flex-start; }
+  .hs-pick-main img { width: 88px; height: 88px; }
+  .hs-sibgrid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 380px) {
+  .hs-card-head { flex-direction: column; }
+  .hs-card-head > div { padding-inline-end: 0; }
+  .hs-mark { width: 38px; height: 38px; }
+  .hs-steps li { padding-inline-start: 42px; }
+}

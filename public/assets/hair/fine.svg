@@ -1,6 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-hidden="true">
-  <g fill="none" stroke="currentColor" stroke-width="2.9" stroke-linecap="round" stroke-linejoin="round" color="#12100B">
-  <path d="M41.36 16.00 L41.52 16.90 L41.69 17.80 L41.84 18.70 L41.99 19.60 L42.13 20.50 L42.26 21.40 L42.38 22.30 L42.48 23.20 L42.57 24.10 L42.65 25.00 L42.71 25.90 L42.76 26.80 L42.79 27.70 L42.80 28.60 L42.80 29.50 L42.78 30.40 L42.74 31.30 L42.69 32.20 L42.62 33.10 L42.54 34.00 L42.45 34.90 L42.34 35.80 L42.22 36.70 L42.08 37.60 L41.94 38.50 L41.79 39.40 L41.63 40.30 L41.47 41.20 L41.30 42.10 L41.13 43.00 L40.96 43.90 L40.79 44.80 L40.62 45.70 L40.45 46.60 L40.29 47.50 L40.14 48.40 L39.99 49.30 L39.85 50.20 L39.72 51.10 L39.61 52.00 L39.51 52.90 L39.42 53.80 L39.34 54.70 L39.28 55.60 L39.24 56.50 L39.21 57.40 L39.20 58.30 L39.21 59.20 L39.23 60.10 L39.26 61.00 L39.32 61.90 L39.39 62.80 L39.47 63.70 L39.57 64.60 L39.68 65.50 L39.80 66.40 L39.94 67.30 L40.08 68.20 L40.23 69.10 L40.39 70.00 L40.56 70.90 L40.72 71.80 L40.90 72.70 L41.07 73.60 L41.24 74.50 L41.41 75.40 L41.57 76.30 L41.73 77.20 L41.89 78.10 L42.03 79.00 L42.17 79.90 L42.29 80.80 L42.41 81.70 L42.51 82.60 L42.60 83.50"/>
-  <path d="M60.73 16.00 L60.77 16.90 L60.79 17.80 L60.80 18.70 L60.79 19.60 L60.76 20.50 L60.72 21.40 L60.66 22.30 L60.58 23.20 L60.50 24.10 L60.39 25.00 L60.28 25.90 L60.15 26.80 L60.01 27.70 L59.87 28.60 L59.71 29.50 L59.55 30.40 L59.39 31.30 L59.22 32.20 L59.04 33.10 L58.87 34.00 L58.70 34.90 L58.53 35.80 L58.37 36.70 L58.21 37.60 L58.06 38.50 L57.92 39.40 L57.79 40.30 L57.66 41.20 L57.56 42.10 L57.46 43.00 L57.38 43.90 L57.31 44.80 L57.26 45.70 L57.22 46.60 L57.20 47.50 L57.20 48.40 L57.21 49.30 L57.24 50.20 L57.29 51.10 L57.35 52.00 L57.43 52.90 L57.52 53.80 L57.62 54.70 L57.74 55.60 L57.87 56.50 L58.01 57.40 L58.16 58.30 L58.31 59.20 L58.47 60.10 L58.64 61.00 L58.81 61.90 L58.98 62.80 L59.15 63.70 L59.32 64.60 L59.49 65.50 L59.65 66.40 L59.81 67.30 L59.96 68.20 L60.10 69.10 L60.23 70.00 L60.35 70.90 L60.46 71.80 L60.55 72.70 L60.63 73.60 L60.70 74.50 L60.75 75.40 L60.78 76.30 L60.80 77.20 L60.80 78.10 L60.78 79.00 L60.75 79.90 L60.70 80.80 L60.64 81.70 L60.56 82.60 L60.47 83.50"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-hidden="true">
+  <!-- Low density is drawn as absence: three strands, the thinnest strokes in the set, held far apart so the empty ground between them is most of the mark. The middle one is shorter and thinner again, which is what thinning actually looks like. -->
+  <!-- currentColor, resolved to ink by the color attribute below, so the file still
+       reads as an ink drawing when it is loaded as an <img> on the hair-type pages,
+       which inherit nothing from the page around them. On the home tiles the same
+       file is a CSS mask, where only the alpha matters and the tile paints it. -->
+  <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" color="#12100B">
+    <path stroke-width="2.2" d="M17.8 9.2C15.8 18 18.6 27.4 16.2 40.2"/>
+    <path stroke-width="2.2" d="M31 9.6C33.2 18.4 30 27.8 32.4 40.6"/>
+    <path stroke-width="1.7" d="M24.4 14.6C23.2 22.4 25.2 30.2 24 36.8"/>
   </g>
 </svg>
