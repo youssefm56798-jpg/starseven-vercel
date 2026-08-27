@@ -563,18 +563,24 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
                   </svg>
                   <span>{copy.avoid}</span>
                 </div>
-                {best && (
-                  <Link className="btn btn-red" href={L(`/product/${best.slug}`)}>
-                    {best[lang].name} — {best.price} {d.egp}
+                {/* Both are inline-level, so left to themselves they land on
+                    one line separated by a single space - the guide read as
+                    stuck to the pill, which needs clearance for its 30px cap
+                    radius. A flex row spaces them and wraps cleanly. */}
+                <div className="hres-cta">
+                  {best && (
+                    <Link className="btn btn-red" href={L(`/product/${best.slug}`)}>
+                      {best[lang].name} — {best.price} {d.egp}
+                    </Link>
+                  )}
+                  {/* The panel shows an abridged version of what the type page
+                      says at length. Without this link the longer page is the
+                      one nobody reaches, and the two compete for the same
+                      query. */}
+                  <Link className="hres-guide" href={L(`/hair-types/${tile.slug}`)}>
+                    {ar ? `كل تفاصيل الشعر ${copy.name} ←` : `The full ${copy.name.toLowerCase()} hair guide →`}
                   </Link>
-                )}
-                {/* The panel shows an abridged version of what the type page
-                    says at length. Without this link the longer page is the
-                    one nobody reaches, and the two compete for the same
-                    query. */}
-                <Link className="hres-guide" href={L(`/hair-types/${tile.slug}`)}>
-                  {ar ? `كل تفاصيل الشعر ${copy.name} ←` : `The full ${copy.name.toLowerCase()} hair guide →`}
-                </Link>
+                </div>
               </div>
 
               {best && (

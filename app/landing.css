@@ -347,8 +347,14 @@
    the tile needs the display it used to get for free. */
 .s7home a.htile{display:block}
 
+/* The buy button and the way out to the long guide, on one row.
+   The column gap is 22px rather than the usual 12: the button is a pill whose
+   cap radius is 30px, so the last 30px of it is curving away and a gap
+   measured from the bounding box reads as roughly half of itself. */
+.s7home .hres-cta{display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px;margin-top:20px}
+
 /* The way out of the finder and into the long guide. */
-.s7home .hres-guide{display:inline-block;margin-top:14px;font-size:13.5px;font-weight:800;
+.s7home .hres-guide{display:inline-block;font-size:13.5px;font-weight:800;
   color:var(--grey);border-bottom:1.5px solid transparent;transition:.2s}
 .s7home .hres-guide:hover{color:var(--c);border-bottom-color:var(--c)}
 
