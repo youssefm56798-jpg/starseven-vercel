@@ -1,54 +1,29 @@
-import { sql } from '../../lib/db.js';
-import { site } from '../../lib/config.js';
-import { currencyLabel } from '../../lib/money.js';
-import { productPublic } from '../../lib/hairtypes.js';
-import { Dir, Nav, Footer, Crumb } from '../_components/Chrome.js';
-import CheckoutClient from './CheckoutClient.js';
+import CheckoutView from '../_views/checkout.js';
+
+/**
+ * The Arabic checkout. Its English twin is app/en/checkout/page.js, and the two
+ * differ only in the language constant and the title.
+ *
+ * Unlike the rest of the storefront this route is not being made static, and
+ * the `searchParams` handed down below is deliberate: the page reads `?add=` so
+ * a product page's Add button can drop a SKU into the cart, and it queries live
+ * prices to show what the customer is about to pay. tests/render-mode exempts
+ * it for that reason. Only the language moved out of the request — it used to
+ * arrive as `?lang=en` through the middleware rewrite. See
+ * app/_views/checkout.js.
+ */
 
 // Always fresh: prices and stock decide what the customer is about to pay.
 export const dynamic = 'force-dynamic';
 
+// A cart is a per-visitor page with nothing rankable on it. app/robots.js
+// disallows /checkout and /en/checkout by name as well; this is the half that
+// survives a crawler that asked anyway.
 export const metadata = {
   title: 'إتمام الطلب',
   robots: { index: false, follow: false },
 };
 
-export default async function CheckoutPage({ searchParams }) {
-  const sp = await searchParams;
-  const lang = sp?.lang === 'en' ? 'en' : 'ar';
-  const ar = lang === 'ar';
-
-  // Only a well-formed SKU is honoured from the URL.
-  const add = /^[A-Za-z0-9-]{1,48}$/.test(sp?.add || '') ? sp.add : '';
-
-  const rows = await sql`SELECT * FROM products WHERE active = true ORDER BY sort, id`;
-
-  return (
-    <Dir lang={lang}>
-      <Nav lang={lang} path="checkout" />
-
-      <div className="wrap">
-        <div className="phead" style={{ padding: '34px 0 0' }}>
-          <Crumb
-            lang={lang}
-            trail={[
-              { label: ar ? 'المنتجات' : 'Shop', href: '/shop' },
-              { label: ar ? 'إتمام الطلب' : 'Checkout' },
-            ]}
-          />
-          <h1>{ar ? 'إتمام الطلب' : 'Checkout'}</h1>
-        </div>
-
-        <CheckoutClient
-          lang={lang}
-          add={add}
-          catalog={rows.map(productPublic)}
-          shipping={{ fee: site.shipping, freeOver: site.freeOver }}
-          currency={currencyLabel(lang)}
-        />
-      </div>
-
-      <Footer lang={lang} />
-    </Dir>
-  );
+export default function CheckoutPage({ searchParams }) {
+  return <CheckoutView lang="ar" searchParams={searchParams} />;
 }
