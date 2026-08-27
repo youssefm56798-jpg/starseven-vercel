@@ -66,15 +66,23 @@ for (const tile of HAIR_TYPES) {
 
 // Mirrors db/seed.sql. Kept literal so a reader can see what is being ranked,
 // and cross-checked against the real file below so the two cannot drift.
+//
+// Gels sit above waxes because that is how Ovanza publish it - Premium gel is
+// Ultra Strong / 48h, the waxes are Strong or Medium. The shop had it upside
+// down, which put its own numbers in contradiction with the straight tile.
+//
+// Black Seed lost 'fine' with the matte claim it was sold on: it is a
+// high-shine grey-covering wax with no matting agent in it. Pro carries the
+// fine tile now - last in its list, so it takes nothing else over.
 const CATALOGUE = [
-  { sku: 'S7-WAX-RED', hold_level: 5, hair_types: 'wavy,thick' },
-  { sku: 'S7-WAX-PUR', hold_level: 4, hair_types: 'coily,curly,thick' },
-  { sku: 'S7-WAX-BLU', hold_level: 4, hair_types: 'curly,coily,wavy' },
-  { sku: 'S7-WAX-BLK', hold_level: 5, hair_types: 'fine,straight' },
-  { sku: 'S7-WAX-YEL', hold_level: 5, hair_types: 'thick,straight,wavy' },
-  { sku: 'S7-GEL-YEL', hold_level: 3, hair_types: 'straight' },
-  { sku: 'S7-GEL-GRN', hold_level: 3, hair_types: 'straight' },
-  { sku: 'S7-GEL-BLU', hold_level: 3, hair_types: 'straight' },
+  { sku: 'S7-WAX-RED', hold_level: 4, hair_types: 'wavy,thick' },
+  { sku: 'S7-WAX-PUR', hold_level: 3, hair_types: 'coily,curly,thick' },
+  { sku: 'S7-WAX-BLU', hold_level: 3, hair_types: 'curly,coily,wavy' },
+  { sku: 'S7-WAX-BLK', hold_level: 3, hair_types: 'wavy,thick' },
+  { sku: 'S7-WAX-YEL', hold_level: 4, hair_types: 'thick,straight,wavy,fine' },
+  { sku: 'S7-GEL-YEL', hold_level: 5, hair_types: 'straight' },
+  { sku: 'S7-GEL-GRN', hold_level: 5, hair_types: 'straight' },
+  { sku: 'S7-GEL-BLU', hold_level: 5, hair_types: 'straight' },
 ];
 
 /** Pulls (sku, hold_level, hair_types) straight out of the products INSERT. */
@@ -131,7 +139,7 @@ const primaries = [
   ['wavy', 'S7-WAX-RED', 'Pro X (Wave & Groom)'],
   ['curly', 'S7-WAX-BLU', 'Argan'],
   ['coily', 'S7-WAX-PUR', 'Shea butter'],
-  ['fine', 'S7-WAX-BLK', 'Black matte'],
+  ['fine', 'S7-WAX-YEL', 'Pro (the one Ovanza call all-hair-types)'],
   ['thick', 'S7-WAX-YEL', 'Pro (daily strong)'],
 ];
 
@@ -200,4 +208,34 @@ test('scores descend', () => {
 test('every product in the catalogue is reachable from some tile', () => {
   const reachable = new Set(SLUGS.flatMap(s => rankProducts(CATALOGUE, s, 8).map(p => p.sku)));
   assert.deepEqual([...reachable].sort(), CATALOGUE.map(p => p.sku).sort());
+});
+
+test('no tile is decided by a tie the sort broke for us', () => {
+  // Position in the CSV is the ranking, and hold breaks the tie. Two products
+  // on the same score leave the answer to Array.sort's stability - an accident
+  // that reads as a decision rather than one.
+  //
+  // 'straight' is the exception, and a known one: Golden, Green and Blue are
+  // the same gel in three scents at the same hold, so they tie at 105 and seed
+  // order decides which one leads. That is a real question - which gel fronts
+  // the tile - and it is the client's to answer, not a bug to break here.
+  for (const slug of SLUGS.filter(s => s !== 'straight')) {
+    const scores = rankProducts(CATALOGUE, slug, 3).map(p => p.match_score);
+    assert.equal(new Set(scores).size, scores.length,
+      `${slug} has two products on the same score: ${scores.join(', ')}`);
+  }
+});
+
+test('the black wax is off the fine tile and still reachable', () => {
+  // It was fine's primary on a matte finish it does not have. It keeps a place
+  // where medium hold and high flexibility are genuinely the point, and leads
+  // neither of them.
+  const fine = rankProducts(CATALOGUE, 'fine', 8).map(p => p.sku);
+  assert.ok(!fine.includes('S7-WAX-BLK'), 'the black wax is still sold to fine hair');
+
+  for (const slug of ['wavy', 'thick']) {
+    const ranked = rankProducts(CATALOGUE, slug, 8).map(p => p.sku);
+    assert.ok(ranked.includes('S7-WAX-BLK'), `unreachable from ${slug}`);
+    assert.notEqual(ranked[0], 'S7-WAX-BLK', `it should not lead ${slug}`);
+  }
 });

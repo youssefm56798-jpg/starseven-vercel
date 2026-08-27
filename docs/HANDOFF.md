@@ -63,26 +63,32 @@ subscribers, articles.
   (`01028282216`). A customer reading the jar calls a number nobody answers.
 - **"Wave & Groom"** is printed on the red tin and is also **DAX's** product
   name for a red-tin hair wax. The site repeats it.
-- **Premium Wax Black is sold on this site as matte.** It is not. See below.
 - Prices for the 31 unpriced SKUs.
 - Which gel leads the Straight hair type — currently Golden, by an accidental
-  `sort` tie-break.
+  `sort` tie-break. `tests/hairtypes.test.mjs` now fails on any *new* tie and
+  skips this one on purpose: the three gels are one formula in three scents at
+  one hold, so which of them fronts the tile is an editorial call, not a bug.
+- **Premium Wax Black was rewritten on 27 Aug 2026** from matte / fine hair to
+  high shine / covers grey, and the hold levels were turned the right way up.
+  Both changes move who a product is sold to, so the client should see them.
 
 ---
 
 ## Things that will bite you
 
-**The site contradicts the manufacturer on the black wax.** The site sells it
-as "no shine / matte", hold 5/5, for fine hair. Ovanza's own copy says *Medium
-hold – High flexibility – **High shine***, and its real selling point is grey
-coverage. The ingredient list contains no matting agent at all. It is also the
-lowest-rated SKU on Amazon (2.5★). This also invalidates the hair-types page's
-answer for **fine** hair, which was built on that finish. Not yet fixed —
-changing it changes who the product is sold to, which is the client's call.
-Detail in `docs/product-facts.md`.
+**The range has nothing for fine hair, and now says so.** The black wax used to
+carry that tile on a matte finish it does not have; Ovanza rate it *Medium hold
+– High flexibility – **High shine*** and sell it on grey coverage, and its
+ingredient list contains no matting agent at all. It is now sold as what it is,
+and **Pro** carries the fine tile — last in its `hair_types` list, so it leads
+nothing else — with the tile and its gap note saying out loud that the format
+fine hair wants is a clay or a matte paste and that the range does not contain
+one. That is honest, not solved. Detail in `docs/product-facts.md`.
 
-**Hold levels are inverted.** The site has waxes at 5 and gels at 3. The
-manufacturer has gels at Ultra Strong / 48h and waxes at Strong or Medium.
+**Hold is a range-wide scale now, not a per-format one.** Ultra Strong → 5,
+Strong → 4, Medium → 3, so the three gels sit above every wax. Anything written
+about hold has to hold that line: the number is not "how good", it is "how
+little it forgives".
 
 **The seed runs on every deploy.** Everything in `db/seed.sql` must stay
 re-runnable and non-destructive — the product seeds are `ON CONFLICT DO
@@ -105,7 +111,9 @@ behind a green build:
 | `tests/sql-split.test.mjs` | A migration that ran, reported success, and changed nothing |
 | `tests/order-access.test.mjs` | The order token is the only credential there is |
 
-`npm test` — 293 tests, no database needed.
+| `tests/sql-split.test.mjs` | Every correction to the eight original products has to be its own guarded UPDATE, because their seed is `DO NOTHING` and editing the literal changes nothing live |
+
+`npm test` — 299 tests, no database needed.
 
 ---
 

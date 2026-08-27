@@ -27,50 +27,50 @@ VALUES
   ('S7-WAX-RED','premium-wax-pro-x','wax',
    'واكس بريميوم برو إكس','Premium Wax Pro X',
    'ويف آند جروم · 120 مل · أحمر','Wave & Groom · 120ml · Red',
-   'ميجا هولد','Mega Hold',
-   45.00, 55.00, '#D7291D', 'assets/wax-red.webp', 120, 5, 'wavy,thick', 200, TRUE, 1),
+   'تثبيت قوي','Strong Hold',
+   45.00, 55.00, '#D7291D', 'assets/wax-red.webp', 120, 4, 'wavy,thick', 200, TRUE, 1),
 
   ('S7-WAX-PUR','premium-wax-shea','wax',
    'واكس بريميوم بزبدة الشيا','Premium Wax Shea Butter',
    'ملمس ناعم · 120 مل · موف','Soft touch · 120ml · Purple',
    'زبدة الشيا','Shea Butter',
-   45.00, NULL, '#8B4DC9', 'assets/wax-purple.webp', 120, 4, 'coily,curly,thick', 200, TRUE, 2),
+   45.00, NULL, '#8B4DC9', 'assets/wax-purple.webp', 120, 3, 'coily,curly,thick', 200, TRUE, 2),
 
   ('S7-WAX-BLU','premium-wax-argan','wax',
    'واكس بريميوم بالأرجان','Premium Wax Argan',
    'مغذي للشعر · 120 مل · أزرق','Nourishing · 120ml · Blue',
    'زيت أرجان','Argan Oil',
-   45.00, NULL, '#2A6DE8', 'assets/wax-blue.webp', 120, 4, 'curly,coily,wavy', 200, TRUE, 3),
+   45.00, NULL, '#2A6DE8', 'assets/wax-blue.webp', 120, 3, 'curly,coily,wavy', 200, TRUE, 3),
 
   ('S7-WAX-BLK','premium-wax-black','wax',
    'واكس بريميوم بلاك','Premium Wax Black',
-   'من غير لمعة · 120 مل · أسود','No shine · 120ml · Black',
-   'مطفي','Matte',
-   45.00, NULL, '#55524A', 'assets/wax-black.webp', 120, 5, 'fine,straight', 200, TRUE, 4),
+   'بيغطي الشيب · 120 مل · أسود','Covers grey · 120ml · Black',
+   'يغطي الشيب','Covers Grey',
+   45.00, NULL, '#55524A', 'assets/wax-black.webp', 120, 3, 'wavy,thick', 200, TRUE, 4),
 
   ('S7-WAX-YEL','premium-wax-pro','wax',
    'واكس بريميوم برو','Premium Wax Pro',
    'قوي لليومي · 120 مل · أصفر','Daily strong · 120ml · Yellow',
    'برو هولد','Pro Hold',
-   45.00, NULL, '#D9A81E', 'assets/wax-yellow.webp', 120, 5, 'thick,straight,wavy', 200, TRUE, 5),
+   45.00, NULL, '#D9A81E', 'assets/wax-yellow.webp', 120, 4, 'thick,straight,wavy,fine', 200, TRUE, 5),
 
   ('S7-GEL-YEL','premium-gel-golden','gel',
    'جل بريميوم — جولدن','Premium Gel - Golden',
    'ويت لوك · 250 مل','Wet look · 250ml',
    'جولدن','Golden',
-   40.00, NULL, '#D9A81E', 'assets/gel-yellow.webp', 250, 3, 'straight', 200, TRUE, 6),
+   40.00, NULL, '#D9A81E', 'assets/gel-yellow.webp', 250, 5, 'straight', 200, TRUE, 6),
 
   ('S7-GEL-GRN','premium-gel-green','gel',
    'جل بريميوم — أخضر','Premium Gel - Green',
    'ريحة نضيفة · 250 مل','Clean scent · 250ml',
    'فريش','Fresh',
-   40.00, NULL, '#5E9C2B', 'assets/gel-green.webp', 250, 3, 'straight', 200, TRUE, 7),
+   40.00, NULL, '#5E9C2B', 'assets/gel-green.webp', 250, 5, 'straight', 200, TRUE, 7),
 
   ('S7-GEL-BLU','premium-gel-blue','gel',
    'جل بريميوم — أزرق','Premium Gel - Blue',
    'طول اليوم · 250 مل','All day · 250ml',
    'كلاسيك','Classic',
-   40.00, NULL, '#2A6DE8', 'assets/gel-blue.webp', 250, 3, 'straight', 200, TRUE, 8)
+   40.00, NULL, '#2A6DE8', 'assets/gel-blue.webp', 250, 5, 'straight', 200, TRUE, 8)
 ON CONFLICT (sku) DO NOTHING;
 
 -- A first live offer so the newsletter section has something to show.
@@ -210,10 +210,10 @@ FROM (VALUES
     ('S7-WAX-RED',
      'برو إكس هو نجم التشكيلة. تركيبة **ويف آند جروم** اتعملت للشعر المتموج والتخين — النوع اللي بيقاوم التصفيف وبتتفلت موجته بسرعة. الواكس هنا بيعرّف الموجة بدل ما يفردها.
 
-التثبيت ميجا هولد، ٥ من ٥ — أعلى درجة في التشكيلة كلها. اللمعة طبيعية مش زجاجية، والملمس بيفضل مرن، فتقدر تعدّل الاستايل بإيدك في نص اليوم من غير ما تغسل شعرك.',
+التثبيت قوي، ٤ من ٥ — أقوى واكس في التشكيلة. اللمعة طبيعية مش زجاجية، والملمس بيفضل مرن، فتقدر تعدّل الاستايل بإيدك في نص اليوم من غير ما تغسل شعرك.',
      'Pro X is the star of the line. The **Wave & Groom** formula was built for wavy and thick hair — the type that fights styling and loses its shape by midday. This wax defines the wave instead of flattening it.
 
-Hold is mega, 5 out of 5 — the strongest in the range. The finish is natural rather than glassy, and the texture stays pliable, so you can reshape with your hands mid-day without washing.',
+Hold is strong, 4 out of 5 — the strongest of the waxes. The finish is natural rather than glassy, and the texture stays pliable, so you can reshape with your hands mid-day without washing.',
      'خد كمية بحجم حبة الفول على طرف صوابعك
 افركها بين إيديك لحد ما تدفى وتبقى شفافة
 وزّعها على شعر ناشف أو نص ناشف من الجذور للأطراف
@@ -222,21 +222,21 @@ Hold is mega, 5 out of 5 — the strongest in the range. The finish is natural r
 Rub it between your palms until it warms and turns clear
 Work it through dry or towel-dried hair, roots to ends
 Shape with your hands or a wide-tooth comb',
-     'تثبيت ميجا هولد — ٥ من ٥
+     'تثبيت قوي — ٤ من ٥
 تركيبة ويف آند جروم للشعر المتموج والتخين
 لمعة طبيعية، مش زجاجية
 برطمان ١٢٠ مل',
-     'Mega hold — 5 out of 5
+     'Strong hold — 4 out of 5
 Wave & Groom formula for wavy and thick hair
 Natural finish, not glassy
 120ml jar'),
     ('S7-WAX-PUR',
      'الشعر الكيرلي والمجعّد بيفقد رطوبته أسرع من أي نوع تاني، وأغلب أنواع الواكس بتزوّد الجفاف. عشان كده التركيبة دي مبنية على **زبدة الشيا** — ملمس أنعم وتثبيت أقل قسوة.
 
-التثبيت ٤ من ٥: قوي كفاية إن الكيرل يفضل مظبوط، ومرن كفاية إنك تعدّله من غير ما تكسر شكل الخصلة.',
+التثبيت ٣ من ٥: قوي كفاية إن الكيرل يفضل مظبوط، ومرن كفاية إنك تعدّله من غير ما تكسر شكل الخصلة.',
      'Curly and coily hair loses moisture faster than any other type, and most waxes make that worse. This one is built around **shea butter** instead — a softer texture and a gentler hold.
 
-Hold is 4 out of 5: firm enough to keep the curl in shape, flexible enough to reshape without breaking the pattern.',
+Hold is 3 out of 5: firm enough to keep the curl in shape, flexible enough to reshape without breaking the pattern.',
      'خد كمية صغيرة وافركها بين إيديك لحد ما تدفى
 حطها على شعر نص ناشف عشان توزّع أحسن
 اشتغل من الأطراف ناحية الجذور عشان متثقّلش الكيرل
@@ -246,20 +246,20 @@ Apply to towel-dried hair — it spreads more evenly
 Work from the ends up so you do not weigh the curl down
 Define the strands with your fingers',
      'زبدة الشيا في التركيبة
-تثبيت ٤ من ٥ — مرن مش ناشف
+تثبيت ٣ من ٥ — مرن مش ناشف
 للشعر الكيرلي والمجعّد والتخين
 برطمان ١٢٠ مل',
      'Shea butter in the formula
-Hold 4 out of 5 — flexible, not crunchy
+Hold 3 out of 5 — flexible, not crunchy
 For curly, coily and thick hair
 120ml jar'),
     ('S7-WAX-BLU',
      '**زيت الأرجان** موجود في العناية بالشعر من زمان، وهو أساس التركيبة دي. الفكرة إنك تظبط الاستايل وتدّي الشعر ملمس أنعم في نفس الخطوة، بدل ما تعمل الاتنين بمنتجين.
 
-التثبيت ٤ من ٥ — مناسب للشعر المجعّد والمتموج اللي محتاج تحكم من غير ما يبقى ناشف أو متكتّل.',
+التثبيت ٣ من ٥ — مناسب للشعر المجعّد والمتموج اللي محتاج تحكم من غير ما يبقى ناشف أو متكتّل.',
      '**Argan oil** has been in hair care for a long time, and it is the base of this formula. The idea is to shape the style and leave a softer feel in the same step, instead of using two products for the two jobs.
 
-Hold is 4 out of 5 — right for curly and wavy hair that needs control without ending up dry or clumped.',
+Hold is 3 out of 5 — right for curly and wavy hair that needs control without ending up dry or clumped.',
      'كمية بحجم حبة الفول بين إيديك
 وزّعها على شعر نص ناشف
 اشتغل من الأطراف ناحية الجذور
@@ -269,41 +269,43 @@ Spread it through towel-dried hair
 Work from the ends up
 Finish with your fingers or a wide-tooth comb',
      'زيت أرجان في التركيبة
-تثبيت ٤ من ٥
+تثبيت ٣ من ٥
 للشعر المجعّد والمتموج
 برطمان ١٢٠ مل',
      'Argan oil in the formula
-Hold 4 out of 5
+Hold 3 out of 5
 For curly and wavy hair
 120ml jar'),
     ('S7-WAX-BLK',
-     'الشعر الناعم والمفرود مشكلته مع أغلب المنتجات إن أي لمعة بتخليه يبان أقل كثافة وبيوصل لشكل الدهون بدري. بلاك تركيبة **مطفية تماماً** — صفر لمعة.
+     'بلاك هو البرطمان الوحيد في التشكيلة اللي بيعمل حاجة زيادة على التصفيف: بيغطي الشيب. الصبغة الوحيدة في التركيبة هي **CI 77266** — الأسود — فالواكس بيسيب لون أسود لامع على الشعرة وإنت بتوزّعه. باقي الألوان فيها خمس صبغات بتلوّن البرطمان بس.
 
-التثبيت ٥ من ٥ من غير وزن زيادة، فالشعر بيفضل واقف ومظبوط طول اليوم بدل ما يقع بعد ساعتين.',
-     'Fine, straight hair has one problem with most products: any shine makes it read thinner and look greasy sooner. Black is a fully **matte** formula — no shine at all.
+التثبيت ٣ من ٥ بمرونة عالية ولمعة عالية، ومعاه **زيت حبة البركة**. يعني ده مش واكس مطفي — لو انت بتدوّر على شكل مات من غير لمعة، ده مش هو.',
+     'Black is the one jar in the line that does something besides styling: it covers grey. The only colourant in the formula is **CI 77266** — black — so the wax leaves a glossy black tone on the strand as you work it in. The other colours carry a five-pigment set that only colours the jar.
 
-Hold is 5 out of 5 with no added weight, so the style stays up through the day instead of dropping after two hours.',
-     'كمية صغيرة جداً — الشعر الناعم مش محتاج كتير
-افركها كويس بين إيديك لحد ما تختفي
-حطها على شعر ناشف تماماً عشان أعلى تثبيت
-ارفع من الجذور وإنت بتوزّع',
-     'A very small amount — fine hair needs less than you think
-Rub it in well until it disappears on your palms
-Apply to fully dry hair for maximum hold
-Lift from the roots as you work it through',
-     'ملمس مطفي — صفر لمعة
-تثبيت ٥ من ٥ من غير وزن
-للشعر الناعم والمفرود
+Hold is 3 out of 5, with high flexibility, high shine and **black seed oil** in the base. So it is not a matte wax. If a matte, no-shine finish is what you are after, this is not it.',
+     'خد كمية صغيرة وافركها بين إيديك لحد ما تدفى
+حطها على شعر ناشف أو نص ناشف
+وزّعها على الأماكن اللي فيها شيب الأول
+مشّط أو ظبّط بصوابعك — التركيبة مرنة وتقدر تعدّلها في أي وقت',
+     'Take a small amount and warm it between your palms
+Work it through dry or towel-dried hair
+Cover the greying areas first
+Comb or shape with your fingers - the formula stays pliable, so you can rework it',
+     'بيغطي الشيب — صبغة CI 77266 السودا
+تثبيت ٣ من ٥ بمرونة عالية
+لمعة عالية — مش واكس مطفي
+زيت حبة البركة في التركيبة
 برطمان ١٢٠ مل',
-     'Matte finish — no shine
-Hold 5 out of 5 with no added weight
-For fine and straight hair
+     'Covers grey - CI 77266 black
+Hold 3 out of 5, high flexibility
+High shine - not a matte wax
+Black seed oil in the formula
 120ml jar'),
     ('S7-WAX-YEL',
-     'برو هو الواكس اليومي في التشكيلة: تثبيت ٥ من ٥ بتركيبة سهلة التوزيع تنفع لأنواع شعر كتير — تخين، مفرود، أو متموج.
+     'برو هو الواكس اليومي في التشكيلة: تثبيت ٤ من ٥ بتركيبة سهلة التوزيع تنفع لأنواع شعر كتير — تخين، مفرود، أو متموج، وحتى الخفيف لو كمية صغيرة.
 
 لو بتدوّر على برطمان واحد تمد إيدك عليه كل يوم الصبح من غير ما تفكر، ده هو.',
-     'Pro is the everyday wax in the line: 5-out-of-5 hold in a formula that spreads easily and suits a range of hair — thick, straight or wavy.
+     'Pro is the everyday wax in the line: 4-out-of-5 hold in a formula that spreads easily and suits a range of hair — thick, straight, wavy, and fine hair too if you keep the amount small.
 
 If you want one jar you reach for every morning without thinking about it, this is the one.',
      'خد كمية بحجم حبة الفول
@@ -314,21 +316,21 @@ If you want one jar you reach for every morning without thinking about it, this 
 Rub it between your palms until it warms
 Work it through dry or towel-dried hair
 Shape with your hands',
-     'تثبيت ٥ من ٥
+     'تثبيت ٤ من ٥
 سهل التوزيع
-يناسب الشعر التخين والمفرود والمتموج
+يناسب الشعر التخين والمفرود والمتموج والخفيف
 برطمان ١٢٠ مل',
-     'Hold 5 out of 5
+     'Hold 4 out of 5
 Spreads easily
-Suits thick, straight and wavy hair
+Suits thick, straight, wavy and fine hair
 120ml jar'),
     ('S7-GEL-YEL',
      'الجل ده للـ**ويت لوك** — اللمعة المبلولة اللي بتدي الشعر شكل مرتب وكثافة أعلى. أنسب حاجة للشعر الناعم المفرود اللي بيقع بسرعة ومحتاج حاجة تمسكه من غير وزن.
 
-التثبيت ٣ من ٥: تحكم يومي بيتغسل بسهولة. عبوة ٢٥٠ مل.',
+التثبيت ٥ من ٥: أقوى تثبيت عندنا، وبيتغسل بسهولة. عبوة ٢٥٠ مل.',
      'This gel is for the **wet look** — the polished shine that makes hair read tidier and fuller. It suits fine, straight hair that drops quickly and needs hold without weight.
 
-Hold is 3 out of 5: daily control that washes out easily. 250ml bottle.',
+Hold is 5 out of 5: the strongest hold we make, and it washes out easily. 250ml bottle.',
      'حط كمية على شعر نص مبلول — الجل بيتوزّع أحسن كده
 مشّط للخلف أو للجنب حسب الاستايل اللي عايزه
 سيبه ينشف لوحده عشان تاخد أعلى لمعة
@@ -338,20 +340,20 @@ Comb it back or to the side, whichever style you want
 Let it dry on its own for the most shine
 For a softer finish, comb it again while it is half dry',
      'ويت لوك — لمعة عالية
-تثبيت ٣ من ٥
+تثبيت ٥ من ٥
 للشعر الناعم المفرود
 عبوة ٢٥٠ مل',
      'Wet look — high shine
-Hold 3 out of 5
-For fine, straight hair
+Hold 5 out of 5
+For straight hair
 250ml bottle'),
     ('S7-GEL-GRN',
-     'نفس تثبيت الجل بريميوم، ٣ من ٥، بريحة نضيفة خفيفة بتفضل معاك من غير ما تزاحم البارفان بتاعك.
+     'نفس تثبيت الجل بريميوم، ٥ من ٥، بريحة نضيفة خفيفة بتفضل معاك من غير ما تزاحم البارفان بتاعك.
 
 للشعر الناعم المفرود: تحكم يومي للشغل أو الجامعة، وبيتغسل بسهولة في آخر اليوم. عبوة ٢٥٠ مل.',
-     'The same Premium Gel hold, 3 out of 5, with a light clean scent that stays with you without fighting your fragrance.
+     'The same Premium Gel hold, 5 out of 5, with a light clean scent that stays with you without fighting your fragrance.
 
-For fine, straight hair: daily control for work or campus, and it washes out easily at the end of the day. 250ml bottle.',
+For straight hair: daily control for work or campus, and it washes out easily at the end of the day. 250ml bottle.',
      'حط كمية على شعر نص مبلول — الجل بيتوزّع أحسن كده
 مشّط للخلف أو للجنب حسب الاستايل اللي عايزه
 سيبه ينشف لوحده عشان تاخد أعلى لمعة
@@ -361,20 +363,20 @@ Comb it back or to the side, whichever style you want
 Let it dry on its own for the most shine
 For a softer finish, comb it again while it is half dry',
      'ريحة نضيفة خفيفة
-تثبيت ٣ من ٥
+تثبيت ٥ من ٥
 للشعر الناعم المفرود
 عبوة ٢٥٠ مل',
      'Light, clean scent
-Hold 3 out of 5
-For fine, straight hair
+Hold 5 out of 5
+For straight hair
 250ml bottle'),
     ('S7-GEL-BLU',
-     'الأزرق هو الكلاسيك: تثبيت ٣ من ٥ بيفضل ثابت من الصبح لآخر اليوم من غير ما يسيب قشرة بيضا.
+     'الأزرق هو الكلاسيك: تثبيت ٥ من ٥ بيفضل ثابت من الصبح لآخر اليوم من غير ما يسيب قشرة بيضا.
 
 للشعر الناعم المفرود اللي محتاج حاجة يعتمد عليها كل يوم، من غير تجربة ولا مفاجآت. عبوة ٢٥٠ مل.',
-     'Blue is the classic: 3-out-of-5 hold that stays put from morning to the end of the day without leaving white flakes.
+     'Blue is the classic: 5-out-of-5 hold that stays put from morning to the end of the day without leaving white flakes.
 
-For fine, straight hair that needs something dependable every day — no experimenting, no surprises. 250ml bottle.',
+For straight hair that needs something dependable every day — no experimenting, no surprises. 250ml bottle.',
      'حط كمية على شعر نص مبلول — الجل بيتوزّع أحسن كده
 مشّط للخلف أو للجنب حسب الاستايل اللي عايزه
 سيبه ينشف لوحده عشان تاخد أعلى لمعة
@@ -383,13 +385,13 @@ For fine, straight hair that needs something dependable every day — no experim
 Comb it back or to the side, whichever style you want
 Let it dry on its own for the most shine
 For a softer finish, comb it again while it is half dry',
-     'تثبيت ثابت طول اليوم
+     'أقوى تثبيت عندنا — ٥ من ٥
 من غير قشرة بيضا
 للشعر الناعم المفرود
 عبوة ٢٥٠ مل',
-     'Holds all day
+     'Our strongest hold — 5 out of 5
 No white flakes
-For fine, straight hair
+For straight hair
 250ml bottle')
 ) AS v(sku, long_ar, long_en, howto_ar, howto_en, highlights_ar, highlights_en)
 WHERE p.sku = v.sku;
@@ -426,7 +428,7 @@ VALUES
 وأربع حاجات لازم تكون واضحة قبل ما تكمل:
 
 - **الرقم مش تقييم جودة.** تثبيت ٣ مش «أوحش» من ٥. ده وصف لشغلانة مختلفة، وهتشوف تحت إن في شعر شكله بيبوظ من درجة ٥ ومحتاج ٣.
-- **التثبيت مش اللمعة.** دول محورين منفصلين خالص. عندنا منتج تثبيت ٥ من غير أي لمعة (بلاك)، ومنتج تثبيت ٣ لمعته عالية جداً (جولدن). متختارش على أساس إن اللمعة دليل على القوة.
+- **التثبيت مش اللمعة.** دول محورين منفصلين خالص. عندنا جل تثبيته ٥ ولمعته عالية جداً (جولدن)، وواكس تثبيته ٣ ولمعته عالية برضه (بلاك)، وواكس تثبيته ٤ ولمعته طبيعية هادية (برو إكس). متختارش على أساس إن اللمعة دليل على القوة.
 - **الرقم مش عدد ساعات.** إحنا مش بنقول لك «تثبيت ٤٨ ساعة» لأن ده كلام مش بنقيسه. اللي بنكتبه هو الدرجة من ٥، وخلاص.
 - **الرقم مش السعر.** كل الواكس عندنا بنفس السعر ونفس الحجم، وكل الجل بنفس السعر ونفس الحجم. يعني لو رحت لدرجة أعلى مش هتدفع زيادة، ولو رحت لدرجة أقل مش هتوفر. الفلوس خرجت من المعادلة تماماً.
 
@@ -434,61 +436,59 @@ VALUES
 
 الناس بتبدأ من الرقم، وده أصلاً آخر خطوة مش أولها. الترتيب الصح كده:
 
-- **ابدأ من الشكل اللي في دماغك.** عايز الشعر يبان مبلول ولامع؟ ولا مطفي وطبيعي كأنك مش حاطط حاجة؟ ولا موجة مفتوحة ومعرّفة؟ الشكل ده بيحدد النهاية، والنهاية بتقفل عليك نص التشكيلة على طول.
+- **ابدأ من الشكل اللي في دماغك.** عايز الشعر يبان مبلول ولامع؟ ولا طبيعي كأنك مش حاطط حاجة؟ ولا موجة مفتوحة ومعرّفة؟ الشكل ده بيحدد النهاية، والنهاية بتقفل عليك نص التشكيلة على طول.
 - **بعدين حدد الفورمات: واكس ولا جل.** الجل بيتحط على شعر مبلول وبينشف على الشكل. الواكس بيتحط على شعر ناشف أو نص ناشف وبيفضل ماشي مع إيدك. ده الفرق العملي اللي هتحسه كل يوم الصبح.
-- **وبعد كده بس شوف الرقم.** لأن الرقم جوه كل فورمات بقى اختيار ضيق: الجل كله على ٣، والواكس بين ٤ و٥. يعني لما توصل للخطوة دي بتبقى فاضل قدامك حاجتين تلاتة مش تمنية.
+- **وبعد كده بس شوف الرقم.** لأن الرقم جوه كل فورمات بقى اختيار ضيق: الجل كله على ٥، والواكس بين ٣ و٤. يعني لما توصل للخطوة دي بتبقى فاضل قدامك حاجتين تلاتة مش تمنية.
 
 ولو نوع شعرك نفسه مش واضح لك، ابدأ من [دليل أنواع الشعر](/hair-types) الأول وبعدين ارجع للرقم.
 
-## تثبيت ٣ — الجل اليومي (٣ ألوان)
+## تثبيت ٣ — الواكس المرن (شيا، أرجان، بلاك)
 
-تلات جل، كلهم ٢٥٠ مل، كلهم ٤٠ جنيه، وكلهم تثبيت ٣ من ٥، ومتسجلين على [الشعر الناعم المفرود](/hair-types/straight).
+تلاتة، كلهم ١٢٠ مل و٤٥ جنيه، وتثبيت ٣ من ٥ بمرونة عالية.
 
-درجة ٣ معناها إن الشكل ماسك بس لسه بيمشي معاك. تقدر تعدل بإيدك بعد ما ينشف من غير ما الشعر يتكسر أو يبان متقفل. ودي بالظبط الحاجة اللي بتخلي درجة ٣ اختيار مقصود مش تنازل: في ناس عايزة تظبط الشكل تاني في نص اليوم، ودرجة ٥ مش بتسمح بده.
+درجة ٣ معناها إن الشكل ماسك بس لسه بيمشي معاك. تقدر تعدل بإيدك في نص اليوم من غير ما الشعر يتكسر أو يبان متقفل. ودي بالظبط الحاجة اللي بتخلي درجة ٣ اختيار مقصود مش تنازل: في ناس عايزة تظبط الشكل تاني بعد الضهر، ودرجة أعلى مش بتسمح بده.
+
+- **[واكس زبدة الشيا](/product/premium-wax-shea)** — نهاية ناعمة، متسجل على [الشعر الخشن/الأفرو](/hair-types/coily) و[الكيرلي](/hair-types/curly) و[الكثيف](/hair-types/thick).
+- **[واكس الأرجان](/product/premium-wax-argan)** — تركيبة مغذية، متسجلة على الكيرلي والخشن و[المتموج](/hair-types/wavy).
+- **[واكس بلاك](/product/premium-wax-black)** — ده الوحيد اللي بيعمل حاجة زيادة على التصفيف: بيغطي الشيب ويسيب لون أسود لامع. لمعته عالية، مش مطفي.
+
+## تثبيت ٤ — الواكس القوي (برو إكس وبرو)
+
+الاتنين دول ١٢٠ مل و٤٥ جنيه، وتثبيت ٤ من ٥ — أقوى واكس في التشكيلة.
+
+الفرق بينهم وبين درجة ٣ إن الإمساك أعلى والشكل بيفضل مكانه أكتر، بس التركيبة لسه بتسمح لك تعدّل. لو شعرك كثيف أو موجته بتتفلت بسرعة، ده رقمك.
+
+- **[واكس برو إكس](/product/premium-wax-pro-x)** — تركيبة Wave & Groom، نهاية طبيعية، للشعر المتموج والكثيف. كان بـ٥٥ جنيه، بقى ٤٥.
+- **[واكس برو](/product/premium-wax-pro)** — التثبيت اليومي العام، للشعر الكثيف والمفرود والمتموج، وللشعر الخفيف كمان لو الكمية صغيرة.
+
+كل [تشكيلة الواكس](/shop/wax) هنا.
+
+## تثبيت ٥ — الجل (٣ ألوان)
+
+تلات جل، كلهم ٢٥٠ مل، كلهم ٤٠ جنيه، وكلهم تثبيت ٥ من ٥ — أعلى رقم في التشكيلة كلها — ومتسجلين على [الشعر الناعم المفرود](/hair-types/straight).
+
+درجة ٥ معناها إن الشكل بيتقفل ومش بيمشي معاك بسهولة بعد ما ينشف. ده مكسب ولا خسارة على حسب انت عايز إيه: مكسب لو عايز تحط الشكل الصبح وتنساه، وخسارة لو من النوع اللي بيعدل شعره بإيده كل ساعة. والشعر الناعم المفرود هو النوع اللي بيحتاج الرقم ده فعلاً، لأنه أصلاً مش ماسك شكل.
 
 والتلاتة على نفس الرقم بالظبط، فالاختيار بينهم مش اختيار قوة خالص — هو اختيار لمعة وريحة:
 
 - **[جل جولدن](/product/premium-gel-golden)** — ويت لوك، لمعة عالية. ده الاختيار لو عايز الشكل المبلول اللامع.
-- **[جل جرين](/product/premium-gel-green)** — ريحة نضيفة، تثبيت هادي طول اليوم.
+- **[جل جرين](/product/premium-gel-green)** — ريحة نضيفة، نفس التثبيت.
 - **[جل بلو](/product/premium-gel-blue)** — الكلاسيك اللي بيقعد لآخر اليوم.
 
 شوف [تشكيلة الجل كلها](/shop/gel) لو مستقر على الفورمات ده.
-
-## تثبيت ٤ — الواكس المغذي (شيا وأرجان)
-
-الاتنين دول ١٢٠ مل و٤٥ جنيه، وتثبيت ٤ من ٥.
-
-الفرق بينهم وبين درجة ٥ مش إنهم «أضعف». الفرق إن شغلانتهم متقسمة على حاجتين مع بعض: تثبيت كويس + تليين للشعرة الخشنة الناشفة. لو شعرك ناشف ومحتاج تعريف مش قفل، درجة ٤ هي اللي انت عايزها، ودرجة ٥ هتديك إمساك أعلى بس الشكل هيبان أجمد وأقل حركة.
-
-- **[واكس زبدة الشيا](/product/premium-wax-shea)** — نهاية ناعمة، متسجل على [الشعر الخشن/الأفرو](/hair-types/coily) و[الكيرلي](/hair-types/curly) و[الكثيف](/hair-types/thick).
-- **[واكس الأرجان](/product/premium-wax-argan)** — تركيبة مغذية، متسجلة على الكيرلي والخشن و[المتموج](/hair-types/wavy).
-
-خد بالك إن الشيا متسجل على الشعر الكثيف برضه. يعني الكثيف مش محكوم عليه بدرجة ٥ إجبارياً — ٤ خيار حقيقي معاه لو عايز نهاية أنعم.
-
-## تثبيت ٥ — الميجا (برو إكس، بلاك، برو)
-
-تلاتة، كلهم ١٢٠ مل و٤٥ جنيه، وكلهم تثبيت ٥ من ٥ — أعلى رقم في التشكيلة كلها.
-
-درجة ٥ معناها إن الشكل بيتقفل ومش بيمشي معاك بسهولة بعد ما ينشف. ده مكسب ولا خسارة على حسب انت عايز إيه: مكسب لو عايز تحط الشكل الصبح وتنساه، وخسارة لو من النوع اللي بيعدل شعره بإيده كل ساعة.
-
-- **[واكس برو إكس](/product/premium-wax-pro-x)** — تركيبة Wave & Groom، نهاية طبيعية، للشعر المتموج والكثيف. كان بـ٥٥ جنيه، بقى ٤٥.
-- **[واكس بلاك](/product/premium-wax-black)** — تثبيت ٥ من غير أي لمعة خالص، نهاية مطفية (مات)، متسجل على [الشعر الخفيف](/hair-types/fine) والناعم المفرود.
-- **[واكس برو](/product/premium-wax-pro)** — التثبيت العالي اليومي، للشعر الكثيف والمفرود والمتموج.
-
-التلاتة على نفس الرقم، فالاختيار بينهم كله بالنهاية: طبيعية (برو إكس)، مطفية خالص (بلاك)، ولا يومي عام (برو). كل [تشكيلة الواكس](/shop/wax) هنا.
 
 ## المقارنة الكاملة: ٨ منتجات بالتثبيت والحجم والسعر
 
 التشكيلة كلها في مكان واحد، مرتبة من أعلى تثبيت لأقل:
 
-- **[برو إكس](/product/premium-wax-pro-x)** — واكس · تثبيت ٥/٥ · ١٢٠ مل · ٤٥ جنيه (كان ٥٥) · متموج وكثيف · نهاية طبيعية
-- **[بلاك](/product/premium-wax-black)** — واكس · تثبيت ٥/٥ · ١٢٠ مل · ٤٥ جنيه · خفيف ومفرود · مطفي بدون لمعة
-- **[برو](/product/premium-wax-pro)** — واكس · تثبيت ٥/٥ · ١٢٠ مل · ٤٥ جنيه · كثيف ومفرود ومتموج · يومي
-- **[زبدة الشيا](/product/premium-wax-shea)** — واكس · تثبيت ٤/٥ · ١٢٠ مل · ٤٥ جنيه · خشن وكيرلي وكثيف · نهاية ناعمة
-- **[الأرجان](/product/premium-wax-argan)** — واكس · تثبيت ٤/٥ · ١٢٠ مل · ٤٥ جنيه · كيرلي وخشن ومتموج · مغذي
-- **[جولدن](/product/premium-gel-golden)** — جل · تثبيت ٣/٥ · ٢٥٠ مل · ٤٠ جنيه · مفرود · ويت لوك ولمعة عالية
-- **[جرين](/product/premium-gel-green)** — جل · تثبيت ٣/٥ · ٢٥٠ مل · ٤٠ جنيه · مفرود · ريحة نضيفة
-- **[بلو](/product/premium-gel-blue)** — جل · تثبيت ٣/٥ · ٢٥٠ مل · ٤٠ جنيه · مفرود · كلاسيك طول اليوم
+- **[جولدن](/product/premium-gel-golden)** — جل · تثبيت ٥/٥ · ٢٥٠ مل · ٤٠ جنيه · مفرود · ويت لوك ولمعة عالية
+- **[جرين](/product/premium-gel-green)** — جل · تثبيت ٥/٥ · ٢٥٠ مل · ٤٠ جنيه · مفرود · ريحة نضيفة
+- **[بلو](/product/premium-gel-blue)** — جل · تثبيت ٥/٥ · ٢٥٠ مل · ٤٠ جنيه · مفرود · كلاسيك طول اليوم
+- **[برو إكس](/product/premium-wax-pro-x)** — واكس · تثبيت ٤/٥ · ١٢٠ مل · ٤٥ جنيه (كان ٥٥) · متموج وكثيف · نهاية طبيعية
+- **[برو](/product/premium-wax-pro)** — واكس · تثبيت ٤/٥ · ١٢٠ مل · ٤٥ جنيه · كثيف ومفرود ومتموج وخفيف · يومي
+- **[زبدة الشيا](/product/premium-wax-shea)** — واكس · تثبيت ٣/٥ · ١٢٠ مل · ٤٥ جنيه · خشن وكيرلي وكثيف · نهاية ناعمة
+- **[الأرجان](/product/premium-wax-argan)** — واكس · تثبيت ٣/٥ · ١٢٠ مل · ٤٥ جنيه · كيرلي وخشن ومتموج · مغذي
+- **[بلاك](/product/premium-wax-black)** — واكس · تثبيت ٣/٥ · ١٢٠ مل · ٤٥ جنيه · متموج وكثيف · بيغطي الشيب بلمعة عالية
 
 كل الواكس ١٢٠ مل و٤٥ جنيه، وكل الجل ٢٥٠ مل و٤٠ جنيه. يعني الاختيار بينهم مش مسألة فلوس — هو مسألة نوع شعر ودرجة تثبيت وبس.
 
@@ -496,12 +496,12 @@ VALUES
 
 دي مجرد خريطة سريعة للأرقام. كل نوع عنده صفحة بتشرح مشكلته بالتفصيل وإيه اللي يبعد عنه:
 
-- [ناعم مفرود](/hair-types/straight) — تثبيت ٣، أو ٥ مطفي.
-- [متموج](/hair-types/wavy) — تثبيت ٤ أو ٥ واكس.
-- [كيرلي](/hair-types/curly) — تثبيت ٤.
-- [خشن/أفرو](/hair-types/coily) — تثبيت ٤.
-- [خفيف](/hair-types/fine) — تثبيت ٥ مطفي.
-- [كثيف](/hair-types/thick) — تثبيت ٥، ومعاه ٤ كخيار أنعم.
+- [ناعم مفرود](/hair-types/straight) — تثبيت ٥، يعني جل.
+- [متموج](/hair-types/wavy) — تثبيت ٤ واكس، ومعاه ٣ كخيار أمرن.
+- [كيرلي](/hair-types/curly) — تثبيت ٣.
+- [خشن/أفرو](/hair-types/coily) — تثبيت ٣.
+- [خفيف](/hair-types/fine) — تثبيت ٤ بكمية صغيرة جداً.
+- [كثيف](/hair-types/thick) — تثبيت ٤.
 
 ## التثبيت العالي بيأذي الشعر؟
 
@@ -520,19 +520,19 @@ VALUES
 ## أسئلة بتتسأل كتير
 
 **أقوى منتج عندكم إيه؟**
-تلاتة على نفس الدرجة: برو إكس وبلاك وبرو، كلهم تثبيت ٥ من ٥. الاختيار بينهم مش بالقوة — هو بالنهاية اللي عايزها ونوع شعرك: برو إكس نهاية طبيعية للمتموج والكثيف، بلاك مطفي بدون أي لمعة للخفيف والمفرود، برو للتثبيت اليومي على الشعر الكثيف والمفرود والمتموج.
+الجل. التلاتة — جولدن وجرين وبلو — كلهم تثبيت ٥ من ٥، وده أعلى رقم في التشكيلة. أقوى واكس هو برو وبرو إكس بتثبيت ٤. والاختيار بين الجل والواكس مش اختيار قوة أصلاً: الجل بينشف ويقفل الشكل، والواكس بيفضل ماشي مع إيدك طول اليوم.
 
-**تثبيت ٣ يعني الجل ضعيف؟**
-لأ. يعني الشكل ماسك بس لسه مرن وتقدر تعدله بإيدك بعد ما ينشف. لناس كتير دي الدرجة الصح مش تنازل، خصوصاً لو بتعدل شعرك أكتر من مرة في اليوم.
+**تثبيت ٣ يعني الواكس ضعيف؟**
+لأ. يعني الشكل ماسك بس لسه مرن وتقدر تعدله بإيدك بعد ما تحطه. لناس كتير دي الدرجة الصح مش تنازل، خصوصاً لو بتعدل شعرك أكتر من مرة في اليوم، أو لو شعرك ناشف ومحتاج تعريف مش قفل.
 
-**الفرق بين تثبيت ٤ و٥ كبير؟**
-مش قفزة ضخمة، لكنه محسوس. ٤ بيسيب للشعر حركة وشكل أنعم، ٥ بيقفل الشكل ومش بيمشي معاك بسهولة. ولو انت متردد بين الاتنين، فكر بالنهاية اللي عايزها مش بالقوة: الشيا والأرجان نهايتهم أنعم، وبرو وبرو إكس وبلاك نهايتهم أثبت.
+**الفرق بين تثبيت ٣ و٤ كبير؟**
+مش قفزة ضخمة، لكنه محسوس. ٣ بيسيب للشعر حركة وشكل أنعم، ٤ بيمسك أكتر ويفضل مكانه لآخر اليوم. ولو انت متردد بين الاتنين، فكر بالنهاية اللي عايزها مش بالقوة: الشيا والأرجان والبلاك نهايتهم أنعم وأمرن، وبرو وبرو إكس أثبت.
 
 **ينفع أستعمل جل وواكس مع بعض؟**
 ينفع تحط جل على شعر مبلول وتسيبه ينشف، وبعدين تاخد كمية صغيرة جداً واكس لتحديد الأطراف. بس ابدأ بكمية أقل من المعتاد من الاتنين — دي أسرع طريقة لشعر تقيل ولبقايا بيضا من المنتج على الشعر.
 
-**عندكم كريم أو طين (clay) بتثبيت أقل؟**
-لأ. التشكيلة ٨ منتجات بس: ٥ واكس و٣ جل. مفيش عندنا كريم ولا طين ولا بوميد ولا شامبو ولا كولونيا. لو محتاج تثبيت خفيف مرن، أقرب حاجة عندنا هي الجل بدرجة ٣.
+**عندكم طين (clay) أو بوميد بتثبيت مطفي؟**
+لأ. مفيش عندنا طين ولا بوميد ولا معجون مطفي، وكل الواكس عندنا بينهي بلمعة مش بمات. لو محتاج تثبيت خفيف مرن، أقرب حاجة هي الواكس بدرجة ٣ — الشيا أو الأرجان — بكمية صغيرة.
 
 **السعر والتوصيل؟**
 الواكس ٤٥ جنيه لـ١٢٠ مل، الجل ٤٠ جنيه لـ٢٥٠ مل. التوصيل ٣٠ جنيه، ومجاني فوق ٣٠٠ جنيه. الدفع عند الاستلام، والشحن جوه مصر بس. شوف [كل المنتجات](/shop) أو [تشكيلة الواكس](/shop/wax).',
@@ -572,7 +572,7 @@ VALUES
 - **الواكس** على شعر مبلول بيتوزّع وحش، وبتحس إن التثبيت قلّ فجأة والشكل مش ماسك زي المعتاد. حطه على شعر **ناشف تماما أو فيه رطوبة خفيفة جدا** بعد ما تنشّف بالفوطة كويس.
 - **الجل** بيتوزّع أحسن بكتير على شعر **مبلول أو نص ناشف**، وده الوضع اللي بيديك أنضف شكل منه.
 
-يعني لو خارج من الحمام مستعجل، [الجل](/shop/gel) هو اللي هيشتغل معاك دلوقتي حالا — التلات ألوان (جولدن، أخضر، أزرق) تثبيت ٣ من ٥، ٢٥٠ مل بـ٤٠ جنيه. ولو عايز الشكل المبلول اللامع، [جل جولدن](/product/premium-gel-golden) هو المخصص لده.
+يعني لو خارج من الحمام مستعجل، [الجل](/shop/gel) هو اللي هيشتغل معاك دلوقتي حالا — التلات ألوان (جولدن، أخضر، أزرق) تثبيت ٥ من ٥، ٢٥٠ مل بـ٤٠ جنيه. ولو عايز الشكل المبلول اللامع، [جل جولدن](/product/premium-gel-golden) هو المخصص لده.
 
 ولو مستني على [الواكس](/shop/wax)، نشّف شعرك الأول واستنى شوية. الفرق ده لوحده بيحل نص شكاوى التثبيت.
 
@@ -600,7 +600,7 @@ VALUES
 
 الحل هو نفسه في التلات حالات: كمية أقل، فرك أكتر في الكف، وشعر ناشف. جرّب كده مرة قبل ما تغيّر المنتج.
 
-وحاجة تانية بتتخلط بالبياض: اللمعة. لو مضايق إن شعرك بيبان لامع من الواكس، ده مش كمية — ده نوع التركيبة. [بلاك مات](/product/premium-wax-black) تثبيت ٥ من ٥ ومن غير أي لمعة خالص، ومعمول للشعر الناعم والمفرود.
+وحاجة تانية بتتخلط بالبياض: اللمعة. لو مضايق إن شعرك بيبان لامع من الواكس، ده مش كمية — ده نوع التركيبة. وكل الواكس عندنا أساسه شمع وفازلين وبينهي بلمعة، فمفيش واحد فيهم هيديك شكل مطفي. اللي يقلل اللمعة فعلاً هو كمية أقل وشعر ناشف تماماً.
 
 ## علامات إنك زوّدت الكمية
 
@@ -629,7 +629,7 @@ VALUES
 
 أنهي تركيبة تحديدا تناسب الشعر الخفيف، واللمعة والوزن وإيه اللي تبعد عنه — ده كله متشرح في صفحة [الشعر الخفيف](/hair-types/fine).
 
-وعلى العكس، لو شعرك كثيف، الكمية بتاعتك أكبر من دي بمراحل، بس القاعدة تفضل هي هي: قد البندقة، وزّع، وبعدين شوف. أنهي درجة تثبيت تناسبك موجودة في صفحة [الشعر الكثيف](/hair-types/thick)، ولو عايز تشوف الاختيارات على طول: [برو إكس](/product/premium-wax-pro-x) تثبيت ٥ من ٥ بتركيبة Wave & Groom، و[برو](/product/premium-wax-pro) تثبيت ٥ من ٥ لليومي.
+وعلى العكس، لو شعرك كثيف، الكمية بتاعتك أكبر من دي بمراحل، بس القاعدة تفضل هي هي: قد البندقة، وزّع، وبعدين شوف. أنهي درجة تثبيت تناسبك موجودة في صفحة [الشعر الكثيف](/hair-types/thick)، ولو عايز تشوف الاختيارات على طول: [برو إكس](/product/premium-wax-pro-x) تثبيت ٤ من ٥ بتركيبة Wave & Groom، و[برو](/product/premium-wax-pro) تثبيت ٤ من ٥ لليومي.
 
 ## أسئلة بتتسأل كتير
 
@@ -724,7 +724,7 @@ VALUES
 
 ## وإنت بتشتري واكس جديد
 
-اللي بيسهّل الشيل من الأول هو إنك تحط الكمية الصح من واكس تثبيته يكفيك، بدل ما تحط كتير من واكس مش ماسك. [برو إكس](/product/premium-wax-pro-x) تثبيت ٥ من ٥ بشكل ناتشورال، و[بلاك مات](/product/premium-wax-black) نفس درجة التثبيت بس من غير أي لمعة خالص. الاتنين ١٢٠ مل بـ٤٥ جنيه، وتقدر تقارن [الواكس كله](/shop/wax) وتشوف كل واحد مناسب لأنهي نوع شعر.
+اللي بيسهّل الشيل من الأول هو إنك تحط الكمية الصح من واكس تثبيته يكفيك، بدل ما تحط كتير من واكس مش ماسك. [برو إكس](/product/premium-wax-pro-x) تثبيت ٤ من ٥ بشكل ناتشورال، و[برو](/product/premium-wax-pro) نفس درجة التثبيت لكن أسهل في التوزيع. الاتنين ١٢٠ مل بـ٤٥ جنيه، وتقدر تقارن [الواكس كله](/shop/wax) وتشوف كل واحد مناسب لأنهي نوع شعر.
 
 الشحن ٣٠ جنيه ومجاني فوق ٣٠٠ جنيه، والدفع عند الاستلام، وبنوصل مصر كلها.
 
@@ -763,9 +763,9 @@ VALUES
 
 اللي بيحدد الشكل اللي هيقعد حاجة واحدة: **درجة التثبيت**. إحنا بنكتب الدرجة دي بالرقم من ٥ على كل منتج، عشان تشوفها بعينك قبل ما تشتري:
 
-- [الجل](/shop/gel) — جولدن، أخضر، وأزرق: تثبيت ٣ من ٥
-- [واكس زبدة الشيا](/product/premium-wax-shea) و[واكس الأرجان](/product/premium-wax-argan): تثبيت ٤ من ٥
-- [واكس برو إكس](/product/premium-wax-pro-x)، و[بلاك](/product/premium-wax-black)، و[برو](/product/premium-wax-pro): تثبيت ٥ من ٥
+- [واكس زبدة الشيا](/product/premium-wax-shea) و[واكس الأرجان](/product/premium-wax-argan) و[بلاك](/product/premium-wax-black): تثبيت ٣ من ٥
+- [واكس برو إكس](/product/premium-wax-pro-x) و[برو](/product/premium-wax-pro): تثبيت ٤ من ٥
+- [الجل](/shop/gel) — جولدن، أخضر، وأزرق: تثبيت ٥ من ٥
 
 لو انت ماشي بدرجة ٣ والستايل مش قاعد معاك، الحل إنك تطلع لدرجة أعلى — مش إنك تحط كمية أكبر من نفس الدرجة. الرقم هو اللي بيفرق.
 
@@ -773,9 +773,9 @@ VALUES
 
 الرقم ده ترتيب بين منتجاتنا إحنا، مش مقياس عالمي. بنشره عشان تعرف انت بتشتري إيه بالظبط بدل كلام زي "تثبيت قوي" اللي كل حد بيكتبه.
 
-- **٣ من ٥** — شكل مظبوط وطبيعي، وتقدر تعدّل فيه بإيدك بعد ما تحطه. ده مستوى كل [الجل](/shop/gel) عندنا.
-- **٤ من ٥** — أعلى شوية، ومعاه فينيش أنعم. [زبدة الشيا](/product/premium-wax-shea) و[الأرجان](/product/premium-wax-argan) في الدرجة دي.
-- **٥ من ٥** — أعلى حاجة عندنا. بيمسك الشكل من أول مرة، وبيحتاج منك كمية أقل عشان كده. [برو إكس](/product/premium-wax-pro-x) و[بلاك](/product/premium-wax-black) و[برو](/product/premium-wax-pro).
+- **٣ من ٥** — شكل مظبوط وطبيعي، وتقدر تعدّل فيه بإيدك بعد ما تحطه. [زبدة الشيا](/product/premium-wax-shea) و[الأرجان](/product/premium-wax-argan) و[بلاك](/product/premium-wax-black) في الدرجة دي.
+- **٤ من ٥** — أعلى شوية، وبيفضل مكانه أكتر. [برو إكس](/product/premium-wax-pro-x) و[برو](/product/premium-wax-pro).
+- **٥ من ٥** — أعلى حاجة عندنا، وده مستوى كل [الجل](/shop/gel). بيمسك الشكل من أول مرة، وبيحتاج منك كمية أقل عشان كده.
 
 لو عمرك ما جربت غير درجة واحدة، انت متعرفش الفرق أصلاً — والفرق بين ٣ و٥ أوضح بكتير من الفرق بين كمية وكميتين من نفس المنتج.
 
@@ -783,9 +783,9 @@ VALUES
 
 مش مسألة أنهي أحسن. الاتنين شغالين بطريقة مختلفة تماماً.
 
-**[الواكس](/shop/wax)** — ١٢٠ مل بـ ٤٥ جنيه. بيتحط على شعر شبه ناشف، وبيدي تكستشر وشكل تقدر تعدّله. الفينيش بيختلف من واحد للتاني: [برو إكس](/product/premium-wax-pro-x) بتركيبة Wave & Groom بلمعة طبيعية (وكان بـ ٥٥ وبقى ٤٥)، [بلاك](/product/premium-wax-black) مطفي بصفر لمعة، [زبدة الشيا](/product/premium-wax-shea) بفينيش ناعم، [الأرجان](/product/premium-wax-argan) مغذي، و[برو](/product/premium-wax-pro) لليومي.
+**[الواكس](/shop/wax)** — ١٢٠ مل بـ ٤٥ جنيه. بيتحط على شعر شبه ناشف، وبيدي تكستشر وشكل تقدر تعدّله. الفينيش بيختلف من واحد للتاني: [برو إكس](/product/premium-wax-pro-x) بتركيبة Wave & Groom بلمعة طبيعية (وكان بـ ٥٥ وبقى ٤٥)، [بلاك](/product/premium-wax-black) بيغطي الشيب بلمعة عالية، [زبدة الشيا](/product/premium-wax-shea) بفينيش ناعم، [الأرجان](/product/premium-wax-argan) مغذي، و[برو](/product/premium-wax-pro) لليومي.
 
-**[الجل](/shop/gel)** — ٢٥٠ مل بـ ٤٠ جنيه، وكله تثبيت ٣ من ٥، وكله متسجل عندنا للشعر المفرود. بيتحط على شعر مبلول. الفرق بين التلاتة في الشكل والريحة مش في الدرجة:
+**[الجل](/shop/gel)** — ٢٥٠ مل بـ ٤٠ جنيه، وكله تثبيت ٥ من ٥، وكله متسجل عندنا للشعر المفرود. بيتحط على شعر مبلول. الفرق بين التلاتة في الشكل والريحة مش في الدرجة:
 
 - [جل جولدن](/product/premium-gel-golden) — ويت لوك ولمعة عالية
 - [جل أخضر](/product/premium-gel-green) — ريحة نضيفة
@@ -806,7 +806,7 @@ VALUES
 
 ## تثبيت ٥ إمتى يبقى ضروري
 
-مش كل يوم محتاج درجة ٥. لو يومك مكتب ومكيف وقاعد، جل درجة ٣ هيكفيك تماماً وهيبقى أخف على شعرك.
+مش كل يوم محتاج درجة ٥. لو يومك مكتب ومكيف وقاعد، واكس درجة ٣ هيكفيك تماماً وهيبقى أخف على شعرك.
 
 بس في حالات تستاهل إنك تطلع لأعلى درجة عندك:
 
@@ -848,8 +848,8 @@ VALUES
 
 اللي بيشتغل فعلاً في الجو ده:
 
-- **اطلع درجة فوق في الصيف**. لو الشتا ماشي معاك بـ ٤، جرب ٥.
-- **ابعد عن اللمعة الزيادة**. الشعر اللامع + العرق = منظر دهون. لو يومك بره وحر، [واكس بلاك](/product/premium-wax-black) المطفي بصفر لمعة بيريحك من الحتة دي.
+- **اطلع درجة فوق في الصيف**. لو الشتا ماشي معاك بواكس ٣، جرب ٤، ولو ده مكفاش جرب [الجل](/shop/gel).
+- **ابعد عن اللمعة الزيادة**. الشعر اللامع + العرق = منظر دهون. وكل الواكس عندنا بينهي بلمعة، فاللي بيقلّلها هو الكمية: نص اللي بتاخده، وشعر ناشف تماماً.
 - **متحطش كمية تانية فوق الأولى في نص اليوم**. المنتج اللي على شعرك اتخلط بالعرق والزيت — لو زودت فوقه هيبقى تقيل ولزج، مش مثبت.
 - **قلل السشوار الحامي**. الشعر اللي طالع من حرارة عالية بيمتص رطوبة الجو أسرع.
 - **اغسل الشعر قبل ما تحط تاني**. المنتج بيتراكم مع العرق، والبداية النضيفة بتفرق أكتر من أي كمية زيادة.
@@ -862,15 +862,15 @@ VALUES
 
 **أزود الكمية ولا أغير المنتج؟**
 
-غيّر لدرجة تثبيت أعلى. الكمية الزيادة بتزود الوزن مش المسك، والشعر التقيل بيقع أسرع. الفرق بين تثبيت ٣ وتثبيت ٥ أكبر بكتير من الفرق بين كمية وكميتين.
+غيّر لدرجة تثبيت أعلى. الكمية الزيادة بتزود الوزن مش المسك، والشعر التقيل بيقع أسرع. الفرق بين واكس ٣ وواكس ٤ — أو بين الواكس والجل ٥ — أكبر بكتير من الفرق بين كمية وكميتين.
 
 **عندكم كريم أو طين (clay) أو بوميد؟**
 
-لأ. عندنا ٥ أنواع واكس و٣ أنواع جل بس — مفيش كريم، ولا طين، ولا بوميد، ولا شامبو. بنفضل نقولها بدل ما نبيعلك حاجة على إنها حاجة تانية. لو محتاج تكستشر مطفي بدل الطين، [واكس بلاك](/product/premium-wax-black) أقرب حاجة ليه عندنا.
+طين وبوميد لأ، وده مش هيتغير قريب. الكريم أيوة: عندنا [كريم جل ٢٥٠ مل](/shop/cream-gel) و[جل واكس ١٤٠ مل](/shop/gel-wax) دلوقتي. بس لو اللي انت عايزه تحديداً هو التكستشر المطفي بتاع الطين، مفيش عندنا حاجة بتعمله — كل الواكس عندنا بينهي بلمعة، وبنفضل نقولها بدل ما نبيعلك حاجة على إنها حاجة تانية.
 
 **إيه أقوى منتج عندكم في التثبيت؟**
 
-تلاتة كلهم تثبيت ٥ من ٥: [برو إكس](/product/premium-wax-pro-x) للمتموج والكثيف بلمعة طبيعية، [بلاك](/product/premium-wax-black) للناعم والخفيف بصفر لمعة، و[برو](/product/premium-wax-pro) للكثيف والمفرود لليومي. الاختيار بينهم بيعتمد على [نوع شعرك](/hair-types) والفينيش اللي عايزه، مش على قوة أكتر.
+[الجل](/shop/gel) — التلات ألوان كلهم تثبيت ٥ من ٥، وده أعلى رقم عندنا. وأقوى واكس هو [برو إكس](/product/premium-wax-pro-x) و[برو](/product/premium-wax-pro) بتثبيت ٤. الاختيار بينهم بيعتمد على [نوع شعرك](/hair-types) والفينيش اللي عايزه، مش على قوة أكتر: الجل بينشف ويقفل الشكل، والواكس بيفضل ماشي مع إيدك.
 
 **الطلب والتوصيل شغالين إزاي؟**
 
@@ -892,9 +892,9 @@ A bigger scoop does not add hold. It adds weight — and heavy hair falls faster
 
 One thing decides whether the shape survives the day: **the hold level**. We publish it as a number out of 5 on every product, so you can see it before you buy instead of guessing at phrases like "strong hold":
 
-- [Our gels](/shop/gel) — Golden, Green and Blue: hold 3 out of 5
-- [Shea Butter wax](/product/premium-wax-shea) and [Argan wax](/product/premium-wax-argan): hold 4 out of 5
-- [Pro X](/product/premium-wax-pro-x), [Black Matte](/product/premium-wax-black) and [Pro](/product/premium-wax-pro): hold 5 out of 5
+- [Shea Butter](/product/premium-wax-shea), [Argan](/product/premium-wax-argan) and [Black](/product/premium-wax-black) wax: hold 3 out of 5
+- [Pro X](/product/premium-wax-pro-x) and [Pro](/product/premium-wax-pro): hold 4 out of 5
+- [Our gels](/shop/gel) — Golden, Green and Blue: hold 5 out of 5
 
 If you are on a 3 and the style will not stay, move up a level — do not use twice as much of the same level. If you are still choosing between the two formats, [wax and gel work differently](/article/wax-or-gel) and that is worth reading first.
 
@@ -917,17 +917,17 @@ Fine hair is the type that disappoints people most. Each strand is thinner, so t
 
 That is why the usual instinct backfires here. More product means flat by noon, and shiny product reads as greasy rather than styled.
 
-What works is a small amount of something with a high hold number and no shine. [Black Matte](/product/premium-wax-black) is hold 5 out of 5 with zero shine, and it is the one we list for [fine](/hair-types/fine) and straight hair. The high number lets you use less, and the matte finish keeps hair looking like hair.
+What works is the smallest amount you can get away with, worked through dry hair. We do not make a clay or a matte paste - every wax here is petrolatum and wax, and every one of them finishes with shine - so there is no product answer to the shine problem, only a quantity one. [Pro](/product/premium-wax-pro) at hold 4 is what we list for [fine](/hair-types/fine) hair: the higher number lets you use less, which is the whole trick.
 
 ## Thick hair: it collapses under its own weight
 
-Thick hair has the opposite problem. There is plenty for product to grip, but the mass itself is heavy and gravity works on it all day. A hold 3 gel can shape thick hair beautifully at 8am and simply cannot carry it past lunchtime.
+Thick hair has the opposite problem. There is plenty for product to grip, but the mass itself is heavy and gravity works on it all day. A hold 3 wax can shape thick hair beautifully at 8am and simply cannot carry it past lunchtime.
 
-This is the clearest case for the top of the range. [Pro X](/product/premium-wax-pro-x) is hold 5 out of 5 with a natural finish, listed for wavy and [thick](/hair-types/thick) hair. [Pro](/product/premium-wax-pro) is also 5 out of 5, listed for thick, straight and wavy. For a softer finish, [Shea Butter](/product/premium-wax-shea) sits at 4 out of 5 and is listed for coily, curly and thick hair.
+This is the clearest case for the top of the wax range. [Pro X](/product/premium-wax-pro-x) is hold 4 out of 5 with a natural finish, listed for wavy and [thick](/hair-types/thick) hair. [Pro](/product/premium-wax-pro) is also 4 out of 5, listed for thick, straight, wavy and fine. For a softer finish, [Shea Butter](/product/premium-wax-shea) sits at 3 out of 5 and is listed for coily, curly and thick hair.
 
-## When you actually need hold 5
+## When you actually need the top of the range
 
-Not every day needs a 5. In an air-conditioned office, mostly sitting, a hold 3 gel is genuinely enough and feels lighter on your hair.
+Not every day needs a 5. In an air-conditioned office, mostly sitting, a hold 3 wax is genuinely enough and feels lighter on your hair.
 
 Some days earn the top of the range:
 
@@ -967,8 +967,8 @@ Summer here is a real test, and advice about hold that ignores the heat is theor
 
 What actually helps:
 
-- **Go up one level in summer.** If a 4 carries you through winter, try a 5.
-- **Cut the shine.** Shiny hair plus sweat looks greasy, not styled. Outdoors on a hot day, the zero-shine [Black Matte](/product/premium-wax-black) takes that off the table.
+- **Go up one level in summer.** If a 3 carries you through winter, try a 4, and if that is not enough, try [the gel](/shop/gel).
+- **Cut the shine.** Shiny hair plus sweat looks greasy, not styled. Every wax we make finishes with shine, so the lever here is quantity: half what you normally take, on fully dry hair.
 - **Do not add a second layer at midday.** What is on your hair has mixed with sweat and oil; adding more makes it heavy and sticky, not held.
 - **Go easier on hot blow-drying.** Hair coming off high heat takes up moisture from the air faster.
 - **Wash before you restyle.** A clean start beats any extra scoop.
@@ -981,15 +981,15 @@ Usually one of three things: the hold level is below what your hair needs, you u
 
 **Should I use more, or switch product?**
 
-Switch to a higher hold level. More product adds weight, not grip. The gap between hold 3 and hold 5 is far bigger than the gap between one scoop and two.
+Switch to a higher hold level. More product adds weight, not grip. The gap between a hold 3 wax and a hold 4 - or between wax and a hold 5 gel - is far bigger than the gap between one scoop and two.
 
 **Do you sell cream, clay or pomade?**
 
-No. We make 5 waxes and 3 gels, and that is the whole range — no cream, no clay, no pomade, no shampoo, no cologne. We would rather say so than sell you one thing as another. If you want a matte texture instead of clay, [Black Matte](/product/premium-wax-black) is the closest thing we have.
+Cream, yes: there is a [cream gel](/shop/cream-gel) at 250ml and a [gel wax](/shop/gel-wax) at 140ml. Clay and pomade, no. And if what you want specifically is the matte texture a clay gives you, we make nothing that does it - every wax here finishes with shine. We would rather say so than sell you one thing as another.
 
 **What is your strongest product?**
 
-Three share the top level, all hold 5 out of 5: [Pro X](/product/premium-wax-pro-x) for wavy and thick hair with a natural finish, [Black Matte](/product/premium-wax-black) for fine and straight hair with zero shine, and [Pro](/product/premium-wax-pro) for thick and straight hair. Choosing between them comes down to [your hair type](/hair-types) and the finish you want, not to more strength.
+[The gels](/shop/gel) - Golden, Green and Blue all sit at hold 5 out of 5, the top of the range. The strongest wax is [Pro X](/product/premium-wax-pro-x) and [Pro](/product/premium-wax-pro) at 4. Choosing between them comes down to [your hair type](/hair-types) and the finish you want rather than to strength: gel dries and locks the shape, wax stays workable in your hands all day.
 
 **How do ordering and delivery work?**
 
@@ -998,10 +998,12 @@ Cash on delivery, and we deliver inside Egypt only. Shipping is 30 EGP, free on 
    'published', now()),
   ('matte-or-shine', 'ar', 'matte-or-shine',
    'واكس مطفي ولا لامع للرجالة؟ اختار على حسب شكلك',
-   'الفرق بين الواكس المطفي (المات) واللمعة والويت لوك، ومين فيهم يناسبك — بلاك بتثبيت ٥ من ٥ من غير لمعة، والجل الجولدن للمعة العالية.',
+   'الفرق بين المطفي (المات) واللمعة والويت لوك، ومين فيهم يناسبك — وليه إحنا مبنعملش منتج مطفي، وتعمل إيه بدل كده.',
    'تصفيف الشعر للرجالة مش قرار واحد، ده قرارين. بتحط الواكس الصبح وتخرج، وبعد ساعتين تبص في المراية تلاقي شعرك بيلمع لمعة مالكش دعوة بيها — أو العكس تمامًا: عايز اللمعة دي بالظبط، وكل حاجة بتجربها بتطلع باهتة وشكلها ناشف.
 
 المشكلة مش في إيدك ولا في طريقة اللف. المشكلة إنك بتختار المنتج على أساس قوة التثبيت بس، وسايب نص القرار التاني: النهاية — مطفي ولا لامع. ودي الحاجة اللي بتحدد شكلك في الشارع أكتر من رقم التثبيت نفسه.
+
+ونقولها من دلوقتي عشان متضيعش وقتك: **إحنا مبنعملش منتج مطفي.** كل الواكس عندنا أساسه شمع وفازلين، ومفيش في أي تركيبة فيهم سيليكا ولا نشا ولا طين — ودول اللي بيعملوا المات. لو انت جاي مخصوص تشتري مات، الصفحة دي هتقولك تعمل إيه، مش هتبيعلك حاجة تانية باسمه.
 
 ## مطفي يعني إيه ومين محتاجه
 
@@ -1016,7 +1018,7 @@ Cash on delivery, and we deliver inside Egypt only. Shipping is 30 EGP, free on 
 - اللي شعره بيتدهّن بدري واللمعة الزيادة بتفضحه
 - اللي بيصوّر نفسه كتير — الفلاش والنور القوي بيكبّروا أي لمعة
 
-لو انت من دول، الواكس [بلاك المطفي](/product/premium-wax-black) هو اللي عليه الدور — تثبيت ٥ من ٥ ولمعة صفر، ١٢٠ مل بـ ٤٥ جنيه.
+لو انت من دول، اللي محتاجه هو **كلاي أو معجون مطفي** — وده مش موجود في التشكيلة. أقرب حاجة عندنا هي [واكس زبدة الشيا](/product/premium-wax-shea): لمعته أقل واحد في التشكيلة، وتثبيته ٣ من ٥ بمرونة عالية. بس هو لسه بيلمع — أقل، مش صفر.
 
 ## اللمعة بتعمل إيه في شكل الشعر
 
@@ -1025,6 +1027,16 @@ Cash on delivery, and we deliver inside Egypt only. Shipping is 30 EGP, free on 
 وعشان كده نفس التسريحة بالظبط ممكن تبان مرتبة ولامعة، وممكن تبان مبعثرة وفيها تكستشر — من غير ما تغيّر حاجة في قوة التثبيت. القرار في النهاية بس.
 
 وكل نوع شعر بيتفاعل مع القاعدة دي بشكل مختلف: الكثافة وشكل الكيرلة هما اللي بيقرروا اللمعة تبقى في صفك ولا ضدك. لو مش متأكد من نوع شعرك أو من المنتج المتظبط ليه، ابدأ من [أنواع الشعر](/hair-types) — كل نوع ليه صفحة بتحسم الاختيار، زي [الشعر الخفيف](/hair-types/fine) اللي ليه قواعد مختلفة تمامًا عن غيره.
+
+## تقلل اللمعة إزاي من غير منتج مطفي
+
+اللمعة جزء من التركيبة ومش هتشيلها، بس تقدر تنزّلها بشكل محسوس بتلات حاجات:
+
+- **نص الكمية.** ده أكبر فرق ممكن تعمله. حتة قد الحمصة بدل قد البندقة.
+- **شعر ناشف تماماً.** المية بتزوّد اللمعة وبتخلي المنتج يقعد على السطح بدل ما يدخل.
+- **بعّد عن الجذور.** اللمعة بتبان أكتر عند الفروة، وهناك بالظبط بتتخلط بالزيت الطبيعي وتقرا دهون.
+
+التلاتة دول مع بعض بيوصلوك لشكل طبيعي معقول. مش مات، بس مش لامع لدرجة تزعجك.
 
 ## اللمعة والويت لوك: مين تناسبه
 
@@ -1036,32 +1048,34 @@ Cash on delivery, and we deliver inside Egypt only. Shipping is 30 EGP, free on 
 - الشعر اللي عايزه يبان ملموم ومحدد الخط
 - المناسبات اللي عايز فيها شكل واضح إنك مصفف شعرك
 
-بس اعرف حاجة: لو شعرك بيتدهّن بسرعة، اللمعة هتخلي الدهون تبان أسرع، لأن العين مش هتفرق بين لمعة المنتج ولمعة الزيت. في الحالة دي إما تروح على المطفي، أو تقلل الكمية وتبعد عن الجذور خالص.
+بس اعرف حاجة: لو شعرك بيتدهّن بسرعة، اللمعة هتخلي الدهون تبان أسرع، لأن العين مش هتفرق بين لمعة المنتج ولمعة الزيت. في الحالة دي قلل الكمية وابعد عن الجذور خالص.
 
-اللي بيدي الويت لوك عندنا هو [الجل الجولدن](/product/premium-gel-golden) — ٢٥٠ مل بـ ٤٠ جنيه، تثبيت ٣ من ٥ ولمعة عالية.
+واللي بيدي الويت لوك عندنا هو [الجل الجولدن](/product/premium-gel-golden) — ٢٥٠ مل بـ ٤٠ جنيه، تثبيت ٥ من ٥ ولمعة عالية.
 
-وفيه سؤال بيتكرر هنا: أنا شعري مفرود، آخد بلاك ولا جولدن؟ الاتنين متظبطين للشعر المفرود، فالحسم مش في نوع الشعر — الحسم في النهاية اللي انت عايزها. عايز مرتّب ولامع؟ جولدن. عايز مطفي وفيه تكستشر؟ بلاك. ولو عايز الصورة الكاملة للشعر المفرود من ناحية التثبيت والوزن، [صفحة الشعر المفرود](/hair-types/straight) هي اللي بتشرحها.
+## الشيا مقابل الجل الجولدن
 
-## بلاك مقابل الجل الجولدن
+لو الاختيار عندك بين أقل لمعة وأعلى لمعة في التشكيلة، دول الاتنين:
 
-الفرق بينهم مش في القوة بس، دول منتجين مختلفين في كل حاجة:
-
-- **الشكل النهائي** — بلاك مطفي تمامًا بدون أي لمعة. الجولدن لمعة عالية وويت لوك واضح.
-- **التثبيت** — بلاك ٥ من ٥. الجولدن ٣ من ٥.
-- **نوع الشعر** — بلاك للشعر الخفيف والمفرود. الجولدن للشعر المفرود.
-- **النوع والحجم والسعر** — بلاك واكس ١٢٠ مل بـ ٤٥ جنيه. الجولدن جل ٢٥٠ مل بـ ٤٠ جنيه.
-
-يعني ببساطة: عايز تكستشر وحجم من غير ما حد يعرف إنك حاطط حاجة؟ بلاك. عايز شكل مرتّب لامع؟ جولدن.
+- **الشكل النهائي** — الشيا لمعته هادية وفينيشه ناعم. الجولدن لمعة عالية وويت لوك واضح.
+- **التثبيت** — الشيا ٣ من ٥ ومرن، تقدر تعدّله طول اليوم. الجولدن ٥ من ٥ وبينشف على الشكل.
+- **نوع الشعر** — الشيا للخشن والكيرلي والكثيف. الجولدن للمفرود.
+- **النوع والحجم والسعر** — الشيا واكس ١٢٠ مل بـ ٤٥ جنيه. الجولدن جل ٢٥٠ مل بـ ٤٠ جنيه.
 
 ونصيحة من عندنا، مش مواصفة مكتوبة على المنتج: ابدأ بكمية صغيرة قوي وزوّد بعد كده لو محتاج. الرجوع من كمية قليلة سهل، لكن لما تزوّد من الأول مفيش حل غير إنك تغسل وتبدأ تاني. ولو لسه محتار بين النوعين أصلًا، اتفرج على [الواكس كله](/shop/wax) و[الجل كله](/shop/gel) وقارن التثبيت والنهاية جنب بعض.
 
-## بصراحة: الطين والمعجون لسه مش عندنا
+## وحاجة عن واكس بلاك بالذات
+
+بلاك كان مكتوب عليه عندنا "مطفي" لفترة، وده كان غلط منّنا وصلّحناه. [واكس بلاك](/product/premium-wax-black) لمعته **عالية**، وتثبيته ٣ من ٥، وشغلانته الحقيقية حاجة تانية خالص: **بيغطي الشيب**. الصبغة الوحيدة في التركيبة هي CI 77266 السودا، فبيسيب لون أسود لامع على الشعرة وإنت بتوزّعه.
+
+يعني لو انت جاي على بلاك عشان المات، ده مش هو. ولو عندك شيب وعايز تغطيه وإنت بتصفف، ده بالظبط هو.
+
+## بصراحة: الطين والمعجون مش عندنا
 
 كتير بيسأل: عندكم كلاي (طين) ولا بيست؟ الرد: لأ.
 
-عندنا ٥ أنواع واكس و٣ أنواع جل، وخلاص. مفيش كلاي، مفيش معجون، مفيش كريم، ومفيش بوميد. مش هنقولك إن الواكس ده "كلاي" عشان نبيع، ومش هنخترع اسم لمنتج مش موجود.
+عندنا واكس وجل وجل واكس وكريم جل. مفيش كلاي، مفيش معجون مطفي، ومفيش بوميد. مش هنقولك إن الواكس ده "كلاي" عشان نبيع، ومش هنخترع اسم لمنتج مش موجود.
 
-واللي بيسأل على الكلاي، لما نسأله عايزه ليه، الرد اللي بيتكرر هو نفسه: عايز شكل مطفي وفيه تكستشر. لو ده اللي انت وراه فعلًا، أقرب حاجة عندنا هي بلاك المطفي — تثبيت ٥ من ٥ ولمعة صفر — بس هو واكس، مش طين. ولو مصمم على كلاي بالذات، عادي، مش عندنا.
+واللي بيسأل على الكلاي، لما نسأله عايزه ليه، الرد اللي بيتكرر هو نفسه: عايز شكل مطفي وفيه تكستشر. لو ده اللي انت وراه فعلًا، إحنا مش بنعمله. اشتري كلاي من حد بيعمله — ده أحسن لك من إنك تشتري مننا حاجة هتزعلك.
 
 ## أسئلة بتتسأل كتير
 
@@ -1071,20 +1085,24 @@ Cash on delivery, and we deliver inside Egypt only. Shipping is 30 EGP, free on 
 
 **ممكن أخلي الواكس اللامع مطفي؟**
 
-مش بجد. تقدر تقلل اللمعة شوية لو قلّلت الكمية، بس اللمعة جزء من التركيبة نفسها ومش هتشيلها. لو عايز مطفي فعلًا، اشتري منتج مطفي من الأول.
+مش بجد. تقدر تقلل اللمعة شوية لو قلّلت الكمية وحطيت على شعر ناشف، بس اللمعة جزء من التركيبة نفسها ومش هتشيلها.
+
+**عندكم أي منتج مطفي خالص؟**
+
+لأ. ولا واحد. كل الواكس عندنا أساسه شمع وفازلين وبينهي بلمعة، ومفيش في التركيبة أي مادة بتعمل مات.
 
 **أقدر أحط واكس وجل مع بعض؟**
 
-مفيش مانع، وناس بتعمل كده عشان تجمع بين تثبيت وشكل. بس خد بالك من حاجة واحدة: لو الجولدن داخل في المعادلة، لمعته هتفضل باينة — فمش هتوصل لشكل مطفي. لو هدفك المطفي، خليك على بلاك لوحده.
+مفيش مانع، وناس بتعمل كده عشان تجمع بين تثبيت وشكل. بس خد بالك: الجل بيزوّد اللمعة، مش بيقللها. لو اللمعة مضايقاك، خليك على الواكس لوحده بكمية قليلة.
 
 **شعري كثيف وعايز مطفي، أعمل إيه؟**
 
-بلاك متظبط للشعر الخفيف والمفرود، مش للكثيف. لو شعرك كثيف، ابدأ من [صفحة أنواع الشعر](/hair-types) وقارن التثبيت والتركيبة قبل ما تختار.
+مفيش عندنا مات لأي نوع شعر، فالكثيف مش استثناء. أقرب حاجة هي [الشيا](/product/premium-wax-shea) بكمية صغيرة على شعر ناشف — وهو متسجل على [الشعر الكثيف](/hair-types/thick) فعلاً.
 
 **الشحن والدفع بيتم إزاي؟**
 
 الشحن ٣٠ جنيه، ومجاني فوق ٣٠٠ جنيه. الدفع عند الاستلام كاش، والتوصيل داخل مصر.',
-   'assets/wax-black.webp', 'Star Seven Premium Wax Black', '', 'premium-wax-black',
+   'assets/wax-purple.webp', 'Star Seven Premium Wax Shea Butter', '', 'premium-wax-shea',
    'published', now()),
   ('wax-or-gel', 'en', 'wax-or-gel',
    'Hair wax or gel for styling men''s hair — the real difference',
@@ -1130,24 +1148,24 @@ The trade-off is honest: once gel is dry, that shape is the shape. Run your hand
 
 Every product we sell publishes a hold level out of 5. It is the most useful number on the page and far more honest than any adjective.
 
-- **Level 5** — the strongest hold we make: [Pro X](/product/premium-wax-pro-x), [Black Matte](/product/premium-wax-black) and [Pro](/product/premium-wax-pro), all in the [wax range](/shop/wax).
-- **Level 4** — strong, but softer and easier to reshape: [Shea Butter](/product/premium-wax-shea) and [Argan](/product/premium-wax-argan).
-- **Level 3** — all three [gels](/shop/gel): [Golden](/product/premium-gel-golden), [Green](/product/premium-gel-green) and [Blue](/product/premium-gel-blue).
+- **Level 5** — the strongest hold we make: all three [gels](/shop/gel), [Golden](/product/premium-gel-golden), [Green](/product/premium-gel-green) and [Blue](/product/premium-gel-blue).
+- **Level 4** — the strongest of the waxes: [Pro X](/product/premium-wax-pro-x) and [Pro](/product/premium-wax-pro).
+- **Level 3** — strong but softer and easier to rework: [Shea Butter](/product/premium-wax-shea), [Argan](/product/premium-wax-argan) and [Black](/product/premium-wax-black).
 
-Read those numbers within a format, not across them. The five waxes are numbered against the other waxes; the three gels are numbered against the other gels. The level tells you where a product sits inside its own format, and that is all it is telling you.
+The numbers run across the whole range, not inside each format, which is why the gels sit above the waxes: a gel dries into a cast and a wax never fully sets. That is the same reason a level 3 wax can suit you better than a level 5 gel - the higher number is not the better product, it is the less forgiving one.
 
 ## Finish is a separate decision from hold
 
 Two products can have the same hold level and look completely different in daylight, so pick the finish on purpose rather than by accident.
 
-- **Zero shine, matte** — [Black Matte](/product/premium-wax-black). Nothing in the range is more matte. If you want the style to look like hair rather than like product, this is the one.
+- **Lowest shine** — [Shea Butter](/product/premium-wax-shea). Nothing in the range is matte, and we do not make a clay or a matte paste. This is the closest, and it is still a soft shine rather than none.
 - **Natural finish** — [Pro X](/product/premium-wax-pro-x), built on the Wave & Groom formula.
-- **Soft finish** — [Shea Butter](/product/premium-wax-shea).
 - **Nourishing** — [Argan](/product/premium-wax-argan).
+- **Covers grey** — [Black](/product/premium-wax-black). High shine, and the only colourant in it is CI 77266 black, so it leaves a glossy black tone as you work it in.
 - **High shine, wet look** — [Golden gel](/product/premium-gel-golden). This is a deliberate wet look, not an accident of application.
 - **Classic, all day** — [Blue gel](/product/premium-gel-blue). [Green gel](/product/premium-gel-green) is the same hold with a clean scent.
 
-Finish is the part that photographs lie about. Under a shop light almost everything looks glossy. In daylight, the gap between matte and high shine is the gap between looking styled and looking wet, and that gap is bigger than any one hold level.
+Finish is the part that photographs lie about. Under a shop light almost everything looks glossy. In daylight, the gap between a soft shine and a wet look is the gap between looking styled and looking wet, and that gap is bigger than any one hold level.
 
 ## Size and price, and why the two formats differ
 
@@ -1191,7 +1209,7 @@ Yes, and it is a common move: gel at the roots and sides to lock the base, then 
 
 **Which is the strongest hold you sell?**
 
-Three waxes are level 5 out of 5: Pro X, Black Matte and Pro. Shea Butter and Argan are level 4. All three gels are level 3. Those are the numbers the brand publishes per product, and we do not dress them up beyond that.
+The three gels are level 5 out of 5, the top of the range. Pro X and Pro are level 4, the strongest of the waxes. Shea Butter, Argan and Black are level 3. Those are the numbers the brand publishes per product, and we do not dress them up beyond that.
 
 **What size are they and how much do they cost?**
 
@@ -1203,7 +1221,7 @@ Delivery is 30 EGP anywhere in Egypt, and it is free on orders over 300 EGP. Pay
 
 **My hair always looks greasy by the afternoon. Does that rule out wax?**
 
-Not by itself — greasy-looking is usually a finish question before it is a format question. The high-shine and softer options will read as wet on you fastest, and the matte option will read as hair. That is a comment on how a finish looks once it is on your head, not scalp advice. If it is your scalp itself that is bothering you, that is a question for a doctor and not for a hair-wax shop.',
+Not by itself — greasy-looking is usually a finish question before it is a format question. The wet-look gel will read as greasy on you fastest, and the lowest-shine wax in a small amount on dry hair will read as hair. That is a comment on how a finish looks once it is on your head, not scalp advice. If it is your scalp itself that is bothering you, that is a question for a doctor and not for a hair-wax shop.',
    'assets/wax-red.webp', 'Star Seven Premium Wax Pro X', '', '',
    'published', now()),
   ('wax-or-gel', 'ar', 'wax-or-gel',
@@ -1236,7 +1254,7 @@ Not by itself — greasy-looking is usually a finish question before it is a for
 
 **اللمعة** = قد إيه الشعر هيبان لامع أو مطفي. دي حاجة تانية خالص وملهاش أي علاقة بالتثبيت.
 
-ممكن يكون عندك منتج تثبيته ٥ من ٥ ومطفي تماماً (زي [واكس بلاك](/product/premium-wax-black)). وممكن يكون عندك منتج لمعته عالية جداً وتثبيته ٣ من ٥ (زي [جل جولدن](/product/premium-gel-golden)). اللمعة العالية بتخدع العين وبتخلي الشعر يبان "متماسك" أكتر مما هو فعلاً — وبعد ساعتين تكتشف إن اللمعة لسه موجودة والاستايل راح.
+ممكن يكون عندك منتج تثبيته ٣ من ٥ ولمعته عالية (زي [واكس بلاك](/product/premium-wax-black))، ومنتج تاني تثبيته ٥ من ٥ ولمعته عالية برضه (زي [جل جولدن](/product/premium-gel-golden)) — ومنتج تالت تثبيته ٣ ولمعته هادية (زي [الشيا](/product/premium-wax-shea)). اللمعة العالية بتخدع العين وبتخلي الشعر يبان "متماسك" أكتر مما هو فعلاً — وبعد ساعتين تكتشف إن اللمعة لسه موجودة والاستايل راح.
 
 يعني لما تختار، اختار على محورين مش محور واحد: **التثبيت اللي محتاجه** و**الشكل النهائي اللي عايزه**.
 
@@ -1244,24 +1262,24 @@ Not by itself — greasy-looking is usually a finish question before it is a for
 
 دي التشكيلة بالكامل بالأرقام، من غير لف ودوران:
 
-- **[برو إكس](/product/premium-wax-pro-x) — واكس — تثبيت ٥ من ٥** — تركيبة Wave & Groom، شكل نهائي طبيعي. للشعر المتموج والكثيف. 45 جنيه بدل 55.
-- **[واكس بلاك](/product/premium-wax-black) — تثبيت ٥ من ٥** — لمعة صفر، مطفي بالكامل. للشعر الخفيف والناعم المفرود.
-- **[واكس برو](/product/premium-wax-pro) — تثبيت ٥ من ٥** — لليومي. للشعر الكثيف والمفرود والمتموج.
-- **[واكس زبدة الشيا](/product/premium-wax-shea) — تثبيت ٤ من ٥** — شكل نهائي طري. للشعر الخشن والكيرلي والكثيف.
-- **[واكس الأرجان](/product/premium-wax-argan) — تثبيت ٤ من ٥** — مغذّي. للكيرلي والخشن والمتموج.
-- **[جل جولدن](/product/premium-gel-golden) — تثبيت ٣ من ٥** — مظهر مبلول ولمعة عالية.
-- **[جل أخضر](/product/premium-gel-green) — تثبيت ٣ من ٥** — ريحة نضيفة.
-- **[جل أزرق](/product/premium-gel-blue) — تثبيت ٣ من ٥** — كلاسيك، لطول اليوم.
+- **[جل جولدن](/product/premium-gel-golden) — تثبيت ٥ من ٥** — مظهر مبلول ولمعة عالية.
+- **[جل أخضر](/product/premium-gel-green) — تثبيت ٥ من ٥** — ريحة نضيفة.
+- **[جل أزرق](/product/premium-gel-blue) — تثبيت ٥ من ٥** — كلاسيك، لطول اليوم.
+- **[برو إكس](/product/premium-wax-pro-x) — واكس — تثبيت ٤ من ٥** — تركيبة Wave & Groom، شكل نهائي طبيعي. للشعر المتموج والكثيف. 45 جنيه بدل 55.
+- **[واكس برو](/product/premium-wax-pro) — تثبيت ٤ من ٥** — لليومي. للشعر الكثيف والمفرود والمتموج والخفيف.
+- **[واكس زبدة الشيا](/product/premium-wax-shea) — تثبيت ٣ من ٥** — شكل نهائي طري وأقل لمعة في التشكيلة. للشعر الخشن والكيرلي والكثيف.
+- **[واكس الأرجان](/product/premium-wax-argan) — تثبيت ٣ من ٥** — مغذّي. للكيرلي والخشن والمتموج.
+- **[واكس بلاك](/product/premium-wax-black) — تثبيت ٣ من ٥** — بيغطي الشيب، لمعته عالية. للمتموج والكثيف.
 
 الواكس كله 120 مل بـ 45 جنيه. الجل كله 250 مل بـ 40 جنيه.
 
 من الليستة دي تلات ملاحظات تستاهل تتقال بصوت عالي:
 
-**واحد: مفيش منتج جل عندنا تثبيته فوق ٣.** وده مقصود، مش نقص. لو محتاج تثبيت ٥، انت محتاج واكس مش جل. مفيش جل هنبيعهولك ونقول لك إنه هيثبّت زي الواكس.
+**واحد: الجل فوق الواكس في الرقم، مش تحته.** الجل بينشف ويقفل الشكل، والواكس بيفضل ماشي مع إيدك — عشان كده الجل بياخد ٥ والواكس أقصاه ٤. الرقم الأعلى مش المنتج الأحسن، هو المنتج الأقل تسامح.
 
-**اتنين: [واكس بلاك](/product/premium-wax-black) هو الواكس الوحيد المطفي بلمعة صفر** في التشكيلة كلها. ده مش المنتج الوحيد للشعر المفرود — [واكس برو](/product/premium-wax-pro) كمان للمفرود — بس هو الوحيد اللي بيديك تثبيت ٥ من ٥ من غير أي لمعة على الإطلاق.
+**اتنين: مفيش عندنا منتج مطفي، ولا واحد.** كل الواكس عندنا أساسه شمع وفازلين وبينهي بلمعة. أقل لمعة في التشكيلة هي [زبدة الشيا](/product/premium-wax-shea)، وهي برضه مش مات. و[واكس بلاك](/product/premium-wax-black) — اللي كان مكتوب عليه مطفي عندنا لفترة وده كان غلط — لمعته عالية، وشغلانته الحقيقية إنه بيغطي الشيب.
 
-**تلاتة: مفيش عندنا كريم ولا طين (clay) ولا بوميد ولا شامبو ولا كولونيا.** التشكيلة تمن منتجات بس، خمس واكس وتلات جل، وخلاص. لو انت جاي تدوّر على طين، خلّيك عارف من دلوقتي إنه مش موجود هنا.
+**تلاتة: مفيش طين (clay) ولا بوميد ولا معجون مطفي.** الكريم موجود دلوقتي — في [كريم جل](/shop/cream-gel) و[جل واكس](/shop/gel-wax) — بس الطين لأ. لو انت جاي تدوّر على طين، خلّيك عارف من دلوقتي إنه مش موجود هنا.
 
 ## نوع شعرك هو اللي بيحسم في الآخر
 
@@ -1289,11 +1307,11 @@ Not by itself — greasy-looking is usually a finish question before it is a for
 
 جاوب على تلات أسئلة:
 
-**١. شعرك بياخد وزن ولا لأ؟** كيرلي، خشن، متموج، أو كثيف؟ روح على [الواكس](/shop/wax) على طول. ناعم مفرود؟ الجل مفتوح لك والواكس كمان — كمّل. شعر خفيف؟ روح على المطفي، يعني [واكس بلاك](/product/premium-wax-black).
+**١. شعرك بياخد وزن ولا لأ؟** كيرلي، خشن، متموج، أو كثيف؟ روح على [الواكس](/shop/wax) على طول. ناعم مفرود؟ [الجل](/shop/gel) هو اللي ليك. شعر خفيف؟ [واكس برو](/product/premium-wax-pro) بكمية صغيرة جداً — وإحنا مبنعملش حاجة متظبطة مخصوص للخفيف، وبنقولها بصراحة في [صفحته](/hair-types/fine).
 
 **٢. عايز ترجع تعدّل الاستايل خلال اليوم؟** أيوة؟ واكس. لأ، عايز شكل واحد يقفل ويفضل؟ [جل](/shop/gel).
 
-**٣. عايز لمعة ولا لأ؟** لمعة عالية ومظهر مبلول = [جل جولدن](/product/premium-gel-golden). لمعة صفر ومطفي = [واكس بلاك](/product/premium-wax-black). شكل طبيعي بينهم = [برو إكس](/product/premium-wax-pro-x).
+**٣. عايز لمعة ولا لأ؟** لمعة عالية ومظهر مبلول = [جل جولدن](/product/premium-gel-golden). أقل لمعة ممكنة عندنا = [زبدة الشيا](/product/premium-wax-shea). شكل طبيعي بينهم = [برو إكس](/product/premium-wax-pro-x).
 
 تلات إجابات وتكون وصلت. ولو الإجابات وقعت على منتجين، خد الأرخص في الأول وجرّب — [إحنا](/brand) بنبيع كاش عند الاستلام عشان بالظبط السبب ده.
 
@@ -1303,17 +1321,17 @@ Not by itself — greasy-looking is usually a finish question before it is a for
 
 ينفع، بس مش مخلوطين في إيدك. الترتيب المنطقي: جل على الشعر المبلول عشان يبني الأساس والشكل، وبعد ما ينشف تماماً حبة واكس صغيرة جداً بين الصوابع للأطراف عشان التعريف. لو خلطتهم قبل ما تحطهم، النتيجة هتبقى كتلة مش هتتوزع كويس. ولو انت لسه بتجرب، ابدأ بواحد بس عشان تعرف مين اللي عمل الفرق.
 
-**الواكس تثبيته ٥ يعني أقوى من الجل تثبيته ٣ في كل الحالات؟**
+**الجل تثبيته ٥ يعني أحسن من الواكس تثبيته ٤ في كل الحالات؟**
 
-الرقم بيقول التثبيت، مش المناسبة. على شعر كثيف أو خشن، أيوة — الـ ٥ هيصمد والـ ٣ لأ. لكن على شعر ما بيستحملش وزن، الواكس التقيل ممكن يوقّع الشعر فتحس إن التثبيت أقل، والجل بتثبيت ٣ يطلع أحسن عملياً. الرقم مهم، بس نوع شعرك بيجي الأول — وده اللي [صفحات أنواع الشعر](/hair-types) بتحسمه.
+الرقم بيقول التثبيت، مش المناسبة. على شعر ناعم مفرود مش ماسك شكل، أيوة — الـ ٥ هيصمد والـ ٤ لأ. لكن على شعر كيرلي أو خشن، الجل بينشف ويقفل الكيرلة ويخليها قشرة، والواكس بتثبيت ٣ يطلع أحسن عملياً. الرقم مهم، بس نوع شعرك بيجي الأول — وده اللي [صفحات أنواع الشعر](/hair-types) بتحسمه.
 
 **الجل هيسيب شعري ناشف؟**
 
 الجل بينشف على الشعر — ده بالظبط اللي بيمسك بيه الشكل. الإحساس ده جزء من طريقة شغله، مش عيب فيه. لو مش مريحك، الواكس هو اللي يناسبك عشان بيفضل طري وما بينشفش على الشعرة.
 
-**الجل عندكم ليه كله تثبيت ٣ من ٥؟**
+**الجل عندكم ليه كله تثبيت ٥ من ٥؟**
 
-عشان دي درجة التثبيت اللي بننشرها للتلاتة فعلاً، ومش هنكتب رقم أعلى عشان الليستة تبقى شكلها أحسن. [جولدن](/product/premium-gel-golden) و[الأخضر](/product/premium-gel-green) و[الأزرق](/product/premium-gel-blue) نفس التثبيت — الفرق بينهم في اللمعة والريحة والمظهر النهائي، مش في القوة.
+عشان التلاتة فعلاً نفس التركيبة بنفس درجة التثبيت — الفرق بينهم في اللمعة والريحة والمظهر النهائي، مش في القوة. [جولدن](/product/premium-gel-golden) و[الأخضر](/product/premium-gel-green) و[الأزرق](/product/premium-gel-blue) كلهم على نفس الرقم، ومش هنخترع فرق مش موجود عشان الليستة تبقى شكلها أحسن.
 
 **التوصيل بكام والدفع إزاي؟**
 
@@ -1853,3 +1871,175 @@ WHERE sku IN ('S7-W120-COCONU', 'S7-W135-OLIVE', 'S7-W135-ARGAN', 'S7-W135-COCON
 UPDATE products
    SET active = TRUE
  WHERE price = 0 AND active = FALSE;
+
+
+-- ---------------------------------------------------------------------------
+--  Put the hold levels the right way up
+--
+--  The shop had the five waxes at 4 and 5 and the three premium gels at 3.
+--  Ovanza publishes the opposite. Their Premium Hair Gel tier is Ultra Strong
+--  Hold, 48 hours; the Styling Gel tier under it is Strong, 24 hours; and the
+--  waxes are Strong (Pro X, Pro) or Medium (Shea, Argan, Black Seed).
+--
+--  So the site was telling a customer with straight hair that gel is the only
+--  format with enough hold - which is true, and which its own numbers then
+--  contradicted. The 55 products added later already carry the correct scale,
+--  which is what made the original eight stand out.
+--
+--    Ultra Strong -> 5      Strong -> 4      Medium -> 3
+--
+--  Guarded on the old value, one SKU at a time, so a level set by hand in the
+--  admin is left alone. See docs/product-facts.md.
+-- ---------------------------------------------------------------------------
+UPDATE products SET hold_level = 4 WHERE sku = 'S7-WAX-RED' AND hold_level = 5;
+UPDATE products SET hold_level = 4 WHERE sku = 'S7-WAX-YEL' AND hold_level = 5;
+UPDATE products SET hold_level = 3 WHERE sku = 'S7-WAX-PUR' AND hold_level = 4;
+UPDATE products SET hold_level = 3 WHERE sku = 'S7-WAX-BLU' AND hold_level = 4;
+UPDATE products SET hold_level = 5 WHERE sku = 'S7-GEL-YEL' AND hold_level = 3;
+UPDATE products SET hold_level = 5 WHERE sku = 'S7-GEL-GRN' AND hold_level = 3;
+UPDATE products SET hold_level = 5 WHERE sku = 'S7-GEL-BLU' AND hold_level = 3;
+
+-- Pro X carried a "Mega Hold" chip on top of the 5. Ovanza rate it Strong.
+-- Mega stays true of the range - the gels are the top of it now - but not of
+-- this jar.
+UPDATE products
+   SET chip_ar = 'تثبيت قوي', chip_en = 'Strong Hold'
+ WHERE sku = 'S7-WAX-RED' AND chip_en = 'Mega Hold';
+
+
+-- ---------------------------------------------------------------------------
+--  Premium Wax Black is not a matte wax
+--
+--  The shop sold it as no shine, matte, hold 5, for fine and straight hair,
+--  and the hair-types page recommended it to fine hair as the closest thing to
+--  a clay in the range. Every source says otherwise:
+--
+--    * Ovanza spec: Medium hold - High flexibility - HIGH shine
+--    * their selling point is grey coverage, which the shop never mentioned
+--    * recommended for dry and greying hair, not fine hair
+--    * the ingredient list has no matting agent in it at all: no silica, no
+--      starch, no clay. Nothing in the jar could produce a matte finish.
+--    * lowest-rated SKU on Amazon at 2.5 stars, which is what that mismatch
+--      looks like from the customer side
+--
+--  So the chip, the subtitle and the hair-type mapping all move. It keeps a
+--  place on wavy and thick - medium hold with high flexibility is a real fit
+--  for hair that gets reworked during the day - but it leads neither, and it
+--  is off the fine tile entirely. Pro takes fine over: Ovanza call it suitable
+--  for all hair types, and it is the most flexible thing left once the matte
+--  claim is gone. The fine tile now says out loud that the range has no clay.
+--
+--  Guarded on the old values, so a rewrite in the admin survives.
+-- ---------------------------------------------------------------------------
+UPDATE products
+   SET sub_ar  = 'بيغطي الشيب · 120 مل · أسود',
+       sub_en  = 'Covers grey · 120ml · Black',
+       chip_ar = 'يغطي الشيب',
+       chip_en = 'Covers Grey'
+ WHERE sku = 'S7-WAX-BLK' AND chip_en = 'Matte';
+
+UPDATE products
+   SET hair_types = 'wavy,thick'
+ WHERE sku = 'S7-WAX-BLK' AND hair_types = 'fine,straight';
+
+UPDATE products
+   SET hair_types = 'thick,straight,wavy,fine'
+ WHERE sku = 'S7-WAX-YEL' AND hair_types = 'thick,straight,wavy';
+
+
+-- ---------------------------------------------------------------------------
+--  Carry the same corrections into the long-form copy
+--
+--  long_*, howto_* and highlights_* are seeded by the guarded UPDATE near the
+--  top of this file, which fills a column only while it is still empty. On a
+--  database that already exists they are full, so editing the literal up there
+--  changes nothing for the live shop - the same reason the /#hair link fix had
+--  to be its own statement.
+--
+--  Each of these is a replace() of the exact sentence that carries the wrong
+--  number, guarded on a marker that is gone once it has run. So it is a no-op
+--  on every deploy after the first, and it cannot touch a paragraph an admin
+--  has rewritten: a rewrite loses the marker and the row is skipped.
+-- ---------------------------------------------------------------------------
+UPDATE products
+   SET long_ar       = replace(long_ar, 'التثبيت ميجا هولد، ٥ من ٥ — أعلى درجة في التشكيلة كلها.', 'التثبيت قوي، ٤ من ٥ — أقوى واكس في التشكيلة.'),
+       long_en       = replace(long_en, 'Hold is mega, 5 out of 5 — the strongest in the range.', 'Hold is strong, 4 out of 5 — the strongest of the waxes.'),
+       highlights_ar = replace(highlights_ar, 'تثبيت ميجا هولد — ٥ من ٥', 'تثبيت قوي — ٤ من ٥'),
+       highlights_en = replace(highlights_en, 'Mega hold — 5 out of 5', 'Strong hold — 4 out of 5')
+ WHERE sku = 'S7-WAX-RED' AND long_en LIKE '%Hold is mega, 5 out of 5%';
+
+UPDATE products
+   SET long_ar       = replace(long_ar, 'التثبيت ٤ من ٥:', 'التثبيت ٣ من ٥:'),
+       long_en       = replace(long_en, 'Hold is 4 out of 5:', 'Hold is 3 out of 5:'),
+       highlights_ar = replace(highlights_ar, 'تثبيت ٤ من ٥ — مرن مش ناشف', 'تثبيت ٣ من ٥ — مرن مش ناشف'),
+       highlights_en = replace(highlights_en, 'Hold 4 out of 5 — flexible, not crunchy', 'Hold 3 out of 5 — flexible, not crunchy')
+ WHERE sku = 'S7-WAX-PUR' AND long_en LIKE '%Hold is 4 out of 5%';
+
+UPDATE products
+   SET long_ar       = replace(long_ar, 'التثبيت ٤ من ٥ —', 'التثبيت ٣ من ٥ —'),
+       long_en       = replace(long_en, 'Hold is 4 out of 5 —', 'Hold is 3 out of 5 —'),
+       highlights_ar = replace(highlights_ar, 'تثبيت ٤ من ٥', 'تثبيت ٣ من ٥'),
+       highlights_en = replace(highlights_en, 'Hold 4 out of 5', 'Hold 3 out of 5')
+ WHERE sku = 'S7-WAX-BLU' AND long_en LIKE '%Hold is 4 out of 5%';
+
+-- Pro also inherits the fine tile, so its copy has to say so.
+UPDATE products
+   SET long_ar       = replace(long_ar, 'تثبيت ٥ من ٥ بتركيبة سهلة التوزيع تنفع لأنواع شعر كتير — تخين، مفرود، أو متموج.', 'تثبيت ٤ من ٥ بتركيبة سهلة التوزيع تنفع لأنواع شعر كتير — تخين، مفرود، أو متموج، وحتى الخفيف لو كمية صغيرة.'),
+       long_en       = replace(long_en, '5-out-of-5 hold in a formula that spreads easily and suits a range of hair — thick, straight or wavy.', '4-out-of-5 hold in a formula that spreads easily and suits a range of hair — thick, straight, wavy, and fine hair too if you keep the amount small.'),
+       highlights_ar = replace(replace(highlights_ar, 'تثبيت ٥ من ٥', 'تثبيت ٤ من ٥'), 'يناسب الشعر التخين والمفرود والمتموج', 'يناسب الشعر التخين والمفرود والمتموج والخفيف'),
+       highlights_en = replace(replace(highlights_en, 'Hold 5 out of 5', 'Hold 4 out of 5'), 'Suits thick, straight and wavy hair', 'Suits thick, straight, wavy and fine hair')
+ WHERE sku = 'S7-WAX-YEL' AND long_en LIKE '%5-out-of-5 hold%';
+
+-- The three gels go up, and stop claiming fine hair in English. The Arabic
+-- always said "ناعم مفرود", which is the name of the straight tile rather than
+-- the fine one, so only the English was wrong.
+UPDATE products
+   SET long_ar       = replace(long_ar, 'التثبيت ٣ من ٥: تحكم يومي بيتغسل بسهولة.', 'التثبيت ٥ من ٥: أقوى تثبيت عندنا، وبيتغسل بسهولة.'),
+       long_en       = replace(long_en, 'Hold is 3 out of 5: daily control that washes out easily.', 'Hold is 5 out of 5: the strongest hold we make, and it washes out easily.'),
+       highlights_ar = replace(highlights_ar, 'تثبيت ٣ من ٥', 'تثبيت ٥ من ٥'),
+       highlights_en = replace(replace(highlights_en, 'Hold 3 out of 5', 'Hold 5 out of 5'), 'For fine, straight hair', 'For straight hair')
+ WHERE sku = 'S7-GEL-YEL' AND long_en LIKE '%Hold is 3 out of 5%';
+
+UPDATE products
+   SET long_ar       = replace(long_ar, 'نفس تثبيت الجل بريميوم، ٣ من ٥،', 'نفس تثبيت الجل بريميوم، ٥ من ٥،'),
+       long_en       = replace(replace(long_en, 'The same Premium Gel hold, 3 out of 5,', 'The same Premium Gel hold, 5 out of 5,'), 'For fine, straight hair: daily control', 'For straight hair: daily control'),
+       highlights_ar = replace(highlights_ar, 'تثبيت ٣ من ٥', 'تثبيت ٥ من ٥'),
+       highlights_en = replace(replace(highlights_en, 'Hold 3 out of 5', 'Hold 5 out of 5'), 'For fine, straight hair', 'For straight hair')
+ WHERE sku = 'S7-GEL-GRN' AND long_en LIKE '%The same Premium Gel hold, 3 out of 5%';
+
+UPDATE products
+   SET long_ar       = replace(long_ar, 'الأزرق هو الكلاسيك: تثبيت ٣ من ٥', 'الأزرق هو الكلاسيك: تثبيت ٥ من ٥'),
+       long_en       = replace(replace(long_en, 'Blue is the classic: 3-out-of-5 hold', 'Blue is the classic: 5-out-of-5 hold'), 'For fine, straight hair that needs', 'For straight hair that needs'),
+       highlights_ar = replace(highlights_ar, 'تثبيت ثابت طول اليوم', 'أقوى تثبيت عندنا — ٥ من ٥'),
+       highlights_en = replace(replace(highlights_en, 'Holds all day', 'Our strongest hold — 5 out of 5'), 'For fine, straight hair', 'For straight hair')
+ WHERE sku = 'S7-GEL-BLU' AND long_en LIKE '%Blue is the classic: 3-out-of-5 hold%';
+
+-- The black wax needs the page rewritten rather than a number swapped: what it
+-- was sold on is not a property it has. Guarded on the matte claim, so it runs
+-- once and never touches a rewrite.
+UPDATE products SET
+  long_ar = 'بلاك هو البرطمان الوحيد في التشكيلة اللي بيعمل حاجة زيادة على التصفيف: بيغطي الشيب. الصبغة الوحيدة في التركيبة هي **CI 77266** — الأسود — فالواكس بيسيب لون أسود لامع على الشعرة وإنت بتوزّعه. باقي الألوان فيها خمس صبغات بتلوّن البرطمان بس.
+
+التثبيت ٣ من ٥ بمرونة عالية ولمعة عالية، ومعاه **زيت حبة البركة**. يعني ده مش واكس مطفي — لو انت بتدوّر على شكل مات من غير لمعة، ده مش هو.',
+  long_en = 'Black is the one jar in the line that does something besides styling: it covers grey. The only colourant in the formula is **CI 77266** — black — so the wax leaves a glossy black tone on the strand as you work it in. The other colours carry a five-pigment set that only colours the jar.
+
+Hold is 3 out of 5, with high flexibility, high shine and **black seed oil** in the base. So it is not a matte wax. If a matte, no-shine finish is what you are after, this is not it.',
+  howto_ar = 'خد كمية صغيرة وافركها بين إيديك لحد ما تدفى
+حطها على شعر ناشف أو نص ناشف
+وزّعها على الأماكن اللي فيها شيب الأول
+مشّط أو ظبّط بصوابعك — التركيبة مرنة وتقدر تعدّلها في أي وقت',
+  howto_en = 'Take a small amount and warm it between your palms
+Work it through dry or towel-dried hair
+Cover the greying areas first
+Comb or shape with your fingers - the formula stays pliable, so you can rework it',
+  highlights_ar = 'بيغطي الشيب — صبغة CI 77266 السودا
+تثبيت ٣ من ٥ بمرونة عالية
+لمعة عالية — مش واكس مطفي
+زيت حبة البركة في التركيبة
+برطمان ١٢٠ مل',
+  highlights_en = 'Covers grey - CI 77266 black
+Hold 3 out of 5, high flexibility
+High shine - not a matte wax
+Black seed oil in the formula
+120ml jar'
+WHERE sku = 'S7-WAX-BLK' AND long_en LIKE '%fully **matte** formula%';

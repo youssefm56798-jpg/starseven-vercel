@@ -111,11 +111,13 @@ for (const [file, min] of [['db/schema.sql', 10], ['db/seed.sql', 3]]) {
   });
 }
 
-test('db/seed.sql is the seeds, the copy update, the article wave, the link fix and the catalogue', {
+test('db/seed.sql is the seeds, the copy update, the article wave, the link fix, the catalogue and the corrections', {
   skip: existsSync(`${ROOT}db/seed.sql`) ? false : 'db/seed.sql not present',
 }, () => {
   const out = splitStatements(readFileSync(`${ROOT}db/seed.sql`, 'utf8'));
-  assert.equal(out.length, 11);
+  // 11 statements built the shop; 19 more correct it. Both halves are counted
+  // so a statement appended without a test to go with it fails here first.
+  assert.equal(out.length, 30);
   assert.ok(out[0].includes('INSERT INTO products') && out[0].includes('ON CONFLICT (sku)'));
   assert.ok(out[1].includes('INSERT INTO offers') && out[1].includes('ON CONFLICT (code)'));
   // Both article statements must target the (slug, lang) index. The old
@@ -221,4 +223,86 @@ test('db/seed.sql is UTF-8 without a BOM and uses LF endings', {
   const raw = readFileSync(`${ROOT}db/seed.sql`, 'utf8');
   assert.notEqual(raw.charCodeAt(0), 0xFEFF);
   assert.ok(!raw.includes('\r'));
+});
+
+test('the corrections are guarded on the value they are replacing', {
+  skip: existsSync(`${ROOT}db/seed.sql`) ? false : 'db/seed.sql not present',
+}, () => {
+  // The eight original products are seeded ON CONFLICT DO NOTHING, so editing
+  // the literal in that INSERT changes nothing for a database that already
+  // exists. Every correction to them has to be its own UPDATE - and because
+  // the seed runs on every deploy, each one has to be a no-op the second time
+  // and can never revert a value edited in the admin.
+  const out = splitStatements(readFileSync(`${ROOT}db/seed.sql`, 'utf8'));
+  const corrections = out.slice(11);
+  assert.equal(corrections.length, 19);
+
+  for (const stmt of corrections) {
+    assert.match(stmt, /^UPDATE products/m, `not an UPDATE: ${stmt.slice(0, 60)}`);
+    assert.match(stmt, /sku = 'S7-[A-Z-]+'/, `does not name one SKU: ${stmt.slice(0, 60)}`);
+    // Either it checks the value it is replacing, or - for the copy, where the
+    // old value is several paragraphs - it checks a marker that disappears the
+    // first time it runs. Both make the statement a no-op on the next deploy,
+    // and both leave a rewrite done in the admin alone.
+    assert.match(stmt, /AND ((hold_level|chip_en|hair_types) =|long_en LIKE)/,
+      `unguarded, so a redeploy would overwrite an admin edit: ${stmt.slice(0, 80)}`);
+  }
+
+  const all = corrections.join('\n');
+
+  // Gels above waxes, which is the way round Ovanza publish it: their Premium
+  // gel tier is Ultra Strong / 48h, their waxes are Strong or Medium.
+  for (const sku of ['S7-GEL-YEL', 'S7-GEL-GRN', 'S7-GEL-BLU']) {
+    assert.ok(all.includes(`SET hold_level = 5 WHERE sku = '${sku}' AND hold_level = 3`),
+      `${sku} is not raised to the gel tier`);
+  }
+  for (const sku of ['S7-WAX-RED', 'S7-WAX-YEL']) {
+    assert.ok(all.includes(`SET hold_level = 4 WHERE sku = '${sku}' AND hold_level = 5`),
+      `${sku} is not brought down to Strong`);
+  }
+  for (const sku of ['S7-WAX-PUR', 'S7-WAX-BLU']) {
+    assert.ok(all.includes(`SET hold_level = 3 WHERE sku = '${sku}' AND hold_level = 4`),
+      `${sku} is not brought down to Medium`);
+  }
+
+  // Black Seed is a high-shine, grey-covering wax with no matting agent in it.
+  // The claim it was sold on has to leave the chip, the subtitle and the fine
+  // hair tile together, or one of the three keeps selling the old promise.
+  assert.ok(/chip_en = 'Covers Grey'[\s\S]*?AND chip_en = 'Matte'/.test(all),
+    'the matte chip is not replaced');
+  assert.ok(/hair_types = 'wavy,thick'[\s\S]*?AND hair_types = 'fine,straight'/.test(all),
+    'the black wax is still mapped to fine hair');
+  assert.ok(all.includes("hair_types = 'thick,straight,wavy,fine'"),
+    'nothing takes the fine tile over, so it would have no product at all');
+});
+
+test('the copy corrections cannot leave a number behind in the long-form text', {
+  skip: existsSync(`${ROOT}db/seed.sql`) ? false : 'db/seed.sql not present',
+}, () => {
+  // The hold number lives in three places for every product: the hold_level
+  // column, the paragraph, and the highlights list - four for the wax that was
+  // sold on a finish it does not have. Correcting the column and leaving the
+  // prose is the failure mode this guards, because the prose is what the
+  // customer actually reads.
+  const out = splitStatements(readFileSync(`${ROOT}db/seed.sql`, 'utf8'));
+  const perSku = out.slice(11).filter(s => s.includes('long_en'));
+  const copy = perSku.join('\n');
+
+  for (const sku of ['S7-WAX-RED', 'S7-WAX-PUR', 'S7-WAX-BLU', 'S7-WAX-YEL',
+                     'S7-GEL-YEL', 'S7-GEL-GRN', 'S7-GEL-BLU', 'S7-WAX-BLK']) {
+    assert.ok(copy.includes(`sku = '${sku}'`), `${sku} keeps its old hold in the prose`);
+  }
+
+  // Every one of them also has to touch the highlights, which is the list a
+  // customer reads before the paragraph.
+  for (const stmt of perSku) {
+    assert.ok(stmt.includes('highlights_en'),
+      `a copy correction skips the highlights list: ${stmt.slice(0, 70)}`);
+  }
+
+  // And none of them may put the matte claim back. "not a matte wax" is the
+  // sentence that retires it, so it is not counted against them.
+  assert.ok(!copy.replace(/not a matte wax/g, '').includes('matte finish'),
+    'the matte claim is back in the copy');
+  assert.ok(!copy.includes('Matte finish'), 'the matte claim is back in the highlights');
 });

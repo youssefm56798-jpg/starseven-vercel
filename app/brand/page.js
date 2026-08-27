@@ -33,8 +33,8 @@ export async function generateMetadata({ searchParams }) {
   return {
     title: ar ? 'عن نيو ستار سفن — واكس وجل شعر مصري' : 'About New Star Seven — Egyptian men’s hair care',
     description: ar
-      ? 'نيو ستار سفن براند مصري لواكس وجل شعر الرجالة، من إنتاج أوفانزا كوزمتكس. تشكيلة كاملة بتثبيت ميجا، توصيل لكل مصر والدفع عند الاستلام.'
-      : 'New Star Seven is an Egyptian men’s hair wax and gel brand, produced by Ovanza Cosmetics. A full mega-hold range, delivered across Egypt, cash on receipt.',
+      ? 'نيو ستار سفن براند مصري لواكس وجل شعر الرجالة، من إنتاج أوفانزا كوزمتكس. تشكيلة كاملة من تثبيت متوسط لحد أولترا سترونج، توصيل لكل مصر والدفع عند الاستلام.'
+      : 'New Star Seven is an Egyptian men’s hair wax and gel brand, produced by Ovanza Cosmetics. A full range from medium hold to ultra strong, delivered across Egypt, cash on receipt.',
     alternates: alternatesForLang('/brand', lang),
   };
 }
@@ -150,8 +150,8 @@ export default async function BrandPage({ searchParams }) {
           <h2>{ar ? 'الفكرة' : 'The idea'}</h2>
           <p>
             {ar
-              ? 'أغلب اللي بيتباع في السوق واكس واحد لكل الناس. بس الشعر مش واحد: الشعر الناعم المفرود بيقع تحت أي منتج تقيل، والشعر الكثيف بيضحك على أي تركيبة خفيفة. عشان كده التشكيلة كلها ألوان — كل لون تركيبة مختلفة لنوع شعر مختلف، وتثبيت واحد ثابت في الكل.'
-              : 'Most of what sells here is one wax for everyone. But hair is not one thing: fine straight hair collapses under anything heavy, and thick hair walks straight through a light formula. So the range is built as colours — each colour a different formula for a different hair type, with the same hold running through all of them.'}
+              ? 'أغلب اللي بيتباع في السوق واكس واحد لكل الناس. بس الشعر مش واحد: الشعر الناعم المفرود بيقع تحت أي منتج تقيل، والشعر الكثيف بيضحك على أي تركيبة خفيفة. عشان كده التشكيلة كلها ألوان — كل لون تركيبة مختلفة لنوع شعر مختلف، وتثبيت مختلف معاها.'
+              : 'Most of what sells here is one wax for everyone. But hair is not one thing: fine straight hair collapses under anything heavy, and thick hair walks straight through a light formula. So the range is built as colours — each colour a different formula, and a different hold, for a different hair type.'}
           </p>
           <p>
             {ar

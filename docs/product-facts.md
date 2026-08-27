@@ -189,11 +189,11 @@ declared list, and it is not tied to the Premium 250ml tier. Do not publish it.
 
 ## What the site currently gets wrong
 
-### 1. "Premium Wax Black" is not matte — this one has to change
+### 1. "Premium Wax Black" is not matte — FIXED 27 Aug 2026
 
-The site sells it as **"من غير لمعة · مطفي" (No shine · Matte)**, hold **5/5**, matched
-to **fine and straight** hair, and the hair-types page recommends it to fine hair as
-"the closest thing to a clay that exists here."
+The site used to sell it as **"من غير لمعة · مطفي" (No shine · Matte)**, hold **5/5**,
+matched to **fine and straight** hair, and the hair-types page recommended it to fine
+hair as "the closest thing to a clay that exists here."
 
 Every source contradicts that:
 
@@ -202,20 +202,45 @@ Every source contradicts that:
 - Recommended for **dry and grey** hair, not fine hair
 - The ingredient list contains **no matting agent whatsoever** — no silica, no starch, no clay. There is nothing in it that could produce a matte finish.
 
-A customer with fine hair currently buys this expecting matte volume and receives a
-high-shine, black colour-depositing wax. It is also the lowest-rated SKU on Amazon at
-2.5★, which is what that mismatch looks like from the other side.
+A customer with fine hair bought this expecting matte volume and received a high-shine,
+black colour-depositing wax. It is also the lowest-rated SKU on Amazon at 2.5★, which
+is what that mismatch looks like from the other side.
 
-This also knocks out the hair-types page's answer for **fine** hair, which was built
-on that finish. Fine hair needs a different recommendation, or an honest "we don't
-make one".
+**What changed.** The chip is now "Covers Grey", the subtitle "بيغطي الشيب · 120 مل ·
+أسود", hold is 3, and `hair_types` moved from `fine,straight` to `wavy,thick` — it
+leads neither, because grey coverage is not a hair type and the tile it used to lead
+was the one it fitted worst. The product page, the three articles that named it as the
+matte option, and the hair-types copy were all rewritten to say high shine and grey
+coverage. `docs` and the seed carry the guarded UPDATEs.
 
-### 2. Hold levels are inverted
+**The fine tile.** It could not be left empty, so **Pro** took it — last in its
+`hair_types` list, so it leads nothing else — on the grounds that Ovanza call Pro
+suitable for all hair types and it is the most flexible thing left once the matte
+claim is gone. The tile and its gap note now say plainly that the format fine hair
+wants is a clay or a matte paste and that the range does not contain one. That is the
+honest answer, not a good one: **the range still has nothing built for fine hair.**
 
-The site has waxes at **hold 5** and gels at **hold 3**. The manufacturer has gels at
+### 2. Hold levels are inverted — FIXED 27 Aug 2026
+
+The site had waxes at **hold 5** and gels at **hold 3**. The manufacturer has gels at
 **Ultra Strong / 48 hours** and waxes at **Strong or Medium**. The hair-types page
 tells straight hair "gel is the only format with enough hold" — which is right, and
-which the site's own numbers then contradict.
+which the site's own numbers then contradicted.
+
+Now mapped Ultra Strong → 5, Strong → 4, Medium → 3:
+
+| SKU | was | now | manufacturer |
+|---|---|---|---|
+| Pro X (red) | 5 | **4** | Strong hold |
+| Pro (yellow) | 5 | **4** | Strong hold |
+| Shea (purple) | 4 | **3** | Medium hold |
+| Argan (blue) | 4 | **3** | Medium hold |
+| Black Seed (black) | 5 | **3** | Medium hold |
+| Premium Gel ×3 | 3 | **5** | Ultra Strong / 48h |
+
+The 55 products added later already carried this scale, which is what made the
+original eight stand out. Pro X also lost its "Mega Hold" chip — mega is still true of
+the range, since the gels are the top of it, but not of that jar.
 
 ### 3. "Wave & Groom" is DAX's product name
 
