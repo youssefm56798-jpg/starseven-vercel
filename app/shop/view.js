@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { localePath, localeUrl } from '../../lib/urls.js';
 import { CATEGORIES, KINDS, shopPath, shopCopy, kindColumn } from './lib.js';
-import { sql } from '../../lib/db.js';
+import { sql, hasDb } from '../../lib/db.js';
 import { site } from '../../lib/config.js';
 import { currencyLabel, whole } from '../../lib/money.js';
 import { Dir, Nav, Footer, Crumb, shopCategories } from '../_components/Chrome.js';
@@ -31,7 +31,13 @@ export default async function ShopView({ kind, lang }) {
   // Started together rather than awaited one after the other. Neither needs the
   // other's answer, so serialising them made every shop render wait out two
   // round trips to Neon where one would do.
-  const [products, live] = await Promise.all([
+  // Degrade rather than throw when no database is configured. Every other view
+  // that prerenders already does this, and this one did not - which stopped
+  // being harmless the day these routes went static: `next build` renders them
+  // for real now, so an unguarded query fails the whole build rather than one
+  // request. The route files state the invariant plainly, that a build without
+  // DATABASE_URL has to succeed, and this file was one of two breaking it.
+  const [products, live] = hasDb() ? await Promise.all([
     active === 'all'
       ? sql`SELECT * FROM products WHERE active = true ORDER BY sort, id`
       : sql`SELECT * FROM products WHERE active = true AND kind = ${kindColumn(active)} ORDER BY sort, id`,
@@ -41,7 +47,7 @@ export default async function ShopView({ kind, lang }) {
     // here costs nothing. The GROUP BY that used to sit in this file was a
     // third round trip computing something already in memory.
     shopCategories(),
-  ]);
+  ]) : [[], []];
 
   // An unpriced category has to 404 rather than serve a thin indexable page
   // claiming the shop sells something it currently cannot sell — and the
@@ -96,7 +102,11 @@ export default async function ShopView({ kind, lang }) {
     <Dir lang={lang}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ld(itemList) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ld(crumbLd) }} />
-      <Nav lang={lang} path="shop" />
+      {/* The path has to carry the category, not the bare word. Nav builds the
+          language toggle from it, so a hardcoded "shop" sent someone reading
+          /shop/gel to /en/shop - switching language quietly threw away the
+          category they were looking at. */}
+      <Nav lang={lang} path={active === 'all' ? 'shop' : `shop/${active}`} />
 
       <div className="phead">
         <div className="wrap">
@@ -125,12 +135,24 @@ export default async function ShopView({ kind, lang }) {
             background request per live category per shop page load, which a
             catalogue of seven can afford and a catalogue of hundreds could
             not. */}
+        {/* Every chip carries data-no-transition, which is how
+            app/_components/PageWipe.js is told that this row filters the page
+            rather than leaving it. Pressing a chip must swap the grid and
+            nothing else; a 420ms cover and a 620ms reveal on each one is the
+            complaint that got the whole transition deleted once already.
+
+            It is redundant today — PageWipe also skips any navigation that
+            starts and ends on a shop path, and these links only ever render on
+            one. It is here anyway because that path rule is about where the
+            visitor happens to be, and this attribute is about what the control
+            is: the row stays a filter even if the rule is ever narrowed. */}
         <div className="chips">
-          <Link href={L('/shop')} prefetch className={active === 'all' ? 'on' : ''}>
+          <Link href={L('/shop')} prefetch data-no-transition=""
+            className={active === 'all' ? 'on' : ''}>
             {ar ? 'الكل' : 'All'}
           </Link>
           {shown.map(c => (
-            <Link key={c.slug} href={L(shopPath(c.slug))} prefetch
+            <Link key={c.slug} href={L(shopPath(c.slug))} prefetch data-no-transition=""
               className={active === c.slug ? 'on' : ''}>
               {ar ? c.crumb.ar : c.crumb.en}
             </Link>

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { alternatesForLang, localePath } from '../../lib/urls.js';
-import { sql } from '../../lib/db.js';
+import { sql, hasDb } from '../../lib/db.js';
 import { bySlug } from '../../lib/hairtypes.js';
 import { Dir, Nav, Footer, Crumb } from '../_components/Chrome.js';
 
@@ -42,12 +42,16 @@ export default async function BlogView({ lang }) {
     return t ? (ar ? t.ar.name : t.en.name) : null;
   };
 
-  const posts = await sql`
-    SELECT slug, title, excerpt, cover, cover_alt, hair_type, published_at
-      FROM articles
-     WHERE status = 'published' AND lang = ${lang}
-     ORDER BY published_at DESC NULLS LAST, id DESC
-     LIMIT 60`;
+  // Same reason as app/shop/view.js: this page prerenders now, so an unguarded
+  // query is a failed build rather than a failed request.
+  const posts = hasDb()
+    ? await sql`
+        SELECT slug, title, excerpt, cover, cover_alt, hair_type, published_at
+          FROM articles
+         WHERE status = 'published' AND lang = ${lang}
+         ORDER BY published_at DESC NULLS LAST, id DESC
+         LIMIT 60`
+    : [];
 
   return (
     <Dir lang={lang}>

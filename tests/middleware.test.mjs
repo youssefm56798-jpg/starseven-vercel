@@ -4,14 +4,16 @@
  * Nothing has ever read this file. It holds the most consequential SEO logic in
  * the repository: it is the only thing standing between the site and the crawl
  * traps it used to have, where ?lang=fr, ?lang=EN and ?kind=bogus each returned
- * 200 with the full Arabic catalogue at a second, third and fourth address. It
- * is also the file the /en migration is about to change, and the change is a
- * deletion — the rewrite goes away once app/en/** holds real route files.
+ * 200 with the full Arabic catalogue at a second, third and fourth address.
  *
- * Everything asserted below is CURRENT behaviour. This file is green today and
- * must stay green through the cutover: the migration removes the rewrite and
- * touches nothing else, so a redirect that stops working is a mistake, not a
- * step. The one test that is expected to flip is marked skip and says so.
+ * The /en migration has landed. The rewrite that used to serve /en/shop from
+ * /shop?lang=en is deleted, app/en/** holds the real route files, and the tests
+ * at the bottom of this file assert the absence of that rewrite — they are the
+ * lock on the cutover, and they were written before it and un-skipped by it.
+ *
+ * Everything else asserted below is unchanged behaviour, and that is the point:
+ * the migration removed the rewrite and touched nothing else, so a redirect that
+ * stops working is a mistake, not a step.
  *
  * These are the behaviours, and each is a 301 for a reason. A 302 would leave
  * the old address in the index competing with the new one, and every URL below
@@ -181,16 +183,79 @@ test('a query string on the API is not stripped', { skip: SKIP }, () => {
 
 /* ------------------------------------------------------------- the cutover */
 
-test('/en/shop is not rewritten - it is served by its own route file', {
-  skip: 'un-skip at cutover',
-}, () => {
-  // Today middleware rewrites /en/shop onto /shop?lang=en, which is what forces
-  // every page to read searchParams and is therefore what stops any of them
-  // being prerendered. Once app/en/shop/page.js exists the rewrite is deleted
+test('/en/shop is not rewritten - it is served by its own route file', { skip: SKIP }, () => {
+  // Middleware used to rewrite /en/shop onto /shop?lang=en, which is what forced
+  // every page to read searchParams and is therefore what stopped any of them
+  // being prerendered. app/en/shop/page.js exists now, the rewrite is deleted,
   // and /en/shop is an ordinary static route.
   const res = run('/en/shop');
   assert.equal(rewritten(res), null,
     `/en/shop is still being rewritten onto ${rewritten(res)}`);
   assert.equal(res.headers.get('location'), null, '/en/shop was redirected');
   assert.equal(res.status, 200);
+});
+
+test('the whole /en tree reaches its own route files untouched', { skip: SKIP }, () => {
+  // One entry per shape of English route, because the rewrite that used to stand
+  // in front of all of them was a single branch — if it comes back, or if one of
+  // the redirects above starts matching /en by accident, every English URL goes
+  // with it. A rewrite here means the English address is being served by an
+  // Arabic route file, which is the exact failure this migration removes.
+  for (const path of [
+    '/en',
+    '/en/shop',
+    '/en/shop/wax',
+    '/en/product/x',
+    '/en/article/x',
+    '/en/hair-types/fine',
+    '/en/checkout',
+  ]) {
+    const res = run(path);
+    assert.equal(rewritten(res), null, `${path} was rewritten onto ${rewritten(res)}`);
+    assert.equal(res.headers.get('location'), null,
+      `${path} was redirected to ${res.headers.get('location')}`);
+    assert.equal(res.status, 200, `${path} did not reach its route file`);
+    assert.equal(res.headers.get('x-middleware-next'), '1',
+      `${path} did not pass straight through`);
+  }
+});
+
+test('the Arabic tree is not rewritten either', { skip: SKIP }, () => {
+  // The Arabic branch used to end in a rewrite onto the same URL, which existed
+  // only to carry the x-s7-lang header to the root layout. With that header gone
+  // the rewrite was a no-op that still stamped x-middleware-rewrite on every
+  // storefront request, so it is a plain pass-through now.
+  for (const path of ['/', '/shop', '/shop/wax', '/article/hair-care', '/checkout']) {
+    const res = run(path);
+    assert.equal(rewritten(res), null, `${path} was rewritten onto ${rewritten(res)}`);
+    assert.equal(res.status, 200, `${path} did not pass through`);
+    assert.equal(res.headers.get('x-middleware-next'), '1',
+      `${path} did not pass straight through`);
+  }
+});
+
+test('the ?lang=en redirect and the real English route agree on the address', { skip: SKIP }, () => {
+  // These are two independent statements about where English lives: the legacy
+  // redirect below says /en/shop, and app/en/shop/page.js is what answers there.
+  // If they ever disagree the redirect is pointing Google at a 404, so the test
+  // follows the redirect's own destination back into the middleware.
+  const url = redirects('/shop?lang=en', '/en/shop', ['lang']);
+  const res = run(url.pathname);
+  assert.equal(res.status, 200, `${url.pathname}, the redirect target, does not pass through`);
+  assert.equal(res.headers.get('location'), null,
+    `${url.pathname} redirects again - the redirect target is not a final address`);
+  assert.equal(rewritten(res), null,
+    `${url.pathname} is rewritten rather than served by its own route file`);
+});
+
+test('?lang=en on a path that is already English does not double the prefix', { skip: SKIP }, () => {
+  // Unreachable before the cutover: the /en rewrite ran ahead of the ?lang=
+  // whitelist and returned first. With the rewrite deleted these fall through to
+  // the whitelist, and prefixing a path that already carries /en would send
+  // /en/shop?lang=en to /en/en/shop — a 301 into a 404.
+  redirects('/en/shop?lang=en', '/en/shop', ['lang']);
+  redirects('/en?lang=en', '/en', ['lang']);
+  // A language we do not serve is still stripped, and the English path it
+  // arrived on is still where it lands.
+  redirects('/en/shop?lang=fr', '/en/shop', ['lang']);
 });

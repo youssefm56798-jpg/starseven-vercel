@@ -110,7 +110,19 @@ export default async function SubscribersPage({ searchParams }) {
               </select>
               <button className="btn sm" type="submit">Apply</button>
             </form>
-            <a className="btn sm ghost" href="/admin/subscribers/export">Export CSV</a>
+            {/* data-no-transition because this is a download, not a page.
+                The route answers with Content-Disposition: attachment, so the
+                browser hands the visitor a file and leaves the admin exactly
+                where it is. PageWipe cannot see that from the markup - there
+                is no `download` attribute for it to check, the href is
+                same-origin and the pathname differs, so without this it treats
+                the click as a navigation: it prevents the default (killing the
+                browser's own download), covers the screen for 420ms, and then
+                pushes a route that never commits a new pathname. The arrival
+                effect never runs, so the panel sits opaque over the admin for
+                the full 2500ms STUCK_MS failsafe and is then torn down with no
+                animation. */}
+            <a className="btn sm ghost" href="/admin/subscribers/export" data-no-transition="">Export CSV</a>
             <Link className="btn sm red" href="/admin/offers">Send an offer</Link>
           </span>
         </h2>

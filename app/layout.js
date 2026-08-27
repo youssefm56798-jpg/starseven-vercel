@@ -1,6 +1,8 @@
+import { Suspense } from 'react';
 import { anton, cairo, tajawal } from '../lib/fonts.js';
 import './globals.css';
 import { site } from '../lib/config.js';
+import PageWipe from './_components/PageWipe.js';
 import CardSpotlight from './_components/CardSpotlight.js';
 
 /**
@@ -87,6 +89,13 @@ export default function RootLayout({ children }) {
   return (
     <html lang="ar" className={`${anton.variable} ${cairo.variable} ${tajawal.variable}`}>
       <body>
+        {/* The wipe reads the current route, and a client component that calls
+            useSearchParams this high in the tree needs a Suspense boundary
+            around it. That boundary is load-bearing rather than decorative:
+            without one, Next bails the entire tree out of prerendering, which
+            would silently undo the static-generation work in commit 7df5b6b
+            that this file's own comment below is about. */}
+        <Suspense fallback={null}><PageWipe /></Suspense>
         {/* One delegated pointer listener for every product card on the site —
             the home grid and the shop grid are both server-rendered, so this
             cannot live in either of them. */}

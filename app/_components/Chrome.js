@@ -92,10 +92,29 @@ export async function Nav({ lang = 'ar', path = '' }) {
                 <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </Link>
+            {/* The submenu opts out of the page transition, every item of it.
+                It lists the same categories the chips on /shop list, under the
+                same short labels, and lands on the same screen — so a visitor
+                pressing "hair spray" here is filtering the catalogue, and it
+                was this control the client named when the transition was
+                reported the second time. PageWipe's own shop-to-shop rule
+                cannot help: the whole point is that this menu is pressed from
+                the home page, an article, a product page.
+
+                "The full line" is included even though it goes to /shop and
+                the Shop link above it goes to the same place and does still
+                wipe. That looks inconsistent written down and is not in use:
+                inside an open dropdown of eight category rows, "The full line"
+                is the All position of the picker, and having one row of the
+                eight behave differently is the exact seam this attribute
+                exists to close. The Shop link itself is a nav destination, and
+                keeps the transition. */}
             <div className="nav-sub">
-              <Link href={L('/shop')}>{ar ? 'كل التشكيلة' : 'The full line'}</Link>
+              <Link href={L('/shop')} data-no-transition="">
+                {ar ? 'كل التشكيلة' : 'The full line'}
+              </Link>
               {cats.map(c => (
-                <Link key={c.slug} href={L(`/shop/${c.slug}`)}>
+                <Link key={c.slug} href={L(`/shop/${c.slug}`)} data-no-transition="">
                   {ar ? c.crumb.ar : c.crumb.en}
                 </Link>
               ))}
@@ -160,10 +179,20 @@ export async function Footer({ lang = 'ar' }) {
                 category the client switches on appears in both at once. */}
             <div>
               <h5>{ar ? 'التشكيلة' : 'The range'}</h5>
+              {/* Same opt-out as the nav submenu, and for the same reason:
+                  this column is the category picker again, just at the bottom
+                  of the page and under the long h1 labels instead of the short
+                  chip ones. It lands on the identical screen, so it filters.
+
+                  The Links column below is not a picker — it is the site map,
+                  and its "The full line" entry sits among Hair types, Articles
+                  and the legal pages. That one keeps the transition. */}
               <ul>
                 {cats.map(c => (
                   <li key={c.slug}>
-                    <Link href={L(`/shop/${c.slug}`)}>{ar ? c.h1.ar : c.h1.en}</Link>
+                    <Link href={L(`/shop/${c.slug}`)} data-no-transition="">
+                      {ar ? c.h1.ar : c.h1.en}
+                    </Link>
                   </li>
                 ))}
               </ul>

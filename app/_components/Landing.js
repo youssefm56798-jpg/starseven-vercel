@@ -478,9 +478,19 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
             )}
             {/* Ranges the home page does not carry. Links, not filters: there
                 is nothing here to filter to, and pretending otherwise would
-                show an empty grid. */}
+                show an empty grid.
+
+                They opt out of the page transition all the same. A visitor
+                sees one row of five identical pills — .tab-out is .tab plus a
+                small arrow glyph at 55% opacity, same border, radius, weight
+                and size — so three of them swapping the grid in place while
+                two play a full-screen wipe reads as the page breaking, not as
+                a navigation. What the control looks like is what decides this,
+                which is why the attribute is here and not a path rule inside
+                PageWipe: the destination is a shop path either way, and only
+                this markup knows the pill sits in a filter row. */}
             {(d.moreTabs || []).map(([slug, label]) => (
-              <Link key={slug} className="tab tab-out" href={L(`/shop/${slug}`)}>
+              <Link key={slug} className="tab tab-out" href={L(`/shop/${slug}`)} data-no-transition="">
                 {label}
               </Link>
             ))}
@@ -554,6 +564,15 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
                 // carries a real href, so the six hair-type pages are linked
                 // from the home page instead of being reachable only from the
                 // nav. A crawler follows the href; a mouse never sees it.
+                //
+                // Which makes this the strongest case in the app for
+                // data-no-transition: the tile does not navigate at all, so a
+                // page transition here would cover the screen for a navigation
+                // that is about to be called off. PageWipe cannot work this out
+                // for itself. It listens in the capture phase, which runs
+                // before the onClick below, so at the moment it has to decide,
+                // the preventDefault has not happened yet and the href looks
+                // like any other link to /hair-types/<slug>.
                 <Link
                   key={x.slug}
                   href={L(`/hair-types/${x.slug}`)}
@@ -561,6 +580,7 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
                   style={{ '--c': x.color }}
                   onClick={e => { e.preventDefault(); pickHair(x.slug); }}
                   aria-current={x.slug === tile.slug ? 'true' : undefined}
+                  data-no-transition=""
                 >
                   <span className="walker" dir={runDir(ar ? x.walker : x.walkerEn)}>
                     {ar ? x.walker : x.walkerEn}
@@ -658,8 +678,17 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
                   <span className="go">{h.go}</span>
                 </>
               );
+              // The same reasoning as the "more tabs" above, one section down.
+              // Three of these four tiles are buttons that call pickHold, which
+              // sets the filter and scrolls back to the grid; the fourth is a
+              // link, because the home shortlist carries no gel wax. All four
+              // render the identical .hcard markup and all four end on the same
+              // "See the products" line, and the section's own lead promises
+              // "Tap the one that fits and we'll show you its products" — so the
+              // odd one out must not answer with a wipe.
               return h.href ? (
-                <Link className="hcard" key={h.en} style={{ '--c': h.c }} href={L(h.href)}>
+                <Link className="hcard" key={h.en} style={{ '--c': h.c }} href={L(h.href)}
+                  data-no-transition="">
                   {body}
                 </Link>
               ) : (
