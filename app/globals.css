@@ -336,34 +336,6 @@ button{font:inherit;cursor:pointer}
 .legal .prose h2{font-size:20px;margin:26px 0 8px}
 .legal .prose{font-size:15.5px;line-height:1.8}
 
-/* ===== page transition — mirrors the landing page's intro wipe =====
-   Arriving: the panel starts covering and collapses upward (same clip-path
-   and easing as the SPA preloader's exit).
-   Leaving:  it rises from the bottom to cover, so the next page's reveal
-   continues the same upward movement. */
-.s7-wipe{position:fixed;inset:0;z-index:2000;background:var(--paper);
-  display:grid;place-items:center;pointer-events:none;
-  clip-path:inset(0 0 100% 0);            /* collapsed (revealed) by default */
-  will-change:clip-path}
-.s7-wipe img{width:88px;height:auto;opacity:0}
-
-/* --- arriving --- */
-.s7-wipe[data-enter]{animation:s7Reveal .62s cubic-bezier(.22,1,.36,1) forwards}
-.s7-wipe[data-enter] img{animation:s7StarOut .62s cubic-bezier(.22,1,.36,1) forwards}
-@keyframes s7Reveal{from{clip-path:inset(0 0 0 0)}to{clip-path:inset(0 0 100% 0)}}
-@keyframes s7StarOut{0%{opacity:1;transform:rotate(0) scale(1)}60%,100%{opacity:0;transform:rotate(20deg) scale(.86)}}
-
-/* --- leaving --- */
-.s7-leaving .s7-wipe{animation:s7Cover .42s cubic-bezier(.22,1,.36,1) forwards}
-.s7-leaving .s7-wipe img{animation:s7StarIn .42s cubic-bezier(.22,1,.36,1) forwards}
-@keyframes s7Cover{from{clip-path:inset(100% 0 0 0)}to{clip-path:inset(0 0 0 0)}}
-@keyframes s7StarIn{from{opacity:0;transform:rotate(-120deg) scale(.4)}to{opacity:1;transform:rotate(0) scale(1)}}
-
-/* Never animate for visitors who asked for less motion. */
-@media (prefers-reduced-motion: reduce){
-  .s7-wipe{display:none}
-}
-
 /* "Best for <hair type>" block on the product page */
 .hairnote{display:flex;align-items:center;gap:16px}
 .hairnote-icon{flex:none;width:64px;height:64px;border-radius:50%;display:grid;place-items:center;

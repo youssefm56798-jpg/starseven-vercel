@@ -1,9 +1,7 @@
-import { Suspense } from 'react';
 import { headers } from 'next/headers';
 import { Anton, Cairo, Tajawal } from 'next/font/google';
 import './globals.css';
 import { site } from '../lib/config.js';
-import PageWipe from './_components/PageWipe.js';
 import CardSpotlight from './_components/CardSpotlight.js';
 
 /**
@@ -182,9 +180,6 @@ export default async function RootLayout({ children }) {
   return (
     <html lang={lang} dir={dir} className={`${anton.variable} ${cairo.variable} ${tajawal.variable}`}>
       <body>
-        {/* The wipe reads the current route, and useSearchParams needs a
-            Suspense boundary when it is used this high in the tree. */}
-        <Suspense fallback={null}><PageWipe /></Suspense>
         {/* One delegated pointer listener for every product card on the site —
             the home grid and the shop grid are both server-rendered, so this
             cannot live in either of them. */}
