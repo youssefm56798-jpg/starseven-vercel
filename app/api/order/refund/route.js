@@ -40,13 +40,21 @@ export async function POST(req) {
   // must not turn a successful request into an error the customer sees.
   try {
     if (mail.notifyTo) {
+      // Every value that lands in this HTML is escaped. order.name is the
+      // customer's own free text, stored raw at checkout - the reason field was
+      // already being stripped here, but the name beside it was not, so a name
+      // of "<a href=//evil>update your address</a>" rendered as a live link in
+      // the shop's own inbox. ref and phone are server-shaped and total is
+      // numeric, but they go through the same helper rather than trusting that.
+      const esc = v => String(v ?? '').replace(/[&<>"']/g, c =>
+        ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
       const reason = updated.refund_reason || '(no reason given)';
       await sendMail({
         to: mail.notifyTo,
         subject: `Cancellation requested — ${order.ref}`,
-        html: `<p><b>${order.ref}</b> — ${order.name} (${order.phone})</p>
-               <p>Status: ${order.status}. Total: ${order.total}</p>
-               <p><b>Reason:</b> ${String(reason).replace(/[<>&]/g, '')}</p>`,
+        html: `<p><b>${esc(order.ref)}</b> — ${esc(order.name)} (${esc(order.phone)})</p>
+               <p>Status: ${esc(order.status)}. Total: ${esc(order.total)}</p>
+               <p><b>Reason:</b> ${esc(reason)}</p>`,
         kind: 'refund-request',
       });
     }

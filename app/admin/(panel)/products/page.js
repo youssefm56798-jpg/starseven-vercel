@@ -114,7 +114,13 @@ export default async function ProductsPage({ searchParams }) {
                   <input type="hidden" name="act" value="toggle" />
                   <button className="btn sm ghost" type="submit">{p.active ? 'Hide' : 'Show'}</button>
                 </form>
-                <form action={save}>
+                {/* saveProduct, not save - `save` is undefined and threw a
+                    ReferenceError that took the whole product editor down. And
+                    the _csrf input its two sibling forms carry was missing, so
+                    even once it rendered, saveProduct would reject it on the
+                    CSRF check. Both were needed. */}
+                <form action={saveProduct}>
+                  <input type="hidden" name="_csrf" value={token} />
                   <input type="hidden" name="id" value={p.id} />
                   <input type="hidden" name="act" value="feature" />
                   <button className="btn sm ghost" type="submit"

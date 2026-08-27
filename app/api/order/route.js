@@ -115,6 +115,23 @@ export async function POST(req) {
     }
 
     const price = Number(p.price);
+
+    // Refuse a line whose price is not a real, positive amount. 31 products are
+    // seeded at price 0 - the ones the manufacturer has no price for, shown as
+    // "ask for price" with a WhatsApp button and never a buy button. They are
+    // kept unorderable today only because their stock is also 0, so the check
+    // above catches them first. That is a coupling, not a rule: the day an
+    // admin sets stock on one before setting its price, it would sell for
+    // nothing, and on a cash-on-delivery shop that is a driver at the door with
+    // free product. Say the rule out loud instead of leaning on the side effect.
+    if (!(price > 0)) {
+      return fail(
+        ar ? `"${p.name_ar}" لسه ملهوش سعر — كلمنا على واتساب.`
+           : `"${p.name_en}" is not priced yet — message us on WhatsApp.`,
+        409, { field: 'items', sku: p.sku },
+      );
+    }
+
     subtotal += price * qty;
     items.push({
       product_id: Number(p.id),
