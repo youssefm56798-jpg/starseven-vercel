@@ -1766,8 +1766,8 @@ UPDATE products SET color = CASE
     WHEN sku = 'S7-CG250-JOJOBA' THEN '#008DCF'
     WHEN sku = 'S7-CG250-BLACKS' THEN '#515151'
     WHEN sku = 'S7-CG250-COCONU' THEN '#727272'
-    WHEN sku = 'S7-HS500-ULTRAS' THEN '#936701'
-    WHEN sku = 'S7-HS500-STRONG' THEN '#966801'
+    WHEN sku = 'S7-HS500-ULTRAS' THEN '#BB902B'
+    WHEN sku = 'S7-HS500-STRONG' THEN '#CC261A'
     WHEN sku = 'S7-C180-MAGIC' THEN '#AB7A00'
     WHEN sku = 'S7-C180-FRESH' THEN '#3CBD0A'
     WHEN sku = 'S7-C180-AQUA' THEN '#03ADCF'
@@ -2043,3 +2043,27 @@ High shine - not a matte wax
 Black seed oil in the formula
 120ml jar'
 WHERE sku = 'S7-WAX-BLK' AND long_en LIKE '%fully **matte** formula%';
+
+
+-- ---------------------------------------------------------------------------
+--  The two hair sprays take their accent from the cap, not from the label
+--
+--  The sampler that derived every accent colour from its photograph picked the
+--  dominant hue across the whole pack, weighted by saturation. On the sprays
+--  that is the gold lower half of the label, so both cans came out within three
+--  points of the same muddy brown - #936701 and #966801 - even though one is
+--  black with a gold cap and the other is silver with a red one.
+--
+--  It reads worse than a merely inaccurate swatch, because color drives the
+--  radial wash behind the product on the product page at 22 percent. A brown
+--  haze behind an already black can is why these two looked dark.
+--
+--  Sampled from the cap instead, which is what tells the two apart on a shelf:
+--  the mean of the saturated pixels across the top of the can, lifted to a
+--  usable lightness. Ultra Strong reads gold, Strong reads red.
+--
+--  Guarded on the sampled values, so it runs once and leaves a colour picked by
+--  hand in the admin alone.
+-- ---------------------------------------------------------------------------
+UPDATE products SET color = '#BB902B' WHERE sku = 'S7-HS500-ULTRAS' AND color = '#936701';
+UPDATE products SET color = '#CC261A' WHERE sku = 'S7-HS500-STRONG' AND color = '#966801';

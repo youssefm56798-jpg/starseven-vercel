@@ -115,9 +115,9 @@ test('db/seed.sql is the seeds, the copy update, the article wave, the link fix,
   skip: existsSync(`${ROOT}db/seed.sql`) ? false : 'db/seed.sql not present',
 }, () => {
   const out = splitStatements(readFileSync(`${ROOT}db/seed.sql`, 'utf8'));
-  // 11 statements built the shop; 19 more correct it. Both halves are counted
+  // 11 statements built the shop; 21 more correct it. Both halves are counted
   // so a statement appended without a test to go with it fails here first.
-  assert.equal(out.length, 30);
+  assert.equal(out.length, 32);
   assert.ok(out[0].includes('INSERT INTO products') && out[0].includes('ON CONFLICT (sku)'));
   assert.ok(out[1].includes('INSERT INTO offers') && out[1].includes('ON CONFLICT (code)'));
   // Both article statements must target the (slug, lang) index. The old
@@ -235,16 +235,16 @@ test('the corrections are guarded on the value they are replacing', {
   // and can never revert a value edited in the admin.
   const out = splitStatements(readFileSync(`${ROOT}db/seed.sql`, 'utf8'));
   const corrections = out.slice(11);
-  assert.equal(corrections.length, 19);
+  assert.equal(corrections.length, 21);
 
   for (const stmt of corrections) {
     assert.match(stmt, /^UPDATE products/m, `not an UPDATE: ${stmt.slice(0, 60)}`);
-    assert.match(stmt, /sku = 'S7-[A-Z-]+'/, `does not name one SKU: ${stmt.slice(0, 60)}`);
+    assert.match(stmt, /sku = 'S7-[A-Z0-9-]+'/, `does not name one SKU: ${stmt.slice(0, 60)}`);
     // Either it checks the value it is replacing, or - for the copy, where the
     // old value is several paragraphs - it checks a marker that disappears the
     // first time it runs. Both make the statement a no-op on the next deploy,
     // and both leave a rewrite done in the admin alone.
-    assert.match(stmt, /AND ((hold_level|chip_en|hair_types) =|long_en LIKE)/,
+    assert.match(stmt, /AND ((hold_level|chip_en|hair_types|color) =|long_en LIKE)/,
       `unguarded, so a redeploy would overwrite an admin edit: ${stmt.slice(0, 80)}`);
   }
 
