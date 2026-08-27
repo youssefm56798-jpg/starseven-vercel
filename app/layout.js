@@ -15,7 +15,8 @@ import CardSpotlight from './_components/CardSpotlight.js';
  */
 
 /**
- * The two faces the design is drawn in.
+ * The three faces the design is drawn in, and the two loading policies they
+ * split across.
  *
  * The PHP site pulled these from a Google Fonts <link>. The port dropped it and
  * nothing replaced it, so every 'Anton' and 'Cairo' in the stylesheets — around
@@ -28,24 +29,66 @@ import CardSpotlight from './_components/CardSpotlight.js';
  * the critical path, no round trip to two extra hosts, and a size-adjusted
  * fallback that keeps the swap from shifting the layout.
  *
- * Cairo needs the arabic subset spelled out. Left implicit it ships Latin only,
- * and the entire Arabic storefront — the default language — renders in the
- * fallback again, which is the bug this is fixing.
+ * `display` is set per tier rather than uniformly, because the two tiers want
+ * opposite things from the moment before the font arrives.
+ *
+ * The display tier — Anton for Latin, Tajawal for Arabic — gets 'block'. Both
+ * of them set the hero, which is the largest thing above the fold, and 'swap'
+ * paints it in the size-adjusted fallback first. That fallback is derived from
+ * Arial: a wide, even grotesque, nothing like Anton's tall condensed poster
+ * face. So the hero renders in a visibly wrong typeface for a beat and then
+ * changes under the reader — which is what has been reported three times now
+ * as the English font having changed again. It never changed. It was being
+ * seen mid-swap. 'block' holds that text invisible for the short block period
+ * instead, so the headline paints once, already in the right face.
+ *
+ * The body tier — Cairo — stays on 'swap' deliberately. It sets body copy, nav,
+ * buttons, product cards and the whole Arabic UI, and for running text the
+ * trade runs the other way: reading the words immediately in a fallback beats
+ * waiting in front of a blank column for the right one. A paragraph that
+ * reflows is a far smaller insult than a paragraph that is not there yet.
+ *
+ * Neither policy can shift the layout. `adjustFontFallback` is on by default
+ * and emits the ascent, descent and size-adjust overrides that make the
+ * fallback occupy the same box as the real face.
+ *
+ * One thing `subsets` is not: it does not decide what gets downloaded. The
+ * Google Fonts URL next/font builds carries no subset parameter, so every
+ * subset of every family below is fetched and self-hosted at build time either
+ * way, each behind its own unicode-range. What `subsets` decides is which of
+ * those files get a <link rel="preload"> — which is why naming a subset a tier
+ * never renders is not free: it forces a download of a file the browser would
+ * otherwise never have asked for. It is also required rather than optional,
+ * since preloading is on by default and next/font refuses to build without it.
  */
 const anton = Anton({
+  // Latin only, and not by preference: the family has no Arabic subset to ask
+  // for. That is also why the rules that can meet Arabic text — prices, spec
+  // labels, the 404 code — name Cairo immediately after it: on the Arabic pages
+  // each Arabic glyph falls straight through to Cairo while the Latin numerals
+  // stay in Anton. The purely decorative rules (the ticker, the outline stars,
+  // the stamp) skip that and go to sans-serif, because they are never Arabic.
   subsets: ['latin'],
   weight: '400',            // Anton ships one weight
-  display: 'swap',
+  display: 'block',         // display tier — see above
   variable: '--font-anton',
 });
 
 const cairo = Cairo({
+  // Both subsets earn their preload here. Cairo is the body face on every page
+  // in both directions, and it is also the fallback the Anton rules list second,
+  // so Latin and Arabic glyphs are both on the first paint whichever language
+  // is being served.
   subsets: ['arabic', 'latin'],
-  // 400/600/700/800/900 are the weights the stylesheets actually ask for.
-  // The original <link> requested 400;600;700;900, so the thirty rules set
-  // in 800 were being synthesised by the browser — a faux-bold smear of the
-  // 700. Cairo is a variable font, so the extra weight costs nothing.
+  // All five weights are the weights the stylesheets actually ask for — counted
+  // across globals.css, landing.css, hairtypes.css and admin.css, they are
+  // asked for 2, 56, 38, 36 and 110 times respectively, so not one of them is
+  // dead. The original <link> requested 400;600;700;900, which left the three
+  // dozen rules set in 800 to be synthesised by the browser — a faux-bold smear
+  // of the 700. Cairo is a variable font, so the extra weight costs nothing.
   weight: ['400', '600', '700', '800', '900'],
+  // 'swap', and not the 'block' the two display faces get. This is the body
+  // tier: unstyled but readable beats correct but invisible. See above.
   display: 'swap',
   variable: '--font-cairo',
 });
@@ -90,11 +133,17 @@ const cairo = Cairo({
  * work it is good at. This is a second face for the headlines, not a swap.
  */
 const tajawal = Tajawal({
-  subsets: ['arabic', 'latin'],
+  // Arabic only. Exactly one rule in the codebase names this face —
+  // `[dir="rtl"] .s7home .hero-title` in app/landing.css — so it is the Arabic
+  // display tier and nothing else, and there is no Latin text anywhere that
+  // could be set in it. Listing 'latin' here does not stop the Latin file being
+  // built, but it did preload it, which spent first-paint bandwidth on a file
+  // whose unicode-range the browser was never going to match.
+  subsets: ['arabic'],
   // 900 only. It is the single weight the stylesheet asks Tajawal for, and the
   // top of the family's range — anything heavier would have to be synthesised.
   weight: ['900'],
-  display: 'swap',
+  display: 'block',         // display tier, same as Anton — see above
   variable: '--font-tajawal',
 });
 export const metadata = {

@@ -80,8 +80,12 @@ test('no stylesheet names a web font by a literal it cannot load', () => {
 });
 
 test('Cairo ships the Arabic subset, because Arabic is the default language', () => {
-  // Left implicit, next/font ships Latin only. The Arabic storefront would
-  // then fall back for every glyph on the page — the original bug, restored.
+  // The assertion is right; the reason it used to give was not. next/font asks
+  // Google for the family with no subset parameter and self-hosts every subset
+  // that comes back, so `subsets` does not decide what is downloaded - it
+  // decides which files are marked preloadable. Dropping 'arabic' would leave
+  // the Arabic storefront, which is the default language, waiting on an
+  // unpreloaded file for every glyph above the fold.
   const cairo = LAYOUT.match(/Cairo\(\{[\s\S]*?\}\)/);
   assert.ok(cairo, 'Cairo is not loaded');
   assert.match(cairo[0], /subsets:\s*\[[^\]]*'arabic'/,
