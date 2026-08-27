@@ -29,7 +29,7 @@ const T = {
     hero_cta1: 'اتفرج على المنتجات', hero_cta2: 'اعرف نوع شعرك',
     tag_note: 'توصيل + دفع عند الاستلام', egp: 'جنيه',
     shop_a: 'اختار', shop_b: 'لونك',
-    shop_p: 'كل لون تركيبة مختلفة. نفس التثبيت الميجا، ونفس البرطمان اللي مش هيسيبك في نص اليوم.',
+    shop_p: 'كل لون تركيبة مختلفة ودرجة تثبيت مختلفة — من واكس مرن تعدّله طول اليوم، لحد جل بيقفل الشكل ومش بيسيبك.',
     tabs: [['all', 'الكل'], ['wax', 'واكس'], ['gel', 'جل']],
     // Ranges the home page does not carry. These are links to the shop, not
     // filters — the home grid is a shortlist and they are not in it.
@@ -43,11 +43,16 @@ const T = {
     hold_a: 'اختار', hold_b: 'تثبيتك',
     hold_p: 'مش عارف تبدأ منين؟ دوس على اللي يناسبك وهنوريك منتجاته.',
     hold_tab: 'تثبيت', clear: 'شيل الفلتر',
+    // The four bands, top of the range downwards, with the two waxes next to
+    // each other so the stronger and the softer one read as a pair. Each tile
+    // names its own format as well as its band — see `inFilter` — because the
+    // hold scale runs across the whole catalogue now, so a band on its own is
+    // a dozen products from five different formats.
     holds: [
-      { en: 'GEL', h: 'جل بريميوم', lvl: 3, p: 'لمعة ويت لوك وتحكم يومي. للشغل والجامعة — يتغسل بسهولة.', go: 'شوف المنتجات ←', pick: 'gel', c: 'var(--blue)' },
+      { en: 'GEL', h: 'جل بريميوم', lvl: 5, p: 'أقوى تثبيت في التشكيلة كلها ولمعة ويت لوك. الشكل بيفضل مكانه لآخر اليوم وبيتغسل بسهولة.', go: 'شوف المنتجات ←', pick: 'gel:5', c: 'var(--blue)' },
       { en: 'GEL WAX', h: 'جل واكس', lvl: 3, p: 'الاتنين مع بعض: تحكم الواكس ولمعة الجل. لو الواكس تقيل عليك والجل ناشف أوي.', go: 'شوف المنتجات ←', href: '/shop/gel-wax', c: 'var(--purple)' },
-      { en: 'WAX', h: 'واكس مغذي', lvl: 4, p: 'تثبيت قوي مع ترطيب — زبدة الشيا وزيت الأرجان. للاستخدام اليومي.', go: 'شوف المنتجات ←', pick: 'hold:4', c: 'var(--green)' },
-      { en: 'MEGA', h: 'ميجا هولد', lvl: 5, p: 'أقوى تثبيت عندنا. الستايل بيقعد مكانه مهما اليوم طال.', go: 'شوف المنتجات ←', pick: 'hold:5', c: 'var(--red-ui)' },
+      { en: 'WAX PRO', h: 'واكس برو', lvl: 4, p: 'أقوى واكس عندنا — برو إكس وبرو. تثبيت قوي بتكستشر، وتقدر تشتغل على شعرك طول اليوم.', go: 'شوف المنتجات ←', pick: 'wax:4', c: 'var(--red-ui)' },
+      { en: 'WAX CARE', h: 'واكس مغذي', lvl: 3, p: 'تثبيت متوسط ومرن مع ترطيب — زبدة الشيا والأرجان والبلاك. تقدر تظبط شعرك تاني في أي وقت.', go: 'شوف المنتجات ←', pick: 'wax:3', c: 'var(--green)' },
     ],
     or_h: 'اطلب في', or_h_red: 'دقيقة',
     or_p: 'من غير تسجيل حساب ومن غير تعقيد. اختار منتجك، ضيفه للسلة، واكمل الأوردر — الدفع عند الاستلام.',
@@ -55,9 +60,8 @@ const T = {
     or_cta: 'ابدأ التسوق',
     bb_h: 'الجودة اللي', bb_h_red: 'الأسطى', bb_h2: 'بيثق فيها',
     bb_p: 'نفس نوعية المنتجات اللي بيشتغل بيها الحلاقين — بتوصلك لحد باب البيت.',
-    annc: ['التوصيل لحد باب البيت', 'الدفع عند الاستلام', 'اطلب في دقيقة من الموقع'],
     px_k: 'نجم التشكيلة ★ برو إكس', px_h: 'الأحمر اللي', px_h_red: 'مبيهزرش',
-    px_p: 'واكس برو إكس — تركيبة Wave & Groom بتثبيت ميجا هولد. شعرك يفضل مظبوط زي ما سبته الصبح لحد ما ترجع البيت.',
+    px_p: 'واكس برو إكس — تركيبة Wave & Groom بتثبيت قوي، أقوى واكس في التشكيلة. شعرك يفضل مظبوط زي ما سبته الصبح لحد ما ترجع البيت.',
     px_s: ['قوة التثبيت', 'حجم البرطمان', 'في التركيبة'],
     cart_t: 'سلة الطلبات', cart_close: 'إغلاق',
     cart_empty: 'السلة لسه فاضية', cart_empty_p: 'ضيف منتج وابدأ الأوردر.',
@@ -73,7 +77,7 @@ const T = {
     hero_cta1: 'Shop the line', hero_cta2: 'Find your hair type',
     tag_note: 'Delivery + cash on receipt', egp: 'EGP',
     shop_a: 'PICK', shop_b: 'YOUR COLOR',
-    shop_p: 'Every colour is a different formula. Same mega hold, same jar that will not quit halfway through your day.',
+    shop_p: 'Every colour is a different formula, and a different hold — from a wax you can rework all day to a gel that sets the shape and will not quit halfway through it.',
     tabs: [['all', 'All'], ['wax', 'Wax'], ['gel', 'Gel']],
     moreTabs: [['gel-wax', 'Gel Wax'], ['cream-gel', 'Cream Gel']],
     shop_all: 'See the whole range →',
@@ -85,11 +89,14 @@ const T = {
     hold_a: 'PICK', hold_b: 'YOUR HOLD',
     hold_p: 'Not sure where to start? Tap the one that fits and we’ll show you its products.',
     hold_tab: 'Hold', clear: 'Clear filter',
+    // Kept in step with the Arabic array above, tile for tile: same order, same
+    // levels, same picks. They are two renderings of one shortlist, and a level
+    // that drifts between them is a level one language is telling wrong.
     holds: [
-      { en: 'GEL', h: 'Premium Gel', lvl: 3, p: 'Wet-look shine and daily control. For work and campus — washes out easy.', go: 'See the products →', pick: 'gel', c: 'var(--blue)' },
+      { en: 'GEL', h: 'Premium Gel', lvl: 5, p: 'The strongest hold in the whole range, with a wet-look finish. Stays where you put it all day and washes straight out.', go: 'See the products →', pick: 'gel:5', c: 'var(--blue)' },
       { en: 'GEL WAX', h: 'Gel Wax', lvl: 3, p: 'Both at once: the control of a wax with the shine of a gel. For when wax feels heavy and gel sets too hard.', go: 'See the products →', href: '/shop/gel-wax', c: 'var(--purple)' },
-      { en: 'WAX', h: 'Nourishing Wax', lvl: 4, p: 'Strong hold with conditioning — shea butter and argan oil. Made for daily use.', go: 'See the products →', pick: 'hold:4', c: 'var(--green)' },
-      { en: 'MEGA', h: 'Mega Hold', lvl: 5, p: 'The strongest we make. The style stays put no matter how long the day runs.', go: 'See the products →', pick: 'hold:5', c: 'var(--red-ui)' },
+      { en: 'WAX PRO', h: 'Pro Wax', lvl: 4, p: 'The strongest wax we make — Pro X and Pro. Firm hold with texture, and it stays workable in your hands all day.', go: 'See the products →', pick: 'wax:4', c: 'var(--red-ui)' },
+      { en: 'WAX CARE', h: 'Nourishing Wax', lvl: 3, p: 'Medium hold that stays flexible, with conditioning — shea butter, argan and black. Rework your hair at any point in the day.', go: 'See the products →', pick: 'wax:3', c: 'var(--green)' },
     ],
     or_h: 'Order in', or_h_red: 'one minute',
     or_p: 'No account, no maze. Pick your product, add it to the cart, and finish checkout — cash on delivery.',
@@ -97,9 +104,8 @@ const T = {
     or_cta: 'Start shopping',
     bb_h: 'The quality', bb_h_red: 'barbers', bb_h2: 'trust',
     bb_p: 'The same grade of product barbers work with — delivered to your door.',
-    annc: ['Delivery to your door', 'Cash on delivery', 'Order in a minute on the site'],
     px_k: 'Star of the line ★ Pro X', px_h: 'The red that', px_h_red: 'means it',
-    px_p: 'Pro X wax — the Wave & Groom formula with mega hold. Your hair stays exactly where you set it in the morning, until you are back home.',
+    px_p: 'Pro X wax — the Wave & Groom formula with a strong hold, the strongest wax in the line. Your hair stays exactly where you set it in the morning, until you are back home.',
     px_s: ['Hold strength', 'Jar size', 'In the formula'],
     cart_t: 'Your cart', cart_close: 'Close',
     cart_empty: 'Your cart is empty', cart_empty_p: 'Add a product to start your order.',
@@ -298,11 +304,32 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
     })
     .filter(Boolean);
 
-  // A filter is either 'all', a product kind, or 'hold:N'. The hold picker
-  // uses the last form so it can offer real strength bands instead of
-  // categories the catalogue does not stock.
-  const inFilter = (f, p) =>
-    f === 'all' || (f.startsWith('hold:') ? p.hold === Number(f.slice(5)) : p.kind === f);
+  // A filter is one of four things: 'all', a product kind ('wax'), a hold band
+  // across every format ('hold:N'), or a kind and a band together ('wax:3').
+  //
+  // The compound form exists because hold is a single range-wide scale now
+  // rather than a per-format one, which makes a bare band far too coarse to
+  // stand behind a tile. 'hold:3' is not "the nourishing waxes" — it is every
+  // gel wax, every cream gel and the whole 135ml wax shelf as well, a dozen
+  // products the tile's own copy never mentions. Naming the format alongside
+  // the band is the only way a tile can say "the softer end of the wax" and
+  // then show exactly that.
+  //
+  // Anything that does not match the shape selects nothing at all. Every
+  // filter here is authored in this file, so an unrecognised one is a typo,
+  // and a typo that fell through to "match everything" would quietly put the
+  // entire catalogue under a heading promising one strength — which is the
+  // failure this whole section exists to prevent.
+  const FILTER = /^([a-z]+)(?::([1-5]))?$/;
+  const inFilter = (f, p) => {
+    if (f === 'all') return true;
+    const m = FILTER.exec(f);
+    if (!m) return false;
+    const [, name, band] = m;
+    if (!band) return p.kind === name;
+    if (name === 'hold') return p.hold === Number(band);
+    return p.kind === name && p.hold === Number(band);
+  };
 
   // The home grid is a shortlist, not the catalogue. With 32 products live it
   // buried the ones the brand leads with, and it made the page enormous.
@@ -324,7 +351,11 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
     .map(h => (h.href ? { ...h, n: 1 } : { ...h, n: products.filter(p => inFilter(h.pick, p)).length }))
     .filter(h => h.n > 0);
 
-  const holdFilter = filter.startsWith('hold:') ? filter.slice(5) : null;
+  // The band showing in the "Hold 4/5 ×" chip, read out of whichever form of
+  // filter is live. It has to understand the compound form too: none of the
+  // kind tabs light up for 'wax:3', so without the chip the grid would sit
+  // there filtered with nothing on screen saying so and no way back to all.
+  const holdFilter = FILTER.exec(filter)?.[2] || null;
   const hero = products.find(p => p.sku === 'S7-WAX-RED') || products[0];
 
   const tile = hairTypes.find(t => t.slug === hair) || hairTypes[0];
@@ -355,14 +386,6 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
 
   return (
     <div className="s7home" ref={root}>
-      <div className="annc">
-        <div className="annc-in">
-          {d.annc.map((x, i) => (
-            <span key={i}>{i > 0 && <i>★</i>}<b>{x}</b></span>
-          ))}
-        </div>
-      </div>
-
       {/* ----------------------------------------------------------- hero */}
       <header className="hero" id="top">
         <div className="wrap">
@@ -487,8 +510,14 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
                 {d.px_h} <span className="red">{d.px_h_red}</span>
               </h2>
               <p>{d.px_p}</p>
+              {/* The hold badge reads STRONG, not MEGA. Ovanza rate Pro X
+                  Strong, which is why the jar lost its "Mega Hold" chip in the
+                  database — and a badge here saying otherwise would contradict
+                  the chip and the 4-of-5 meter on the product's own page. Mega
+                  is still fair for the range, where the gels sit above this;
+                  it is no longer fair for this jar. */}
               <div className="spec">
-                {[['MEGA', d.px_s[0]], ['120ml', d.px_s[1]], ['VIT E', d.px_s[2]]].map(([b, s]) => (
+                {[['STRONG', d.px_s[0]], ['120ml', d.px_s[1]], ['VIT E', d.px_s[2]]].map(([b, s]) => (
                   <div key={b}><b dir="ltr">{b}</b><span>{s}</span></div>
                 ))}
               </div>

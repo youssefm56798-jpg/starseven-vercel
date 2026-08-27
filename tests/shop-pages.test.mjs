@@ -169,6 +169,53 @@ test('moving between shop categories does not play the page transition', async (
   }
 });
 
+test('arriving where the cover was skipped does not play the reveal on its own', async () => {
+  // The transition is two halves and only the first one was being skipped. The
+  // click handler already refused to hijack a move between two shop paths, so
+  // no panel ever rose on a filter chip - but the arrival effect answered to
+  // any pathname change at all, so the second half still ran and swept a panel
+  // up over a page that had never been covered. Every chip flashed it, and so
+  // did every browser back and forward. What holds the two halves together is
+  // a latch: the cover records that it ran, the arrival refuses to reveal
+  // anything unless it did, and the pageshow/popstate failsafe puts the latch
+  // back down. Read as text for the same reason as the test above: PageWipe is
+  // a client component and imports next/navigation.
+  const { readFileSync } = await import('node:fs');
+  const { join } = await import('node:path');
+  const root = new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1');
+  const src = readFileSync(join(root, 'app/_components/PageWipe.js'), 'utf8');
+
+  // Each effect body, in source order: leaving, arriving, then the failsafe.
+  const effects = src.split(/useEffect\s*\(/).slice(1);
+  const leaving = effects.find(b => b.includes('isPlainInternalLink'));
+  const arrival = effects.find(b => /setAttribute\(\s*['"]data-enter['"]/.test(b));
+  const failsafe = effects.find(b => b.includes('pageshow') && b.includes('popstate'));
+  assert.ok(leaving, 'nothing starts the cover on a click any more');
+  assert.ok(arrival, 'nothing arms the reveal any more');
+  assert.ok(failsafe, 'the pageshow/popstate failsafe is gone');
+
+  // The latch names itself: the arrival bails out on a ref that says nothing is
+  // covering the page. Whatever it is called, the rest has to agree with it.
+  const bail = arrival.match(/if\s*\(\s*!\s*([A-Za-z_$][\w$]*)\s*\.current\s*\)\s*return/);
+  assert.ok(bail, 'the reveal plays without asking whether anything was covered');
+  const name = bail[1].replace(/\$/g, '\\$&');
+  const raised = new RegExp(`${name}\\.current\\s*=\\s*true`);
+  const lowered = new RegExp(`${name}\\.current\\s*=\\s*false`);
+
+  assert.match(src, new RegExp(`const\\s+${name}\\s*=\\s*useRef\\(\\s*false\\s*\\)`),
+    `${bail[1]} is not a ref that starts out down`);
+  assert.ok(arrival.indexOf(bail[0]) < arrival.search(/setAttribute\(\s*['"]data-enter['"]/),
+    'the reveal is armed before the guard gets a chance to stop it');
+  assert.match(arrival, lowered, 'one cover would arm every later arrival');
+
+  assert.match(leaving, raised, 'the cover no longer records that it ran');
+  assert.ok(leaving.search(raised) > leaving.indexOf('isPlainInternalLink'),
+    'the cover claims to have run before deciding whether it should run at all');
+
+  assert.match(failsafe, lowered,
+    'back and forward leave the latch up, so the next arrival reveals a page nobody covered');
+});
+
 test('liveCategories offers only what is switched on, in display order', () => {
   assert.deepEqual(liveCategories(['gel', 'wax']).map(c => c.slug), ['wax', 'gel']);
   assert.deepEqual(liveCategories(['cream', 'gelwax']).map(c => c.slug), ['gel-wax', 'cream-gel']);

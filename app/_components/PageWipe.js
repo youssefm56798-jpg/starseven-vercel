@@ -71,6 +71,17 @@ export default function PageWipe() {
   // it would flash a panel over a page the visitor can already see.
   const first = useRef(true);
 
+  // The same reasoning, for every other arrival nothing covered.
+  //
+  // The reveal used to fire on any pathname change, which meant the half of
+  // the transition that is a panel sweeping up over the page still played on
+  // navigations the cover had deliberately skipped - moving between shop
+  // categories above all, where a chip is a filter and 620ms of panel is the
+  // whole complaint. Back and forward had it too.
+  //
+  // So the cover records that it ran, and the reveal only answers to that.
+  const covered = useRef(false);
+
   // Depend on the query STRING, not the object. useSearchParams() hands back a
   // fresh instance on every render, so using it directly as a dependency
   // re-fires the arrival effect on unrelated re-renders — which yanked the
@@ -96,6 +107,7 @@ export default function PageWipe() {
 
       e.preventDefault();
       leaving = true;
+      covered.current = true;
       document.documentElement.classList.add('s7-leaving');
 
       // The timeout is the source of truth: if the animation is throttled or
@@ -125,6 +137,8 @@ export default function PageWipe() {
   useEffect(() => {
     if (first.current) { first.current = false; return; }
     if (reduced()) return;
+    if (!covered.current) return;   // nothing to reveal
+    covered.current = false;
 
     // Arm the reveal and drop the covering class in the SAME frame. Doing it
     // through React state instead would let the panel fall back to its
@@ -150,6 +164,7 @@ export default function PageWipe() {
      waiting for. */
   useEffect(() => {
     const clear = () => {
+      covered.current = false;
       document.documentElement.classList.remove('s7-leaving');
       panel.current?.removeAttribute('data-enter');
     };

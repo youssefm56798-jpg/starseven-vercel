@@ -143,7 +143,10 @@ button{font:inherit;cursor:pointer}
 .card .buy:hover{background:var(--c);color:#fff}
 .card .buy.added{background:var(--green);color:#fff}
 .card-hit{display:flex;flex-direction:column}
-.card-hit:hover h3{color:var(--red-ui)}
+/* The title used to go red on hover. The whole card already lifts, tints its
+   border and warms its wash, so recolouring the name on top of that was the
+   one change that read as a state rather than a hover. */
+.card-hit:hover h3{color:inherit}
 
 /* filter chips */
 .chips{display:flex;gap:8px;flex-wrap:wrap;padding-bottom:6px}
@@ -175,6 +178,19 @@ button{font:inherit;cursor:pointer}
 .spec span{font-size:11.5px;color:var(--grey);font-weight:700}
 .pdp-note{background:var(--paper-2);border-radius:14px;padding:18px 20px;font-size:14px;font-weight:600;color:var(--ink)}
 .pdp-note b{color:var(--red-ui)}
+
+/* The way back to the category, sitting above the breadcrumb. Quiet on
+   purpose: it is an escape hatch, not a call to action, so it carries the same
+   weight as the finder's way out to the guides and never competes with the buy
+   button. Only the colour moves on hover, so nothing under it shifts. */
+.pdp-back{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:800;
+  color:var(--grey);text-decoration:none;margin-bottom:10px;transition:color .2s}
+.pdp-back:hover{color:var(--ink)}
+/* The arrow points the way the page reads rather than the way the sentence was
+   written, so it is content on a pseudo-element that the direction swaps —
+   which also puts it on the correct side without a second rule. */
+.pdp-back::before{content:"←";font-size:12px;opacity:.55}
+[dir="rtl"] .pdp-back::before{content:"→"}
 
 /* blog list */
 .bloglist{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;padding:34px 0 70px}

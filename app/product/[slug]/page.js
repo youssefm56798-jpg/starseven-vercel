@@ -9,6 +9,7 @@ import { renderMarkdown } from '../../../lib/markdown.js';
 import { productFaq, faqJsonLd } from '../../../lib/faq.js';
 import { Dir, Nav, Footer, Crumb } from '../../_components/Chrome.js';
 import AddButton from '../../_components/AddButton.js';
+import { CATEGORIES, shopPath } from '../../shop/lib.js';
 
 export const revalidate = 60;
 
@@ -79,6 +80,19 @@ export default async function ProductPage({ params, searchParams }) {
   // A price of zero is a product the client has not priced yet, not a free
   // one. It is listed so the range is complete, but it cannot be bought.
   const priced = Number(p.price) > 0;
+
+  // The way back out of the page, and deliberately a real href rather than a
+  // history.back(): most visitors arrive here cold from a search result or a
+  // shared link, where there is no shop page behind them to go back to and the
+  // control would either do nothing or throw them off the site. Pointing at
+  // the category this jar belongs to always lands somewhere useful, and it is
+  // a link a crawler can follow back into the shop. The `kind` column is an
+  // internal enum, so the category owns the translation from it to a URL.
+  const category = CATEGORIES.find(c => c.kind === p.kind) || null;
+  const backHref = category ? shopPath(category.slug) : '/shop';
+  const backLabel = category
+    ? (ar ? category.crumb.ar : category.crumb.en)
+    : (ar ? 'المنتجات' : 'Shop');
 
   // First slug in the CSV is the primary recommendation for this jar.
   const hairSlugs = String(p.hair_types || '').split(',').map(s => s.trim()).filter(Boolean);
@@ -161,6 +175,12 @@ export default async function ProductPage({ params, searchParams }) {
 
       <div className="phead">
         <div className="wrap">
+          {/* The arrow lives in CSS, not in this string: it has to point the
+              way the page reads, and that is a property of the direction
+              rather than of the translation. */}
+          <Link className="pdp-back" href={L(backHref)}>
+            {ar ? `رجوع لـ ${backLabel}` : `Back to ${backLabel}`}
+          </Link>
           <Crumb lang={lang} trail={[{ label: ar ? 'المنتجات' : 'Shop', href: '/shop' }, { label: name }]} />
         </div>
       </div>
