@@ -46,6 +46,13 @@ const nextConfig = {
       source: '/:path*',
       headers: [
         { key: 'Content-Security-Policy', value: csp },
+        // HTTPS-only, for two years, subdomains included. Vercel already sends
+        // this on its own *.vercel.app domains; declaring it here means the apex
+        // custom domain (ovanzacosmetics.com) is covered the day it is pointed
+        // at this app, rather than being remembered separately at cutover. No
+        // preload directive - that is a listing commitment for the owner to
+        // make deliberately, not a default to ship.
+        { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains' },
         { key: 'X-Content-Type-Options', value: 'nosniff' },
         { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
         { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
