@@ -66,12 +66,14 @@ export function finishCounts(rows) {
 }
 
 /* ------------------------------------------------------------------ gaps ---
- * docs/hair-style-research.md §4 closes on two things the range does not
- * contain: a clay or matte paste, and a mousse or pre-styling primer. Four of
- * the six tiles feel one of them. Saying so on the tile that feels it is the
- * only honest way to present a style finder backed by five waxes and three
- * gels — the tile still gets the best answer that exists, and the customer is
- * told it is the best that exists rather than the thing built for them.
+ * docs/hair-style-research.md §4 closes on the products the range does not
+ * contain: a clay or matte paste (the textured crop), a curl cream or leave-in
+ * (defined curls), a mousse or pre-styling primer (the quiff), and a light
+ * cream or sea-salt spray (curtains). Four of the six tiles feel one of these.
+ * Saying so on the tile that feels it is the only honest way to present a style
+ * finder backed by five waxes and three gels — the tile still gets the best
+ * answer that exists, and the customer is told it is the best that exists
+ * rather than the thing built for them.
  *
  * This is the same admission /hair-types already makes on its fine tile, about
  * the same missing product. The two finders have to agree, and if these notes
@@ -82,9 +84,9 @@ const GAPS = {
     ar: 'ده أوضح نقص في التشكيلة، وهو نفس النقص اللي بنقوله في صفحة أنواع الشعر عن الشعر الخفيف: مفيش كلاي ومفيش حاجة مطفية. لو الكروب هو استايلك، المنتج اللي إنت عايزه لسه مش عندنا.',
     en: 'This is the biggest hole in the range, and it is the same one the hair-types page names for fine hair: no clay, nothing matte. If the crop is your look, we do not make your product yet.',
   },
-  spiky: {
-    ar: 'السبايكي الناشف المطفي اللي شايفه على تيك توك مش بيتعمل بجل. ده بيتعمل بكلاي أو معجون مطفي، ومفيش عندنا لا ده ولا ده. اللي عندنا بيعمل الشوكة اللامعة. دي استايل كويس، بس مش اللي شايفه.',
-    en: 'The dry matte spike you see on TikTok is not made with gel. It is made with clay or a matte paste and we do not make either. What is here gives you the glossy spike. That is a good look, but it is not the one on your screen.',
+  curtains: {
+    ar: 'الكيرتن الأصح ليه كريم خفيف أو سبراي ملح بحر، وإحنا مش بنعمل لا ده ولا ده. واكس الشيا أقرب حاجة عندنا — خفيف وأقل واحد لامع في التشكيلة — بس هو واكس، مش الكريم الخفيف اللي الاستايل ده محتاجه فعلاً.',
+    en: 'A centre part is really built for a light cream or a sea-salt spray, and we do not make either. The Shea is the closest thing here — light, and the least shiny in the range — but it is a wax, not the light cream this look actually wants.',
   },
   'defined-curls': {
     ar: 'مفيش عندنا كريم كيرلي ولا ليڤ-إن، ودول اللي بيعملوا الترطيب الحقيقي. الواكس ده بيقفل الرطوبة اللي في شعرك جوه — هو مش بيضيف رطوبة. عشان كده لازم يتحط والشعر لسه مبلول، وإلا مفيش حاجة يقفل عليها.',

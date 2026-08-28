@@ -343,6 +343,35 @@ export default async function ProductView({ slug, lang }) {
             </div>
           </div>
 
+          {/* Ingredients. The list itself is not translated — INCI names are
+              Latin and read the same in both languages — so only the heading
+              and the note around it are bilingual. Guarded on the field: most
+              products have no transcribed pack list and show an honest note
+              instead of an invented one, and the page must not break for them. */}
+          <section className="pdp-sec pdp-ingredients">
+            <h2>{ar ? 'المكونات' : 'Ingredients'}</h2>
+            {p.ingredients ? (
+              <>
+                {/* Rendered verbatim and forced ltr: it is shown exactly as it
+                    is printed on the pack, down to the +/- colourant markers. */}
+                <p className="pdp-inci" dir="ltr">{p.ingredients}</p>
+                <p className="pdp-ingredients-note">
+                  {ar ? (
+                    <>الليستة دي متنقولة زي ما هي من على العلبة. أي مكوّن قبله <bdi>+/–</bdi> ده لون ممكن يكون موجود وممكن لأ.</>
+                  ) : (
+                    <>Copied straight off the pack. Any ingredient marked +/– is a colourant that may or may not be present.</>
+                  )}
+                </p>
+              </>
+            ) : (
+              <p className="pdp-ingredients-note">
+                {ar
+                  ? 'الليستة الكاملة مطبوعة على العلبة. هننزلها هنا لما توصلنا من المصنع.'
+                  : 'The full list is printed on the pack. We will publish it here once the maker sends it.'}
+              </p>
+            )}
+          </section>
+
           <div className="pdp-trust">
             <div>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">

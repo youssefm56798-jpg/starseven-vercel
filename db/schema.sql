@@ -54,6 +54,11 @@ CREATE TABLE IF NOT EXISTS products (
   howto_en       TEXT NOT NULL DEFAULT '',
   highlights_ar  TEXT NOT NULL DEFAULT '',
   highlights_en  TEXT NOT NULL DEFAULT '',
+  -- The verbatim ingredient list, read off the printed pack. INCI names are
+  -- Latin and read the same in both languages, so this is one field, not a
+  -- bilingual pair. Empty for any product whose pack list has not been
+  -- transcribed yet, and the page shows an honest note rather than a guess.
+  ingredients    TEXT NOT NULL DEFAULT '',
   created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS idx_products_live ON products (active, sort);
@@ -66,6 +71,7 @@ ALTER TABLE products ADD COLUMN IF NOT EXISTS howto_ar      TEXT NOT NULL DEFAUL
 ALTER TABLE products ADD COLUMN IF NOT EXISTS howto_en      TEXT NOT NULL DEFAULT '';
 ALTER TABLE products ADD COLUMN IF NOT EXISTS highlights_ar TEXT NOT NULL DEFAULT '';
 ALTER TABLE products ADD COLUMN IF NOT EXISTS highlights_en TEXT NOT NULL DEFAULT '';
+ALTER TABLE products ADD COLUMN IF NOT EXISTS ingredients   TEXT NOT NULL DEFAULT '';
 
 -- The catalogue grew past wax and gel. Ovanza also makes a gel-wax hybrid, a
 -- cream gel, a hair spray and a depilatory range, and an existing database

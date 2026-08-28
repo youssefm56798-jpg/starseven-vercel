@@ -7,6 +7,7 @@ import { site } from '../../lib/config.js';
 import { currencyLabel, whole } from '../../lib/money.js';
 import { Dir, Nav, Footer, Crumb, shopCategories } from '../_components/Chrome.js';
 import AddButton from '../_components/AddButton.js';
+import { QuickViewProvider, QuickViewButton } from '../_components/QuickView.js';
 
 /**
  * The shop, rendered once and mounted at three addresses.
@@ -164,11 +165,34 @@ export default async function ShopView({ kind, lang }) {
             {ar ? 'مفيش منتجات في القسم ده حالياً.' : 'No products in this category yet.'}
           </div>
         ) : (
+          // One dialog for the whole grid, held by the provider that wraps it.
+          // Each card carries only the trigger; the clicked product's fields
+          // travel up through context into that single dialog.
+          <QuickViewProvider lang={lang}>
           <div className="grid">
             {products.map(p => {
               const name = ar ? p.name_ar : p.name_en;
               const sub = ar ? p.sub_ar : p.sub_en;
               const chip = ar ? p.chip_ar : p.chip_en;
+              // The serialisable payload the client trigger hands to the dialog.
+              // Resolved for this language here, because the trigger is a client
+              // component and cannot re-read the row. Highlights are the same
+              // newline-split field the product page shows "in short".
+              const highlights = String((ar ? p.highlights_ar : p.highlights_en) || '')
+                .split('\n').map(s => s.trim()).filter(Boolean);
+              const quick = {
+                name, sub, chip,
+                image: p.image,
+                price: Number(p.price),
+                compareAt: p.compare_at,
+                slug: p.slug,
+                sku: p.sku,
+                kind: p.kind,
+                color: p.color,
+                hold: p.hold_level,
+                sizeMl: p.size_ml,
+                highlights,
+              };
               return (
                 <div className="card" key={p.sku} style={{ '--c': p.color }}>
                   <Link className="card-hit" href={L(`/product/${p.slug}`)}>
@@ -177,6 +201,9 @@ export default async function ShopView({ kind, lang }) {
                     <h3>{name}</h3>
                     <div className="sub">{sub}</div>
                   </Link>
+                  {/* Sibling of the link, not a child of it, so opening the
+                      quick view never triggers the card navigation. */}
+                  <QuickViewButton product={quick} lang={lang} />
                   <div className="foot">
                     {/* A price of zero is not free — it is a product the client
                         has not priced yet. The catalogue still shows it, but
@@ -204,6 +231,7 @@ export default async function ShopView({ kind, lang }) {
               );
             })}
           </div>
+          </QuickViewProvider>
         )}
 
         {/* Every category page hands the crawler — and the customer who landed

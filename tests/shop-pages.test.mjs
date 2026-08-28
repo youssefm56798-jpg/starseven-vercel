@@ -454,3 +454,74 @@ test('the nav submenu is generated, not a hand-written pair of links', async () 
   assert.doesNotMatch(src, /['"`]\/shop\/(wax|gel)['"`]/,
     'a category is hard-coded into the nav or the footer again');
 });
+
+test('the quick view is one state-driven dialog wired onto every card', async () => {
+  // The quick view opens a product without leaving /shop. The whole point of the
+  // shape is that there is exactly one dialog for the grid, not one per card, so
+  // this holds the parts that quietly regress into sixty-three modals or a
+  // trigger that navigates instead of opening: the grid is wrapped in the
+  // provider that owns the single dialog, the trigger is a sibling of the card
+  // link rather than a child of it, and the dialog carries the accessibility a
+  // modal needs. Read as text - QuickView is a client component that imports
+  // next/link, and view.js is a server component that imports the database.
+  const { readFileSync } = await import('node:fs');
+  const { join } = await import('node:path');
+  const root = new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1');
+  const read = rel => readFileSync(join(root, rel), 'utf8');
+
+  const view = read('app/shop/view.js');
+  const qv = read('app/_components/QuickView.js');
+  const css = read('app/_components/quickview.css');
+
+  // The grid is wrapped in the provider, and the trigger renders on the card.
+  const provOpen = view.indexOf('<QuickViewProvider');
+  const gridAt = view.indexOf('className="grid"');
+  assert.ok(provOpen !== -1 && gridAt !== -1 && provOpen < gridAt,
+    'the single-dialog provider does not wrap the shop grid');
+  assert.ok(view.includes('<QuickViewButton'), 'no quick view trigger renders on the card');
+
+  // The trigger must be a sibling of the card <Link>, not inside it: nested in
+  // the anchor a click would navigate to the product page instead of opening
+  // the dialog. So a </Link> must close between the card link and the trigger.
+  const cardHit = view.indexOf('card-hit');
+  const triggerAt = view.indexOf('<QuickViewButton');
+  assert.ok(cardHit !== -1 && triggerAt > cardHit, 'the trigger is not placed after the card link');
+  assert.ok(view.slice(cardHit, triggerAt).includes('</Link>'),
+    'the quick view trigger sits inside the card <Link>, so opening it would navigate away');
+
+  // A client component.
+  assert.match(qv, /^['"]use client['"]/, 'QuickView is not a client component');
+
+  // One dialog, mounted once and returning null while closed rather than a modal
+  // per product: the provider renders a single <QuickViewModal>.
+  assert.match(qv, /<QuickViewModal\b/, 'the provider does not render a single dialog');
+  const modalTags = (qv.match(/<QuickViewModal\b/g) || []).length;
+  assert.equal(modalTags, 1, 'more than one dialog instance is rendered');
+
+  // The dialog is a labelled modal dialog.
+  assert.match(qv, /role=["']dialog["']/, 'the dialog has no dialog role');
+  assert.match(qv, /aria-modal=["']true["']/, 'the dialog is not marked modal');
+  assert.match(qv, /aria-labelledby=/, 'the dialog is not labelled by its title');
+
+  // Esc closes, Tab is trapped, the page behind is scroll-locked, and focus
+  // returns to the trigger on close.
+  assert.match(qv, /['"]Escape['"]/, 'Esc does not close the dialog');
+  assert.match(qv, /['"]Tab['"]/, 'focus is not trapped on Tab');
+  assert.match(qv, /\.style\.overflow\s*=/, 'the page behind is not scroll-locked while open');
+  assert.match(qv, /triggerRef\.current[\s\S]{0,140}\.focus\(\)/,
+    'focus does not return to the trigger when the dialog closes');
+
+  // A priced product gets add-to-cart; an unpriced one gets the WhatsApp ask
+  // path and no buy button - the same split the card makes.
+  assert.match(qv, /Number\(product\.price\)\s*>\s*0/, 'the dialog does not branch on whether the product is priced');
+  assert.match(qv, /AddButton/, 'a priced product cannot be added to cart from the dialog');
+  assert.match(qv, /wa\.me/, 'an unpriced product has no WhatsApp ask path');
+
+  // The full-details link is language-aware, so the English dialog links the
+  // English page. It goes through the localePath helper, aliased L here.
+  assert.match(qv, /localePath/, 'the dialog does not import localePath for language-aware links');
+  assert.match(qv, /L\(\s*`\/product\//, 'the full details link is not built through the locale helper');
+
+  // Reduced motion is honoured, and only in the stylesheet.
+  assert.match(css, /prefers-reduced-motion/, 'the quick view ignores prefers-reduced-motion');
+});

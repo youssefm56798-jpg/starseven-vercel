@@ -475,6 +475,17 @@ button{font:inherit;cursor:pointer}
   font-size:13.5px;font-weight:600;color:var(--grey)}
 .pdp-alsofor b{color:var(--ink);font-weight:900;margin-inline-end:4px}
 
+/* Ingredients — the INCI list is Latin and always rendered ltr. The verbatim
+   run sits in a bordered panel so a long single string reads as a deliberate
+   block rather than a runaway sentence, and overflow-wrap keeps it inside the
+   panel on a narrow screen. The compound selectors beat .pdp-sec p, which would
+   otherwise push its own grey and size onto the panel text. */
+.pdp-ingredients .pdp-inci{background:var(--paper-2);border:1.5px solid var(--line);
+  border-radius:14px;padding:15px 18px;margin-bottom:12px;
+  color:var(--ink);font-size:14.5px;font-weight:600;line-height:1.95;
+  word-break:break-word;overflow-wrap:anywhere}
+.pdp-ingredients .pdp-ingredients-note{color:var(--grey);font-size:13px;font-weight:600;line-height:1.65}
+
 /* 404 and the error boundary. Both replace a whole page, so they carry their
    own vertical rhythm rather than relying on a layout that may not have run. */
 .nf{max-width:640px;margin-inline:auto;padding:90px 0 120px;text-align:center}

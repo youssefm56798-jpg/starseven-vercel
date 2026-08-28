@@ -2072,3 +2072,22 @@ WHERE sku = 'S7-WAX-BLK' AND long_en LIKE '%fully **matte** formula%';
 -- ---------------------------------------------------------------------------
 UPDATE products SET color = '#BB902B' WHERE sku = 'S7-HS500-ULTRAS' AND color = '#936701';
 UPDATE products SET color = '#CC261A' WHERE sku = 'S7-HS500-STRONG' AND color = '#966801';
+
+-- ---------------------------------------------------------------------------
+--  Ingredient lists for the five waxes
+--
+--  Verbatim from the printed pack, transcribed in docs/product-facts.md. INCI
+--  names are Latin and read the same in both languages, so this is one field.
+--  Guarded on ingredients = the empty string, so a re-run is a no-op and any
+--  edit made in the admin survives. Only the five waxes have a photographed
+--  panel; every other product is left empty on purpose and the page shows an
+--  honest note rather than an invented list.
+--
+--  The separators are EN DASH (U+2013) and the +/- colourant markers are kept
+--  exactly as the pack prints them. Do not normalise them.
+-- ---------------------------------------------------------------------------
+UPDATE products SET ingredients = 'Microcrystalline wax – Bees wax – Petrolatum – Paraffinum Liquidum – Propyl Paraben – BHT–Tocopheryl acetate – Lanolin – parfum – isopropyl myristate – +/– CI 15850 – +/– CI 61565 – +/– CI 47005 – +/– CI 73015 – +/– CI 77266' WHERE sku = 'S7-WAX-RED' AND ingredients = '';
+UPDATE products SET ingredients = 'Microcrystalline wax – Bees wax – Petrolatum – Paraffinum Liquidum – Propyl Paraben – BHT–Tocopheryl acetate – Lanolin – Parfume – isopropyl myristate – +/– CI 15850 – +/– CI 61565 – +/– CI 47005 – +/– CI 73015 – +/– CI 77266' WHERE sku = 'S7-WAX-YEL' AND ingredients = '';
+UPDATE products SET ingredients = 'Microcrystalline wax – Bees wax – Petrolatum – Paraffinum Liquidum – Propyl Paraben – BHT–Tocopheryl acetate – Lanolin – Parfume – butyrospermum parkii [butter] – isopropyl myristate – +/– CI 15850 – +/– CI 61565 – +/– CI 47005 – +/– CI 73015 – +/– CI 77266' WHERE sku = 'S7-WAX-PUR' AND ingredients = '';
+UPDATE products SET ingredients = 'Microcrystalline wax – Bees wax – Petrolatum – Paraffinum Liquidum – Propyl Paraben – BHT–Tocopheryl acetate – Lanolin – Parfum – isopropyl myristate – Nigella Sativa seed oil – +/– CI 77266' WHERE sku = 'S7-WAX-BLK' AND ingredients = '';
+UPDATE products SET ingredients = 'Microcrystalline wax – Bees wax – Petrolatum – Paraffinum Liquidum – Propyl Paraben – BHT – Tocopheryl acetate – Lanolin – Parfume – Argania Spinosa Kernel Oil – isopropyl myristate – +/– CI 15850 – +/– CI 61565 – +/– CI 47005 – +/– CI 73015 – +/– CI 77266' WHERE sku = 'S7-WAX-BLU' AND ingredients = '';
