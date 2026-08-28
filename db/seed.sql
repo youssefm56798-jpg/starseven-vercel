@@ -1893,6 +1893,11 @@ UPDATE products
 -- ---------------------------------------------------------------------------
 UPDATE products SET hold_level = 4 WHERE sku = 'S7-WAX-RED' AND hold_level = 5;
 UPDATE products SET hold_level = 4 WHERE sku = 'S7-WAX-YEL' AND hold_level = 5;
+-- Black Seed was missed in the first pass: its chip, subtitle and hair-type
+-- mapping were corrected by their own guarded updates below, but its hold was
+-- only changed in the INSERT literal, which does nothing to a row that already
+-- exists. So production kept the old 5. Ovanza rate it Medium, which is 3.
+UPDATE products SET hold_level = 3 WHERE sku = 'S7-WAX-BLK' AND hold_level = 5;
 UPDATE products SET hold_level = 3 WHERE sku = 'S7-WAX-PUR' AND hold_level = 4;
 UPDATE products SET hold_level = 3 WHERE sku = 'S7-WAX-BLU' AND hold_level = 4;
 UPDATE products SET hold_level = 5 WHERE sku = 'S7-GEL-YEL' AND hold_level = 3;
