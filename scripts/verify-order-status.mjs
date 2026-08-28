@@ -249,6 +249,34 @@ try {
       (await eventsFor(orderId)).map(e => `${e.kind}:${e.to_status || e.note}`),
       ['status:confirmed', 'note:customer rang back', 'status:shipped']);
   }
+  /* ------------------------------------------------------------------ 10 */
+
+  console.log('
+  two cancels landing at once (the double-submit race)');
+  {
+    const { orderId, productId } = await mkOrder('confirmed', 'SAVE10', 3);
+    check('stock before', await stockOf(productId), 10);
+    check('coupon uses before', await usesOf('SAVE10'), 4);
+
+    // Both start from 'confirmed'; each transition is its own transaction at
+    // READ COMMITTED. Fired together, the guard must let exactly one win. The
+    // bug this guards against: the guard used to test before.was — the value
+    // the CTE read at statement start — so two overlapping cancels both saw
+    // 'confirmed', both passed, and stock was credited twice. The guard now
+    // tests the LIVE o.status, which Postgres re-evaluates (EvalPlanQual)
+    // against the row as the winner just left it, so the loser matches nothing
+    // and its whole batch aborts. The invariant below holds on every run; the
+    // pre-fix failure only surfaced when the two happened to overlap.
+    const race = () => transition({ orderId, to: 'cancelled', actor: 'race' })
+      .catch(e => ({ ok: false, threw: String((e && e.message) || e) }));
+    const results = await Promise.all([race(), race()]);
+    check('exactly one cancel took effect', results.filter(r => r.ok).length, 1);
+    check('status is cancelled', await statusOf(orderId), 'cancelled');
+    check('stock credited exactly once', await stockOf(productId), 13);
+    check('coupon credited exactly once', await usesOf('SAVE10'), 3);
+    check('exactly one audit row', (await eventsFor(orderId)).length, 1);
+  }
+
 } finally {
   // FORCE terminates anything still attached. The HTTP driver holds no
   // persistent connection, so this is belt and braces.
