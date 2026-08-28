@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-hidden="true">
+  <!-- A right-facing head whose hair is parted near the crown and falls away from that
+       point in two directions: one sweep drops forward over the forehead down to the brow,
+       the other runs back over the ear. The fringe covering the forehead, instead of
+       sitting clear of it like every other style here, is what names the middle-part
+       curtain look, and the medium length is drawn by carrying the strands well down. -->
+  <!-- currentColor, resolved to ink by the color attribute below, so the file still
+       reads as an ink drawing when it is loaded as an <img> on the style detail hero,
+       which inherits nothing from the page around it. On the cards and the home strip
+       the same file is a CSS mask, where only the alpha matters and the tile paints it. -->
+  <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" color="#12100B" transform="translate(-2.5 0.5)">
+    <path stroke-width="2.4" d="M33.8 19.6 L34.6 21.4 L37 24.2 L34.2 25.4 C35 26.8 34.4 29.4 33 30.8 C32.2 31.6 31.8 32.8 31 33.6 C30.4 34.2 29.8 34.6 29.4 35.4 L29.4 41 L21.6 41 L21.6 33.2 C20.2 32 18.2 31 17 28.4 C15 25 14.4 19 15.6 15 C16.6 11 19.4 7.8 24 7.2 C27.6 6.8 31 8.4 32.6 11.4 C33.6 13.4 34.6 16.4 33.8 19.6 Z"/>
+    <path stroke-width="2" d="M27.5 8 C29 11.4 31 15.4 33.2 19"/>
+    <path stroke-width="2" d="M24.6 8 C22.6 11.6 21.4 15 21.6 18.8"/>
+    <path stroke-width="1.8" d="M26.2 7.6 C26.2 10.8 25.4 13.8 24.8 17.2"/>
+    <path stroke-width="1.6" d="M30.4 25.6 C28.8 25.8 28.8 28.4 30.4 28.4"/>
+  </g>
+</svg>

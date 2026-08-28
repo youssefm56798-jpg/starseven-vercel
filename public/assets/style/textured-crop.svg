@@ -1,17 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-hidden="true">
-  <!-- The crop is the gap tile, and the drawing says so before the words do: butt caps, so every stroke stops dead instead of tapering, and six lengths that end nowhere near each other so the hem is ragged rather than cut. All six lean the same way, which is the fringe pushed forward. Two short pieces below are the separation the look needs and the reason it cannot be done with anything that shines. -->
+  <!-- A right-facing head with a short, choppy top drawn as a jagged blunt-tipped edge and
+       a small fringe pushed forward onto the forehead. The chop and the forward fringe,
+       kept deliberately short and dry-looking, are the whole point of the crop, and the
+       reason the tile has to say out loud that the range cannot build one: everything in
+       it shines, and shine turns a crop from choppy into greasy. -->
   <!-- currentColor, resolved to ink by the color attribute below, so the file still
        reads as an ink drawing when it is loaded as an <img> on the style detail hero,
        which inherits nothing from the page around it. On the cards and the home strip
        the same file is a CSS mask, where only the alpha matters and the tile paints it. -->
-  <g fill="none" stroke="currentColor" stroke-linecap="butt" stroke-linejoin="round" color="#12100B">
-    <path stroke-width="3" d="M9.5 9.5 6.5 26"/>
-    <path stroke-width="3.6" d="M16 6.5 13.5 29.5"/>
-    <path stroke-width="2.6" d="M22.5 9 20 23.5"/>
-    <path stroke-width="3.4" d="M28.5 6 26.5 28.5"/>
-    <path stroke-width="2.9" d="M35 9.5 33 25.5"/>
-    <path stroke-width="2.4" d="M41 8 39.5 27"/>
-    <path stroke-width="2.2" d="M12 33.5 11 39"/>
-    <path stroke-width="2" d="M30.5 34.5 29.5 40"/>
+  <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" color="#12100B" transform="translate(-2.5 0.5)">
+    <path stroke-width="2.4" d="M33.5 16 L34.5 21.2 L37 24.2 L34.2 25.4 C35 26.8 34.4 29.4 33 30.8 C32.2 31.6 31.8 32.8 31 33.6 C30.4 34.2 29.8 34.6 29.4 35.4 L29.4 41 L21.6 41 L21.6 33.2 C20.2 32 18.2 31 17 28.4 C15.4 25 15.2 20 15.8 16.5 C16 14 17.4 12.6 19 13.4 L20.5 12 L21.8 13.6 L23.6 11.8 L25.2 13.4 L27 11.9 L28.8 13.5 L30.4 12.2 L32.4 13.6 L33.5 16 Z"/>
+    <path stroke-width="1.5" d="M20 14.5 L20.4 17.2"/>
+    <path stroke-width="1.5" d="M24 14 L24.2 16.8"/>
+    <path stroke-width="1.5" d="M28 14.2 L28 17"/>
+    <path stroke-width="1.7" d="M30.4 25.6 C28.8 25.8 28.8 28.4 30.4 28.4"/>
   </g>
 </svg>

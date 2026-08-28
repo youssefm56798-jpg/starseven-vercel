@@ -29,7 +29,7 @@ import {
 } from '../app/hair-styles/lib.js';
 import * as typeLib from '../app/hair-types/lib.js';
 
-const SLUGS = ['slick-back', 'spiky', 'defined-curls', 'fade-top', 'quiff', 'textured-crop'];
+const SLUGS = ['slick-back', 'low-taper-fade', 'defined-curls', 'curtains', 'quiff', 'textured-crop'];
 // lib/config.js falls back to this when NEXT_PUBLIC_SITE_URL is unset,
 // which is the case in tests.
 const BASE = 'http://localhost:3000';
@@ -123,8 +123,8 @@ test('matte is counted, because the index claims we make nothing matte', () => {
 
 /* ---------------------------------------------------------- range gaps */
 
-const ADMITTING = ['textured-crop', 'spiky', 'defined-curls', 'quiff'];
-const SERVED = ['slick-back', 'fade-top'];
+const ADMITTING = ['textured-crop', 'curtains', 'defined-curls', 'quiff'];
+const SERVED = ['slick-back', 'low-taper-fade'];
 
 test('the four tiles the research flags carry a gap note', () => {
   for (const slug of ADMITTING) {
@@ -165,15 +165,13 @@ test('an Arabic gap note is written in Arabic and states the absence', () => {
   }
 });
 
-test('the crop and the spiky tiles blame the same missing product as /hair-types', () => {
-  // Four of twelve tiles across the two finders now want one product that does
-  // not exist. If these two notes are ever softened they will contradict
+test('the crop tile blames the same missing product as /hair-types', () => {
+  // The crop and the fine-hair tile both want a clay or matte paste that does
+  // not exist. If either note is ever softened they will contradict
   // lib/hairtypes.js, which tells fine hair outright that what it wants is a
   // clay or a matte paste and that we do not sell one.
-  for (const slug of ['textured-crop', 'spiky']) {
-    assert.match(styleGap(slug, 'en'), /clay|matte/i, slug);
-    assert.match(styleGap(slug, 'ar'), /كلاي|مطفي|مطفية/, slug);
-  }
+  assert.match(styleGap('textured-crop', 'en'), /clay|matte/i);
+  assert.match(styleGap('textured-crop', 'ar'), /كلاي|مطفي|مطفية/);
   assert.match(typeLib.gapNote('fine', 'en'), /clay|matte/i);
 });
 

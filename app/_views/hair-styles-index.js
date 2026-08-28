@@ -80,15 +80,15 @@ export default async function HairStylesIndexView({ lang }) {
   const gaps = [
     counts.matte === 0
       ? (ar
-        ? 'مفيش حاجة مطفية في التشكيلة كلها. كل الواكس شمع وفازلين ومفيهاش سيليكا ولا نشا ولا كلاي، يعني مفيش أي مكوّن يقدر يطفي اللمعة أصلاً. عشان كده الفرنش كروب مش هنعرف نعمله لك، وعشان كده السبايكي الناشف كمان.'
-        : 'Nothing in the range is matte. Every wax is wax and petrolatum with no silica, no starch and no clay — there is no ingredient in any of them that could take the shine off. That is why we cannot give you a textured crop, and why we cannot give you the dry spike either.')
+        ? 'مفيش حاجة مطفية في التشكيلة كلها. كل الواكس شمع وفازلين ومفيهاش سيليكا ولا نشا ولا كلاي، يعني مفيش أي مكوّن يقدر يطفي اللمعة أصلاً. عشان كده الفرنش كروب — أكتر قصة الناس بتطلبها دلوقتي — مش هنعرف نعمله لك.'
+        : 'Nothing in the range is matte. Every wax is wax and petrolatum with no silica, no starch and no clay — there is no ingredient in any of them that could take the shine off. That is why we cannot give you a textured crop, the cut most men are asking for right now.')
       : null,
     ar
-      ? 'مفيش موس ولا منتج بيتحط قبل الاستشوار. البومبادور بيبدأ من الاستشوار مش من العلبة، والحاجة اللي بتبني الارتفاع نفسه مش عندنا.'
+      ? 'مفيش موس ولا منتج بيتحط قبل الاستشوار. الكويف بيبدأ من الاستشوار مش من العلبة، والحاجة اللي بتبني الارتفاع نفسه مش عندنا.'
       : 'No mousse and no pre-styling primer. A quiff starts at the dryer, not at the jar, and the product that builds the height is not one we make.',
     counts.spray === 0
       ? (ar
-        ? 'ومفيش سبراي شعر شغال دلوقتي. ده اللي بيقفل البومبادور والسلك باك في آخر الخطوة، ولسه مش متسعّر.'
+        ? 'ومفيش سبراي شعر شغال دلوقتي. ده اللي بيقفل الكويف والسلك باك في آخر الخطوة، ولسه مش متسعّر.'
         : 'And no hair spray on sale yet. That is the finisher that would close a quiff or a slick back at the last step, and it is not priced.')
       : null,
   ].filter(Boolean);

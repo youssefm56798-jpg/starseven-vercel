@@ -1,15 +1,20 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-hidden="true">
-  <!-- Definition is separation, so this is three closed ringlets that never touch, not one corkscrew. public/assets/hair/curly.svg already owns the corkscrew and answers a different question: that one says what your hair IS, this one says each curl keeps its own shape instead of merging with its neighbour into a single cloud. Three sizes, because a real head has three sizes. -->
+  <!-- A right-facing head crowned with a scalloped, bumpy outline instead of a smooth cap,
+       and dotted with small closed loops, because a defined curl is one that keeps its own
+       round shape instead of merging into one cloud. The loops are separate and sit at
+       different heights, the way curls of different diameter actually do, which is what
+       separates this from a plain rounded head of hair. -->
   <!-- currentColor, resolved to ink by the color attribute below, so the file still
        reads as an ink drawing when it is loaded as an <img> on the style detail hero,
        which inherits nothing from the page around it. On the cards and the home strip
        the same file is a CSS mask, where only the alpha matters and the tile paints it. -->
-  <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" color="#12100B">
-    <path stroke-width="3.4" d="M14 8.5C20.5 8.5 20.5 19 14 19 7.5 19 7.5 8.5 14 8.5"/>
-    <path stroke-width="3.4" d="M14 19v9"/>
-    <path stroke-width="2.9" d="M33.5 7.5C39 7.5 39 16.5 33.5 16.5 28 16.5 28 7.5 33.5 7.5"/>
-    <path stroke-width="2.9" d="M33.5 16.5v7.5"/>
-    <path stroke-width="3.2" d="M24 28C29 28 29 36.5 24 36.5 19 36.5 19 28 24 28"/>
-    <path stroke-width="3.2" d="M24 36.5V43"/>
+  <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" color="#12100B" transform="translate(-2.5 0.5)">
+    <path stroke-width="2.4" d="M32 12 C34 14 34.8 16.4 34.8 19 L34.5 21.2 L37 24.2 L34.2 25.4 C35 26.8 34.4 29.4 33 30.8 C32.2 31.6 31.8 32.8 31 33.6 C30.4 34.2 29.8 34.6 29.4 35.4 L29.4 41 L21.6 41 L21.6 33.2 C20.2 32 18.2 31 17 28.4 C15 25 14.4 20 15.4 16.5 C15.4 13.5 16.6 11 18.4 11.2 C19.4 11.3 19.8 12.6 21 12.6 C22.2 12.6 22.6 10.8 24.2 10.8 C25.4 10.8 25.8 12.4 27 12.4 C28.2 12.4 28.8 11 30 11.4 C31 11.7 31.8 11.6 32 12 Z"/>
+    <path stroke-width="1.5" d="M20.4 15 C18.6 15 18.6 17.6 20.4 17.6 C21.7 17.6 21.6 15.7 20.2 15.7"/>
+    <path stroke-width="1.5" d="M25 14.4 C23.2 14.4 23.2 17 25 17 C26.3 17 26.2 15.1 24.8 15.1"/>
+    <path stroke-width="1.5" d="M29 15.6 C27.4 15.6 27.4 18 29 18 C30.2 18 30.1 16.3 28.8 16.3"/>
+    <path stroke-width="1.5" d="M22.6 20 C21 20 21 22.2 22.6 22.2 C23.7 22.2 23.6 20.6 22.4 20.6"/>
+    <path stroke-width="2" d="M32 12 C30.6 13.6 30.2 16.6 30.4 19.4"/>
+    <path stroke-width="1.7" d="M30.4 25.6 C28.8 25.8 28.8 28.4 30.4 28.4"/>
   </g>
 </svg>
