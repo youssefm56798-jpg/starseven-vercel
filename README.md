@@ -25,7 +25,7 @@ and checkout pages need the database.
 | `app/` | Pages and API routes. `_components/` is shared UI, `api/` is the JSON endpoints, `admin/` is the back office. |
 | `lib/` | Logic, mostly framework-free so it is directly testable: pricing, phone normalisation, hair-type data and ranking, credentials, carts, markdown, mail templates. The two that do import from Next are `customer-auth.js` and `auth.js`, because sessions live in cookies. |
 | `db/` | `schema.sql` and `seed.sql`. Both safe to re-run. |
-| `scripts/` | `setup-db.mjs` applies the SQL files. |
+| `scripts/` | `setup-db.mjs` applies the SQL files. `verify-order-status.mjs` exercises the order state machine against a real Postgres — it creates its own throwaway database and drops it, so it is safe to point at any connection string. |
 | `tests/` | `node --test`. No database needed. |
 | `docs/` | Deployment, security notes, and the hair-type research the finder is based on. |
 
@@ -37,6 +37,12 @@ and checkout pages need the database.
 - **Stock is decremented inside a transaction** with a guard that aborts the
   whole order if another customer took the last jar in between. See
   `app/api/order/route.js`.
+- **Nothing writes `orders.status` except `lib/order-status.js`.** Moving an
+  order is not one column change: cancelling also returns the stock, gives the
+  coupon redemption back, and writes the audit row, and all four have to happen
+  together or not at all. The legal moves live in one table there,
+  `delivered` and `cancelled` are terminal, and `tests/order-status.test.mjs`
+  fails if an UPDATE of that column appears anywhere else.
 - **`hair_types` on a product is a CSV in priority order** — the first slug wins
   the primary recommendation. The three gels are deliberately `straight` only,
   because the wavy panel tells customers to avoid hard gels; `tests/hairtypes.test.mjs`

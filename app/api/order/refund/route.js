@@ -3,6 +3,7 @@ import { ok, fail, readJson } from '../../../../lib/http.js';
 import { site, mail } from '../../../../lib/config.js';
 import { originAllowed } from '../../../../lib/credentials.js';
 import { orderFor, requestRefund } from '../../../../lib/order-access.js';
+import { logEvent } from '../../../../lib/order-status.js';
 import { sendMail } from '../../../../lib/mail.js';
 
 export const runtime = 'nodejs';
@@ -35,6 +36,18 @@ export async function POST(req) {
 
   const updated = await requestRefund(order.id, body?.reason);
   if (!updated) return fail('failed', 500);
+
+  // Onto the same timeline the status moves land on, so the shop reads one
+  // ordered history of an order rather than a status log and a refund column
+  // that have to be merged by eye. Best effort by design — logEvent swallows
+  // its own failures, because the request is already recorded on the order and
+  // a missing timeline row must not turn that into an error the customer sees.
+  await logEvent({
+    orderId: order.id,
+    kind: 'refund-request',
+    actor: 'customer',
+    note: updated.refund_reason || '',
+  });
 
   // Best effort: the request is already recorded, and a bounced notification
   // must not turn a successful request into an error the customer sees.
