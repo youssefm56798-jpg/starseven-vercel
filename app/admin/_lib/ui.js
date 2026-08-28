@@ -66,6 +66,7 @@ export function trimNum(v) {
 const MESSAGES = {
   order_saved: ['ok', 'Order updated.'],
   order_cancelled: ['ok', 'Order cancelled — stock and coupon returned.'],
+  note_added: ['ok', 'Note added.'],
   // Delivered and cancelled are terminal, so the panel does not offer a way out
   // of either. Reaching this means the order moved in another tab between the
   // page rendering and Save being pressed.

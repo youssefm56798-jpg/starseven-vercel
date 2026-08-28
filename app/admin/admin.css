@@ -196,3 +196,21 @@
   .s7admin .prod-grid { grid-template-columns: 1fr; }
   .s7admin .table-scroll { overflow-x: auto; }
 }
+
+/* ---------------------------------------------------------- order detail */
+
+.s7admin .kv { display: grid; grid-template-columns: auto 1fr; gap: 7px 16px; align-items: baseline; }
+.s7admin .kv > span {
+  color: var(--grey); font-size: 12px; font-weight: 800;
+  text-transform: uppercase; letter-spacing: .05em;
+}
+.s7admin .kv > b { font-weight: 800; word-break: break-word; }
+.s7admin .kv.kv-money { grid-template-columns: 1fr auto; gap: 9px 20px; max-width: 360px; margin-inline-start: auto; }
+.s7admin .kv.kv-money > span { text-transform: none; letter-spacing: 0; font-size: 14px; color: var(--ink); font-weight: 700; }
+.s7admin .kv.kv-money > b { text-align: right; white-space: nowrap; }
+
+.s7admin ul.tl { list-style: none; }
+.s7admin ul.tl li { display: flex; gap: 14px; padding: 11px 20px; border-bottom: 1px solid var(--line); }
+.s7admin ul.tl li:last-child { border-bottom: none; }
+.s7admin ul.tl .tl-when { color: var(--grey); font-size: 12.5px; font-weight: 700; white-space: nowrap; min-width: 96px; }
+.s7admin ul.tl .tl-body { font-size: 14px; }

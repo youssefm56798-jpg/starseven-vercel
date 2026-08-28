@@ -133,7 +133,7 @@ export default async function OrdersPage({ searchParams }) {
                 {orders.map(o => (
                   <tr key={o.id}>
                     <td>
-                      <b>{o.ref}</b>
+                      <b><Link href={`/admin/orders/${o.id}`}>{o.ref}</Link></b>
                       <div className="muted">{dt(o.created_at)}</div>
                       {o.coupon ? <div className="muted">code: {o.coupon}</div> : null}
                       {/* The customer asked to cancel through the link in
