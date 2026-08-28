@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import { Analytics } from '@vercel/analytics/next';
 import { anton, cairo, tajawal } from '../lib/fonts.js';
 import './globals.css';
 import { site } from '../lib/config.js';
@@ -101,6 +102,7 @@ export default function RootLayout({ children }) {
             cannot live in either of them. */}
         <CardSpotlight />
         {children}
+        <Analytics />
       </body>
     </html>
   );
