@@ -1,13 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-hidden="true">
-  <!-- The slick back is the only style in this set where nothing is out of place, so it is the only icon drawn as four parallel strands at even spacing. They lift at the front, cross a single crest and run back together — that is the whole instruction on the tile, drawn. The weights taper from top to bottom so the mark still has a light source and does not read as a barcode. -->
+  <!-- A right-facing man's head. The slick back is a smooth low mass that hugs the skull
+       with nothing lifted at the front, and the three strands rake straight back and down
+       across the whole top, which is the one instruction on the tile drawn: everything
+       combed back. Its outline is kept the smoothest in the set so it reads as slicked and
+       wet against the quiff front lift and the crop chop. -->
   <!-- currentColor, resolved to ink by the color attribute below, so the file still
        reads as an ink drawing when it is loaded as an <img> on the style detail hero,
        which inherits nothing from the page around it. On the cards and the home strip
        the same file is a CSS mask, where only the alpha matters and the tile paints it. -->
-  <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" color="#12100B">
-    <path stroke-width="3.6" d="M8 30C12 14 24 10 41 15"/>
-    <path stroke-width="3.2" d="M8 35C13 20 25 16 41 21"/>
-    <path stroke-width="2.8" d="M9 40C14 26 26 22 41 27"/>
-    <path stroke-width="2.4" d="M10 44.5C15 32 27 28 41 33"/>
+  <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" color="#12100B" transform="translate(-2.5 0.5)">
+    <path stroke-width="2.4" d="M32 12 C34 14 34.8 16.4 34.8 19 L34.5 21.2 L37 24.2 L34.2 25.4 C35 26.8 34.4 29.4 33 30.8 C32.2 31.6 31.8 32.8 31 33.6 C30.4 34.2 29.8 34.6 29.4 35.4 L29.4 41 L21.6 41 L21.6 33.2 C20.2 32 18.2 31 17 28.4 C15.4 25 15 20 15.6 16 C16.2 11.5 18.5 7.6 23 7 C27 6.5 31 8.6 32 12 Z"/>
+    <path stroke-width="2" d="M32 12 C30.5 13.8 30.1 17.2 30.2 20.6"/>
+    <path stroke-width="1.7" d="M30.4 25.6 C28.8 25.8 28.8 28.4 30.4 28.4"/>
+    <path stroke-width="1.5" d="M31 12.8 C27 12.4 21 13.8 17.6 18"/>
+    <path stroke-width="1.5" d="M30.5 15.8 C26 15.8 20.6 17.8 17.1 22"/>
+    <path stroke-width="1.5" d="M30.1 19.2 C26 19.7 21.2 22 18.2 26"/>
   </g>
 </svg>

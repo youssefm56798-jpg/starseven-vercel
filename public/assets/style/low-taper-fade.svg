@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-hidden="true">
+  <!-- A right-facing head whose two halves disagree on purpose. The top keeps its length,
+       drawn as upright strokes, while the back and side are a column of ticks that shrink
+       row by row down to bare skin at the nape. That graded short-to-nothing edge is the
+       low taper, and the length standing above it is the part the tile says the barber
+       leaves for the customer to style. -->
+  <!-- currentColor, resolved to ink by the color attribute below, so the file still
+       reads as an ink drawing when it is loaded as an <img> on the style detail hero,
+       which inherits nothing from the page around it. On the cards and the home strip
+       the same file is a CSS mask, where only the alpha matters and the tile paints it. -->
+  <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" color="#12100B" transform="translate(-2.5 0.5)">
+    <path stroke-width="2.4" d="M32 12 C34 14 34.8 16.4 34.8 19 L34.5 21.2 L37 24.2 L34.2 25.4 C35 26.8 34.4 29.4 33 30.8 C32.2 31.6 31.8 32.8 31 33.6 C30.4 34.2 29.8 34.6 29.4 35.4 L29.4 41 L21.6 41 L21.6 33.2 C20.2 32 18.2 31 17 28.4 C15.6 24.5 15.4 19.5 16 15.6 C16.8 10.9 19.6 7.5 24 7 C28 6.6 31.3 8.9 32 12 Z"/>
+    <path stroke-width="1.6" d="M22.6 8.8 L23 12.4"/>
+    <path stroke-width="1.6" d="M26.4 8.4 L26.5 12"/>
+    <path stroke-width="1.6" d="M29.6 9.4 L29.2 12.6"/>
+    <path stroke-width="1.7" d="M31.4 13.4 C25 12.6 19.6 14.8 17.8 19.4"/>
+    <path stroke-width="1.5" d="M17.9 19.6 L20 20.1"/>
+    <path stroke-width="1.5" d="M17.9 22.4 L19.7 22.8"/>
+    <path stroke-width="1.5" d="M18.4 25.2 L19.9 25.5"/>
+    <path stroke-width="1.5" d="M19.4 28 L20.5 28.2"/>
+    <path stroke-width="1.5" d="M20.8 30.6 L21.5 30.7"/>
+    <path stroke-width="2" d="M32 12 C30.5 13.8 30.1 17.2 30.2 20.6"/>
+    <path stroke-width="1.7" d="M30.4 25.6 C28.8 25.8 28.8 28.4 30.4 28.4"/>
+  </g>
+</svg>

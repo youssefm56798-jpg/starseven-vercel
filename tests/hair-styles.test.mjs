@@ -19,10 +19,10 @@ import { fileURLToPath } from 'node:url';
 import { HAIR_STYLES, FINISH, bySlug, rankForStyle } from '../lib/hairstyles.js';
 
 const ROOT = fileURLToPath(new URL('../', import.meta.url));
-const SLUGS = ['slick-back', 'spiky', 'defined-curls', 'fade-top', 'quiff', 'textured-crop'];
+const SLUGS = ['slick-back', 'low-taper-fade', 'defined-curls', 'curtains', 'quiff', 'textured-crop'];
 // The tiles app/hair-styles/lib.js writes an honest range note for. Pinned here
 // as well as there so a tile cannot be graded down in the data without one.
-const GAP_TILES = ['textured-crop', 'spiky', 'defined-curls', 'quiff'];
+const GAP_TILES = ['textured-crop', 'curtains', 'defined-curls', 'quiff'];
 
 /* ------------------------------------------------------------- the tiles */
 
@@ -85,7 +85,7 @@ test('the range serves four styles properly, one partly and one not at all', () 
   // the whole feature quietly turning back into marketing.
   const by = v => HAIR_STYLES.filter(s => s.served === v).map(s => s.slug);
   assert.deepEqual(by('no'), ['textured-crop']);
-  assert.deepEqual(by('partly'), ['spiky']);
+  assert.deepEqual(by('partly'), ['curtains']);
   assert.equal(by('yes').length, 4);
 });
 
@@ -110,7 +110,7 @@ test('the six tile colours are the six the palette already holds', () => {
   // grey lands on the tile the range cannot serve.
   assert.deepEqual(
     HAIR_STYLES.map(s => s.color),
-    ['#2A6DE8', '#5E9C2B', '#8B4DC9', '#D9A81E', '#D7291D', '#55524A'],
+    ['#2A6DE8', '#D9A81E', '#8B4DC9', '#5E9C2B', '#D7291D', '#55524A'],
   );
   assert.equal(new Set(HAIR_STYLES.map(s => s.color)).size, 6);
 });
@@ -245,9 +245,9 @@ const first = slug => rank(slug)[0]?.sku ?? 'NONE';
 
 const primaries = [
   ['slick-back', 'S7-GEL-BLU', 'Premium Gel Blue, the only Strong Shine gel'],
-  ['spiky', 'S7-GEL-GRN', 'Premium Gel Green, hold 5 with a step less gloss'],
+  ['low-taper-fade', 'S7-WAX-YEL', 'Premium Wax Pro, hold 4 and high flexibility'],
   ['defined-curls', 'S7-WAX-BLU', 'Premium Wax Argan, hold 3 on purpose'],
-  ['fade-top', 'S7-WAX-YEL', 'Premium Wax Pro, hold 4 and high flexibility'],
+  ['curtains', 'S7-WAX-PUR', 'Premium Wax Shea, the only Medium-shine wax, holds the centre part'],
   ['quiff', 'S7-WAX-RED', 'Premium Wax Pro X, the only medium-flexibility product'],
   ['textured-crop', 'S7-WAX-PUR', 'Premium Wax Shea, the least shiny thing we sell'],
 ];
@@ -294,7 +294,7 @@ for (const slug of SLUGS) {
  * before it scores anything — which is the whole argument for deriving the
  * mapping in code instead of handing the client a second free-text taxonomy. */
 
-for (const slug of ['defined-curls', 'fade-top', 'quiff', 'textured-crop']) {
+for (const slug of ['defined-curls', 'low-taper-fade', 'curtains', 'quiff', 'textured-crop']) {
   test(`${slug} is never recommended a gel`, () => {
     const gels = rank(slug, 8).map(p => p.sku).filter(sku => sku.includes('GEL'));
     assert.deepEqual(gels, []);
@@ -325,19 +325,19 @@ test('the format filter is load-bearing, and not shadowed by the hold band', () 
   ];
   const kinds = slug => rankForStyle(mixed, bySlug(slug), 12).map(p => p.kind);
 
-  for (const slug of ['defined-curls', 'fade-top', 'quiff', 'textured-crop']) {
+  for (const slug of ['defined-curls', 'low-taper-fade', 'curtains', 'quiff', 'textured-crop']) {
     assert.deepEqual(kinds(slug).filter(k => k !== 'wax'), [],
       `${slug} argues against gel in its own copy and was sent one anyway`);
   }
-  for (const slug of ['slick-back', 'spiky']) {
+  for (const slug of ['slick-back']) {
     assert.deepEqual(kinds(slug).filter(k => k !== 'gel'), [],
       `${slug} says a wax drops out of this look and was sent a wax anyway`);
   }
 });
 
-for (const slug of ['slick-back', 'spiky']) {
+for (const slug of ['slick-back']) {
   test(`${slug} is never recommended a wax`, () => {
-    // Both gel tiles say in their own copy that a wax holds at 4 and never
+    // The slick-back tile says in its own copy that a wax holds at 4 and never
     // sets, so the front drops. Ranking one here would contradict the sentence
     // directly above it on the same card.
     const waxes = rank(slug, 8).map(p => p.kind).filter(k => k === 'wax');
@@ -360,13 +360,15 @@ test('the quiff is led by the only product that keeps a set shape', () => {
   assert.equal(FINISH[first('quiff')].flex, 2);
 });
 
-test('each gel fronts exactly one tile, and Golden fronts none of them', () => {
-  // Applying the maker's shine ratings closes the question
-  // docs/hair-type-research.md left open: Blue leads the slick back, Green
-  // leads spiky, and Golden is left to lead the straight hair-type tile by
-  // elimination rather than by sort accident.
+test('the slick back is the only style a gel fronts, and it is the Blue', () => {
+  // Applying the maker's shine ratings, the Blue is the only gel that leads a
+  // style tile now that the crunchy gel spike is retired: it is the one gel
+  // rated Strong Shine. The Green and the Golden front no style, which leaves
+  // the Golden to lead the straight hair-type tile by elimination rather than
+  // by sort accident.
   const leads = SLUGS.map(first).filter(sku => sku.includes('GEL'));
-  assert.deepEqual(leads.sort(), ['S7-GEL-BLU', 'S7-GEL-GRN']);
+  assert.deepEqual(leads, ['S7-GEL-BLU']);
+  assert.equal(leads.includes('S7-GEL-GRN'), false);
   assert.equal(leads.includes('S7-GEL-YEL'), false);
 });
 
