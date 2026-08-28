@@ -4,7 +4,8 @@ import { csrfOk, csrfToken } from '../../../../lib/auth.js';
 import { sql } from '../../../../lib/db.js';
 import { requireAdmin } from '../../_lib/guard.js';
 import { dt, Flash, money, waLink } from '../../_lib/ui.js';
-import { STATUSES, nextFrom, transition } from '../../../../lib/order-status.js';
+import { STATUSES, nextFrom } from '../../../../lib/order-status.js';
+import { transitionAndNotify } from '../../../../lib/order-notify.js';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Orders — Star Seven admin' };
@@ -43,9 +44,10 @@ async function saveStatus(formData) {
    * back at all.
    *
    * transition() does the whole thing as one transaction and owns which moves
-   * are legal. See lib/order-status.js.
+   * are legal. See lib/order-status.js. The notify wrapper mails the customer
+   * once the response has gone out, so pressing Save is not held up by Resend.
    */
-  const res = await transition({ orderId: id, to: status, actor: `admin:${admin.id}` });
+  const res = await transitionAndNotify({ orderId: id, to: status, actor: `admin:${admin.id}` });
 
   if (!res.ok) {
     redirect(backTo(fStatus, fQ, res.reason === 'not-found' ? 'bad_input' : 'bad_move'));

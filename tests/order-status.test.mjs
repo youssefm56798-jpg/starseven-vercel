@@ -224,3 +224,28 @@ test('nothing outside lib/order-status.js writes orders.status', async () => {
 
   assert.deepEqual(offenders, [], `orders.status is written outside the state machine:\n${offenders.join('\n')}`);
 });
+
+test('nothing under app/ imports transition directly', async () => {
+  // transition() moves the order and says nothing. transitionAndNotify() moves
+  // it and mails the customer. A route that reaches past the wrapper compiles,
+  // passes every other test, and silently stops telling anyone their order
+  // shipped — which is the failure this whole step exists to fix, so it has to
+  // fail here rather than in somebody's inbox.
+  const { execFileSync } = await import('node:child_process');
+  let hits = '';
+  try {
+    hits = execFileSync(
+      'git',
+      ['grep', '-n', '-E', 'import[^;]*\\btransition\\b[^;]*order-status', '--', 'app'],
+      { cwd: ROOT, encoding: 'utf8' },
+    );
+  } catch {
+    return; // no matches
+  }
+
+  const offenders = hits.split('\n').filter(Boolean);
+  assert.deepEqual(
+    offenders, [],
+    `app/ must import transitionAndNotify from lib/order-notify.js, not transition:\n${offenders.join('\n')}`,
+  );
+});
