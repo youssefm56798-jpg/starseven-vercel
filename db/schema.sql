@@ -276,6 +276,44 @@ ALTER TABLE orders ADD COLUMN IF NOT EXISTS refund_requested_at TIMESTAMPTZ;
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS refund_reason TEXT NOT NULL DEFAULT '';
 CREATE INDEX IF NOT EXISTS idx_orders_access ON orders (access_hash);
 
+-- ---------------------------------------------------------------------------
+--  Order status, and the record of how it got there
+--
+--  Status used to be written by one screen, with a plain UPDATE. It is about
+--  to be written by three — the admin panel, a customer cancelling their own
+--  order, and a courier webhook — and a column three callers each write
+--  however they like is how a state machine rots. So lib/order-status.js
+--  becomes the only writer, the legal moves live in one table there, and every
+--  move it makes lands here as a row.
+--
+--  This is two things at once and that is deliberate: the timeline a customer
+--  sees on their order page, and the audit log the shop needs when someone
+--  asks why an order was cancelled. One source, so the two cannot disagree.
+--
+--  `actor` is free text rather than a foreign key because the three writers do
+--  not share an identity space: 'admin:4', 'customer', 'system'. A key would
+--  have to point at whichever table won.
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS order_events (
+  id          INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  order_id    INT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+  kind        TEXT NOT NULL DEFAULT 'status'
+              CHECK (kind IN ('status','note','refund-request','mail')),
+  from_status TEXT NOT NULL DEFAULT '',
+  to_status   TEXT NOT NULL DEFAULT '',
+  actor       TEXT NOT NULL DEFAULT 'system',
+  note        TEXT NOT NULL DEFAULT '',
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+-- The timeline reads one order oldest-first; the audit view reads recent
+-- events across all orders. Both are covered by leading on order_id and id.
+CREATE INDEX IF NOT EXISTS idx_order_events_order ON order_events (order_id, id);
+
+-- When the cancel happened, as opposed to when the row was created. Read by
+-- the order page, and the only way to tell a cancelled-today order from one
+-- cancelled in March without walking the event log.
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS cancelled_at TIMESTAMPTZ;
+
 CREATE TABLE IF NOT EXISTS quiz_results (
   id          INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   hair_type   TEXT NOT NULL,

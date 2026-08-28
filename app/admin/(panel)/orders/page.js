@@ -4,11 +4,12 @@ import { csrfOk, csrfToken } from '../../../../lib/auth.js';
 import { sql } from '../../../../lib/db.js';
 import { requireAdmin } from '../../_lib/guard.js';
 import { dt, Flash, money, waLink } from '../../_lib/ui.js';
+import { STATUSES, nextFrom } from '../../../../lib/order-status.js';
+import { transitionAndNotify } from '../../../../lib/order-notify.js';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Orders — Star Seven admin' };
 
-const STATUSES = ['new', 'confirmed', 'shipped', 'delivered', 'cancelled'];
 const title = s => s.charAt(0).toUpperCase() + s.slice(1);
 
 /** Rebuilds the filter query string from validated parts, never from raw input. */
@@ -23,7 +24,7 @@ function backTo(status, q, msg) {
 
 async function saveStatus(formData) {
   'use server';
-  await requireAdmin();
+  const admin = await requireAdmin();
 
   const status = String(formData.get('status') || '');
   const fStatus = String(formData.get('f_status') || '');
@@ -33,22 +34,27 @@ async function saveStatus(formData) {
   if (!(await csrfOk(formData.get('_csrf')))) redirect(backTo(fStatus, fQ, 'csrf'));
   if (!Number.isInteger(id) || id <= 0 || !STATUSES.includes(status)) redirect(backTo(fStatus, fQ, 'bad_input'));
 
-  const [row] = await sql`SELECT status FROM orders WHERE id = ${id}`;
-  if (!row) redirect(backTo(fStatus, fQ, 'bad_input'));
+  /*
+   * This used to read the status, decide in JavaScript, then write — three
+   * round-trips with no transaction around them. Two of the failures that
+   * shape had were real: a crash between the status UPDATE and the restock
+   * left an order cancelled with its stock never returned, and two admins
+   * pressing Cancel at the same moment both read a live status and both
+   * credited the stock. The coupon a cancelled order had spent was never given
+   * back at all.
+   *
+   * transition() does the whole thing as one transaction and owns which moves
+   * are legal. See lib/order-status.js. The notify wrapper mails the customer
+   * once the response has gone out, so pressing Save is not held up by Resend.
+   */
+  const res = await transitionAndNotify({ orderId: id, to: status, actor: `admin:${admin.id}` });
 
-  await sql`UPDATE orders SET status = ${status} WHERE id = ${id}`;
-
-  // Cancelling puts the stock back — but only on the first cancel, or a second
-  // save on the same row would credit the stock twice.
-  if (status === 'cancelled' && row.status !== 'cancelled') {
-    await sql`
-      UPDATE products p
-         SET stock = p.stock + i.qty
-        FROM order_items i
-       WHERE i.product_id = p.id AND i.order_id = ${id}`;
-    redirect(backTo(fStatus, fQ, 'order_cancelled'));
+  if (!res.ok) {
+    redirect(backTo(fStatus, fQ, res.reason === 'not-found' ? 'bad_input' : 'bad_move'));
   }
 
+  if (!res.changed) redirect(backTo(fStatus, fQ, 'order_saved'));
+  if (status === 'cancelled') redirect(backTo(fStatus, fQ, 'order_cancelled'));
   redirect(backTo(fStatus, fQ, 'order_saved'));
 }
 
@@ -166,10 +172,26 @@ export default async function OrdersPage({ searchParams }) {
                         <input type="hidden" name="id" value={o.id} />
                         <input type="hidden" name="f_status" value={status} />
                         <input type="hidden" name="q_back" value={q} />
-                        <select name="status" defaultValue={o.status} style={{ width: '130px' }}>
-                          {STATUSES.map(s => <option key={s} value={s}>{title(s)}</option>)}
+                        {/* Only the moves this order can actually make, plus
+                            where it already is. Offering the rest would have
+                            the panel present a control that the transition
+                            table then refuses — and on a delivered or
+                            cancelled order every other option is refused, so
+                            the dropdown collapses to a single locked value,
+                            which is the honest rendering of a terminal state. */}
+                        <select
+                          name="status"
+                          defaultValue={o.status}
+                          disabled={!nextFrom(o.status).length}
+                          style={{ width: '130px' }}
+                        >
+                          {[o.status, ...nextFrom(o.status)].map(s => (
+                            <option key={s} value={s}>{title(s)}</option>
+                          ))}
                         </select>
-                        <button className="btn sm" type="submit">Save</button>
+                        <button className="btn sm" type="submit" disabled={!nextFrom(o.status).length}>
+                          Save
+                        </button>
                       </form>
                     </td>
                   </tr>
