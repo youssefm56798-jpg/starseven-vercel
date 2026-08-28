@@ -7,6 +7,7 @@
  * `hp` is a honeypot — bots fill it, humans never see it.
  */
 
+import { after } from 'next/server';
 import { sql, clientIp, rateOk } from '../../../lib/db.js';
 import { ok, fail, readJson, langOf, token40 } from '../../../lib/http.js';
 import { normalizePhone } from '../../../lib/phone.js';
@@ -93,11 +94,22 @@ export async function POST(req) {
           token     = EXCLUDED.token,
           ip        = EXCLUDED.ip`;
 
+  // The confirmation mail goes out AFTER the response, not before it. Content
+  // and headers were already identical between an active address and a new one,
+  // but timing was not: the active branch does one SELECT and returns in tens
+  // of milliseconds, while awaiting a send to Resend added hundreds - so the
+  // latency alone answered "is this address already a subscriber", which is the
+  // exact oracle the identical body was meant to close. Deferring the send
+  // takes the mail round-trip out of the response path; what is left between
+  // the two branches is a single INSERT, lost in the jitter of a remote query.
   const [subject, html] = tplConfirm(token, lang);
-  await sendMail({ to: email, subject, html, kind: 'confirm' });
+  after(async () => {
+    try {
+      await sendMail({ to: email, subject, html, kind: 'confirm' });
+    } catch (e) {
+      console.error('[s7] confirm mail failed:', e?.message || e);
+    }
+  });
 
-  // Byte-identical to the already-active decoy above, so the two cannot be told
-  // apart. Whether the mail actually went out is not reported back either - a
-  // send failure is ours to see in the logs, not the caller's to probe.
   return pendingResponse;
 }

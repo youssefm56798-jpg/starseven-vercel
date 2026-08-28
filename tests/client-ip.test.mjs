@@ -71,6 +71,24 @@ test('ipBucket groups a v6 address to its /64 so a routed block is one bucket', 
   assert.notEqual(ipBucket('2a01:4f8:1:3::1'), a);
 });
 
+test('ipBucket normalises the address, so a compressed :: prefix is one bucket', () => {
+  // The regression this pins: the first version sliced the STRING on ':', so
+  // 2001:db8::1 and 2001:db8::2 - the same /64 - compressed to different text
+  // and got different buckets, reopening the rotation bypass. These must match.
+  const a = ipBucket('2001:db8::1');
+  assert.equal(a, '2001:db8:0:0::/64');
+  assert.equal(ipBucket('2001:db8::2'), a);
+  assert.equal(ipBucket('2001:db8:0:0:ffff:ffff:ffff:ffff'), a);
+  // and a genuinely different /64 stays separate
+  assert.notEqual(ipBucket('2001:db9::1'), a);
+});
+
+test('ipBucket treats an IPv4-mapped v6 address as its v4 /24', () => {
+  // ::ffff:1.2.3.4 is really IPv4 - it must group as a /24, not a per-host /64.
+  assert.equal(ipBucket('::ffff:1.2.3.4'), '1.2.3.0/24');
+  assert.equal(ipBucket('::ffff:1.2.3.4'), ipBucket('::ffff:1.2.3.200'));
+});
+
 test('ipBucket groups a v4 address to its /24', () => {
   assert.equal(ipBucket('203.0.113.7'), '203.0.113.0/24');
   assert.equal(ipBucket('203.0.113.7'), ipBucket('203.0.113.200'));
