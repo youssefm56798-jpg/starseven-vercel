@@ -160,8 +160,18 @@ CREATE TABLE IF NOT EXISTS offers (
   active         BOOLEAN NOT NULL DEFAULT TRUE,
   sent_at        TIMESTAMPTZ,
   sent_count     INT NOT NULL DEFAULT 0,
+  -- Redemption cap. NULL means unlimited, which is the historical behaviour and
+  -- what a broadcast code without a stated limit gets. used_count is bumped
+  -- inside the order write transaction, guarded on staying under max_uses, so a
+  -- code cannot be spent past its cap even under concurrent checkout.
+  max_uses       INT,
+  used_count     INT NOT NULL DEFAULT 0,
   created_at     TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+-- Added after the table shipped, so an existing database gets them here rather
+-- than only on a fresh create. Both are non-destructive.
+ALTER TABLE offers ADD COLUMN IF NOT EXISTS max_uses   INT;
+ALTER TABLE offers ADD COLUMN IF NOT EXISTS used_count INT NOT NULL DEFAULT 0;
 CREATE UNIQUE INDEX IF NOT EXISTS idx_offers_code ON offers (code) WHERE code <> '';
 
 CREATE TABLE IF NOT EXISTS articles (

@@ -29,6 +29,18 @@ async function doLogin(formData) {
   const email = String(formData.get('email') || '').trim().toLowerCase();
   const pass = String(formData.get('pass') || '');
 
+  // A second limit keyed on the ACCOUNT, not the address. The per-IP limit is
+  // the only throttle there is otherwise, and it is defeated by an attacker who
+  // rotates source addresses - so a targeted admin email could be guessed at
+  // from a fresh IP each time with no ceiling. Keying on the email as well caps
+  // attempts against one account regardless of where they come from. Same
+  // window and count as the IP limit; the two are independent, so tripping
+  // either one blocks. Empty email skips it - the address-guessing that would
+  // exploit an empty key is already bounded by the IP limit above.
+  if (email && !(await rateOk('login-acct', email, max, windowSec))) {
+    redirect('/admin/login?m=rate');
+  }
+
   const rows = await sql`SELECT id, email, name, pass_hash FROM admins WHERE email = ${email} LIMIT 1`;
   const admin = rows[0];
   const ok = await bcrypt.compare(pass, admin ? admin.pass_hash : DUMMY_HASH);

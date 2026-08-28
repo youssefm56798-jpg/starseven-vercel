@@ -58,13 +58,24 @@ export async function POST(req) {
   // to have on a signup form, not something worth blocking a subscriber over.
   const hair = bySlug(str(body.hair_type, 40))?.slug || '';
 
+  // Whether this address is already on the list is not something an
+  // unauthenticated caller may learn. The endpoint used to answer 'already' for
+  // an active subscriber and 'pending' for anyone else, which turns one POST
+  // into a yes/no oracle for any email. And re-sending a confirmation to an
+  // ALREADY-ACTIVE address on demand makes the endpoint a way to mail an
+  // arbitrary person the shop's confirmation, repeatedly. So an active address
+  // is a silent no-op that returns the same shape as a genuine signup: nothing
+  // written, nothing sent, and the caller cannot tell the two apart.
   const existing = await sql`SELECT status FROM subscribers WHERE email = ${email} LIMIT 1`;
-  if (existing[0]?.status === 'active') {
-    return ok({
-      status: 'already',
-      message: ar ? 'إنت مشترك بالفعل ★' : 'You are already on the list ★',
-    });
-  }
+  const alreadyActive = existing[0]?.status === 'active';
+  const pendingResponse = ok({
+    status: 'pending',
+    emailed: true,
+    message: ar
+      ? 'بعتنالك إيميل تأكيد — افتحه وأكّد اشتراكك.'
+      : 'Check your inbox for a confirmation email.',
+  });
+  if (alreadyActive) return pendingResponse;
 
   // Pending or previously unsubscribed — refresh the token and re-send.
   // Blank fields keep whatever we already knew instead of wiping it.
@@ -83,13 +94,10 @@ export async function POST(req) {
           ip        = EXCLUDED.ip`;
 
   const [subject, html] = tplConfirm(token, lang);
-  const emailed = await sendMail({ to: email, subject, html, kind: 'confirm' });
+  await sendMail({ to: email, subject, html, kind: 'confirm' });
 
-  return ok({
-    status: 'pending',
-    emailed,
-    message: ar
-      ? 'بعتنالك إيميل تأكيد — افتحه وأكّد اشتراكك.'
-      : 'Check your inbox — confirm your subscription from the email we just sent.',
-  });
+  // Byte-identical to the already-active decoy above, so the two cannot be told
+  // apart. Whether the mail actually went out is not reported back either - a
+  // send failure is ours to see in the logs, not the caller's to probe.
+  return pendingResponse;
 }

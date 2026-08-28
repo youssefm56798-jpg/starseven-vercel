@@ -152,7 +152,7 @@ export async function POST(req) {
 
   if (coupon) {
     const offers = await sql`
-      SELECT discount_type, discount_value, min_total
+      SELECT discount_type, discount_value, min_total, max_uses, used_count
         FROM offers
        WHERE code = ${coupon}
          AND active = true
@@ -164,6 +164,16 @@ export async function POST(req) {
     if (!off) {
       return fail(
         ar ? 'كود الخصم مش صحيح أو انتهى.' : 'That discount code is not valid.',
+        422, { field: 'coupon' },
+      );
+    }
+
+    // A code with a cap that is already spent is rejected up front. This is the
+    // courteous check - the guard inside the write transaction is what actually
+    // enforces it, because two orders can pass this line at once.
+    if (off.max_uses != null && Number(off.used_count) >= Number(off.max_uses)) {
+      return fail(
+        ar ? 'كود الخصم ده خلص.' : 'That discount code has been fully used.',
         422, { field: 'coupon' },
       );
     }
@@ -248,6 +258,25 @@ export async function POST(req) {
           RETURNING id
         )
         SELECT 1 / count(*)::int AS guard FROM taken`);
+    }
+
+    // Spend the coupon inside the same transaction as the order. The UPDATE
+    // only matches while the code is under its cap, and the divide-by-count
+    // turns a no-match into a division by zero, so an order that would push a
+    // capped code past its limit rolls back whole rather than being placed at a
+    // discount the code was not entitled to give. A NULL cap always matches, so
+    // an uncapped code just counts up.
+    if (couponCode) {
+      stmts.push(sql`
+        WITH spent AS (
+          UPDATE offers
+             SET used_count = used_count + 1
+           WHERE code = ${couponCode}
+             AND active = true
+             AND (max_uses IS NULL OR used_count < max_uses)
+          RETURNING id
+        )
+        SELECT 1 / count(*)::int AS guard FROM spent`);
     }
 
     return stmts;

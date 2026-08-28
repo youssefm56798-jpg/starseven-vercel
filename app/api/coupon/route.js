@@ -43,7 +43,7 @@ export async function POST(req) {
   }
 
   const rows = await sql`
-    SELECT discount_type, discount_value, min_total
+    SELECT discount_type, discount_value, min_total, max_uses, used_count
       FROM offers
      WHERE code = ${code}
        AND active = true
@@ -55,6 +55,16 @@ export async function POST(req) {
   if (!offer) {
     return fail(
       ar ? 'كود الخصم مش صحيح أو انتهى.' : 'That discount code is not valid.',
+      422, { field: 'coupon' },
+    );
+  }
+
+  // Tell the shopper the code is spent here rather than letting them find out at
+  // checkout. The order route is what actually enforces the cap under
+  // concurrency; this is only the honest preview.
+  if (offer.max_uses != null && Number(offer.used_count) >= Number(offer.max_uses)) {
+    return fail(
+      ar ? 'كود الخصم ده خلص.' : 'That discount code has been fully used.',
       422, { field: 'coupon' },
     );
   }
