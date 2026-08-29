@@ -618,6 +618,36 @@ button{font:inherit;cursor:pointer}
 .ord-track li.done{color:var(--ink)}
 .ord-track li.done::before{background:var(--red-ui)}
 
+/* The delivery window. Sits directly under the tracker because "when" is the
+   question the tracker cannot answer. The red inline-start rule is the same
+   accent the tracker uses for a completed step, so the two read as one block;
+   .ord-eta-off drops back to the neutral line for the two states that are a
+   note rather than a promise. */
+.ord-eta{border:1.5px solid var(--line);border-inline-start-width:4px;
+  border-inline-start-color:var(--red-ui);padding:14px 16px;margin-bottom:34px}
+.ord-eta-when{font-weight:900;font-size:clamp(17px,4.4vw,21px);line-height:1.45;
+  overflow-wrap:anywhere}
+.ord-eta-note{color:var(--grey);font-weight:600;font-size:12.5px;margin-top:6px;max-width:52ch}
+.ord-eta-courier{margin-top:10px;padding-top:10px;border-top:1px solid var(--line);
+  font-weight:800;font-size:13.5px}
+.ord-eta-off{color:var(--grey);font-weight:700;font-size:14px;line-height:1.7;
+  border-inline-start-color:var(--line);max-width:60ch}
+
+/* The customer half of order_events. The rail and the dots are drawn from the
+   list rather than per row so the line is continuous, and every offset is
+   logical (inset-inline-start, border-inline-start) so the whole thing mirrors
+   in Arabic without a second rule. */
+.ord-tl{list-style:none;display:grid;gap:15px;padding-inline-start:20px;
+  border-inline-start:2px solid var(--line)}
+.ord-tl li{position:relative;display:grid;gap:2px;font-size:14.5px}
+.ord-tl li::before{content:"";position:absolute;inset-inline-start:-25px;top:5px;
+  width:9px;height:9px;border-radius:50%;background:var(--line)}
+.ord-tl li:last-child::before{background:var(--red-ui)}
+.ord-tl-when{color:var(--grey);font-weight:700;font-size:12.5px}
+.ord-tl-what{font-weight:700;overflow-wrap:anywhere}
+.ord-tl-what b{font-weight:900}
+.ord-tl-note{color:var(--grey);font-weight:600}
+
 .ord-sec{margin-bottom:34px}
 .ord-sec h2{font-size:18px;font-weight:900;margin-bottom:12px}
 .ord-items{list-style:none;display:grid;gap:1px;background:var(--line);border:1px solid var(--line)}

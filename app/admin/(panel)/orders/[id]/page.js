@@ -6,6 +6,7 @@ import { requireAdmin } from '../../../_lib/guard.js';
 import { dt, Flash, money, waLink } from '../../../_lib/ui.js';
 import { STATUSES, nextFrom, eventsFor, logEvent } from '../../../../../lib/order-status.js';
 import { transitionAndNotify } from '../../../../../lib/order-notify.js';
+import { formatWindow, zoneFor } from '../../../../../lib/delivery-eta.js';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Order — Star Seven admin' };
@@ -54,6 +55,42 @@ async function addNote(formData) {
   redirect(backTo(id, 'note_added'));
 }
 
+/**
+ * The courier and the waybill number, once the parcel is handed over.
+ *
+ * Deliberately not part of saveStatus. Marking an order shipped and knowing
+ * which courier took it are two things that happen at different moments — the
+ * status is pressed when the parcel is packed, the reference is copied off the
+ * waybill afterwards — and folding them into one form would mean either
+ * blanking the reference every time the status is saved, or refusing to save
+ * the status until somebody has a reference to type.
+ *
+ * It writes two free-text columns and nothing else. In particular it does not
+ * touch the status column or the delivery window: the first belongs to
+ * lib/order-status.js and the second is a promise already made to the customer,
+ * which a later edit here must not be able to move.
+ */
+async function saveDispatch(formData) {
+  'use server';
+  await requireAdmin();
+
+  const id = Number(formData.get('id'));
+  const courier = String(formData.get('courier') || '').replace(/\s+/g, ' ').trim().slice(0, 60);
+  const tracking = String(formData.get('tracking_ref') || '').replace(/\s+/g, ' ').trim().slice(0, 60);
+
+  if (!(await csrfOk(formData.get('_csrf')))) redirect(backTo(id, 'csrf'));
+  if (!Number.isInteger(id) || id <= 0) redirect(backTo(id, 'bad_input'));
+
+  const rows = await sql`
+    UPDATE orders
+       SET courier = ${courier}, tracking_ref = ${tracking}
+     WHERE id = ${id}
+     RETURNING id`;
+  if (!rows.length) redirect(backTo(id, 'bad_input'));
+
+  redirect(backTo(id, 'dispatch_saved'));
+}
+
 /** The word the timeline shows for each non-status event kind. */
 const EVENT_LABEL = {
   note: 'Note',
@@ -70,7 +107,17 @@ export default async function OrderDetail({ params, searchParams }) {
   if (!Number.isInteger(id) || id <= 0) notFound();
 
   const token = await csrfToken();
-  const [order] = await sql`SELECT * FROM orders WHERE id = ${id}`;
+
+  // The two window columns are pulled out again under their own names rather
+  // than left to `*`. They are DATE, and the driver turns a DATE into a JS Date
+  // at LOCAL midnight, which then renders as the previous day through any
+  // formatter pinned to Cairo. Reading them as text keeps them the calendar
+  // days they were written as. Aliased rather than re-selected under the same
+  // name, because a result set with two columns called expected_from is
+  // resolved by whichever one the driver happens to keep.
+  const [order] = await sql`
+    SELECT o.*, o.expected_from::text AS eta_from, o.expected_to::text AS eta_to
+      FROM orders o WHERE o.id = ${id}`;
   if (!order) notFound();
 
   const items = await sql`SELECT * FROM order_items WHERE order_id = ${id} ORDER BY id ASC`;
@@ -87,6 +134,7 @@ export default async function OrderDetail({ params, searchParams }) {
       <h1>{order.ref} <span className={`pill ${order.status}`}>{title(order.status)}</span></h1>
       <p className="sub">
         Placed {dt(order.created_at)} · {order.lang === 'en' ? 'English' : 'Arabic'} · cash on delivery
+        {order.cancelled_at ? ` · cancelled ${dt(order.cancelled_at)}` : ''}
       </p>
 
       <Flash code={sp?.m} />
@@ -176,6 +224,37 @@ export default async function OrderDetail({ params, searchParams }) {
           {locked
             ? `${title(order.status)} is final — there is nowhere to move this order.`
             : `From ${title(order.status)} this order can move to ${moves.map(title).join(', ')}. The customer is emailed on the moves they hear about.`}
+        </div>
+      </div>
+
+      <div className="panel">
+        <h2>
+          Dispatch
+          <span className="right">
+            <form action={saveDispatch} className="bar-row">
+              <input type="hidden" name="_csrf" value={token} />
+              <input type="hidden" name="id" value={order.id} />
+              <input name="courier" defaultValue={order.courier || ''} placeholder="Courier"
+                maxLength={60} style={{ width: '140px' }} />
+              <input name="tracking_ref" defaultValue={order.tracking_ref || ''} placeholder="Tracking ref"
+                maxLength={60} style={{ width: '160px' }} />
+              <button className="btn sm ghost" type="submit">Save</button>
+            </form>
+          </span>
+        </h2>
+        <div className="muted" style={{ padding: '14px 20px' }}>
+          {order.eta_from && order.eta_to ? (
+            <>
+              Customer was promised <b>{formatWindow(order.eta_from, order.eta_to, 'en')}</b>, on the{' '}
+              <b>{zoneFor(order.city)}</b> tier for “{order.city || '—'}”. Written when the order was
+              confirmed and never moved afterwards — the customer has already been shown it.
+            </>
+          ) : (
+            <>
+              No delivery window yet. One is written from the governorate in the address the first
+              time this order is confirmed or shipped, and the customer sees it on their order page.
+            </>
+          )}
         </div>
       </div>
 
