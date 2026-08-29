@@ -231,6 +231,18 @@ export async function Footer({ lang = 'ar' }) {
                   </a>
                 </li>
                 <li><a href="tel:+201028282216">{ar ? 'اتصل بينا' : 'Call us'}</a></li>
+                {/* There are no accounts, so an order is reached through the
+                    link in its confirmation email. This is what somebody who
+                    cannot find that email types into a search box or scrolls
+                    to the bottom of the page looking for. It is the only entry
+                    point that is not inside an email, and /order is disallowed
+                    in robots.txt, so without it the page is unreachable to
+                    anyone who did not land on a broken link first. */}
+                <li>
+                  <Link href={L('/order/find')}>
+                    {ar ? 'تابع أوردرك' : 'Track your order'}
+                  </Link>
+                </li>
               </ul>
             </div>
           </div>

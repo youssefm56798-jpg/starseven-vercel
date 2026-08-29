@@ -57,6 +57,12 @@ export async function readOrder({ params, searchParams }) {
  * There is no order to take a language from when the lookup failed, so it
  * answers in the language of the tree the visitor is standing in. That is what
  * reading `?lang=` amounted to before, now that /en is a path segment.
+ *
+ * The first button used to be WhatsApp, because there was nothing else to
+ * offer: the token was not stored, so nobody could re-send a link and the only
+ * way back was a human. /order/find can hand out a fresh one now, so it leads,
+ * and it says nothing this screen does not — the endpoint behind it answers the
+ * same sentence whether or not the details matched anything.
  */
 export function OrderLinkBroken({ lang }) {
   const ar = lang !== 'en';
@@ -67,11 +73,14 @@ export function OrderLinkBroken({ lang }) {
         <h1>{ar ? 'اللينك ده مش شغال' : 'That link does not work'}</h1>
         <p>
           {ar
-            ? 'يمكن اللينك ناقص، أو اتنسخ غلط. افتحه من إيميل تأكيد الأوردر مرة تانية — أو كلّمنا على واتساب ومعاك رقم الأوردر.'
-            : 'The link may be incomplete, or copied wrong. Open it again from your order confirmation email — or message us on WhatsApp with your order number.'}
+            ? 'يمكن اللينك ناقص، أو اتنسخ غلط، أو قديم. اطلب لينك جديد بالإيميل ورقم الأوردر — أو كلّمنا على واتساب.'
+            : 'The link may be incomplete, copied wrong, or expired. Ask for a fresh one with your email and order number — or message us on WhatsApp.'}
         </p>
         <div className="nf-links">
-          <a className="btn btn-red" href={waLink()} target="_blank" rel="noopener">
+          <Link className="btn btn-red" href={localePath('/order/find', ar ? 'ar' : 'en')}>
+            {ar ? 'ابعتلي لينك جديد' : 'Email me a new link'}
+          </Link>
+          <a className="btn btn-wa" href={waLink()} target="_blank" rel="noopener">
             {ar ? 'كلّمنا على واتساب' : 'Message us on WhatsApp'}
           </a>
           <Link className="btn btn-line" href={localePath('/', ar ? 'ar' : 'en')}>

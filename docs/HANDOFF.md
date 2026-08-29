@@ -46,8 +46,10 @@ subscribers, articles.
 1. **`SESSION_SECRET`** — the admin login throws without it.
 2. **`NEXT_PUBLIC_SITE_URL`** — the CSRF origin check compares against it, so a
    wrong value refuses every mutation.
-3. **`RESEND_API_KEY`** — without it the order confirmation never sends, and
-   **the order link is lost for good**. It is not stored anywhere else.
+3. **`RESEND_API_KEY`** — without it no email sends at all, and **no customer
+   can reach their order**. The link is never stored, only its digest, so email
+   is the only way one ever arrives: at checkout, on every status change, and
+   from `/order/find` when somebody asks for it again.
 4. **`MAIL_FROM`** — currently defaults to `newstarseven.com`, which belongs to
    an unrelated honey business. The brand's real domain is
    **ovanzacosmetics.com** (it is printed on the jar).

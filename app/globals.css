@@ -644,6 +644,13 @@ button{font:inherit;cursor:pointer}
 .ord-help a{color:var(--red-ui)}
 @media(max-width:560px){.ord-track{grid-template-columns:repeat(2,1fr)}}
 
+/* /order/find — asking for the tracking link again. Narrow because it is two
+   fields, and .fld above is the same field treatment the admin login uses. */
+.ord-find{max-width:420px}
+.ord-find .btn{margin-top:4px}
+.ord-again{background:none;border:0;padding:0;font:inherit;color:var(--red-ui);
+  font-weight:800;text-decoration:underline;cursor:pointer}
+
 /* A product the client has not priced yet. Shown, not hidden — the catalogue
    should not pretend the brand makes fewer things than it does — but with a
    way to ask rather than a way to buy. */
