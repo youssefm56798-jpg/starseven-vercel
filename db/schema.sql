@@ -344,5 +344,28 @@ CREATE TABLE IF NOT EXISTS rate_limits (
   PRIMARY KEY (bucket, ip)
 );
 
+-- ---------------------------------------------------------------- owner desk
 
+-- The confirmation call is the first thing that happens to a cash-on-delivery
+-- order, and its outcome is the fact the shop runs on: reached and confirmed,
+-- no answer, wrong number, or the customer changed their mind. It belongs on
+-- the same timeline as the status moves, so it is a kind of order event rather
+-- than a table of its own. Older databases were built before this kind
+-- existed, so the constraint is replaced rather than assumed.
+ALTER TABLE order_events DROP CONSTRAINT IF EXISTS order_events_kind_check;
+ALTER TABLE order_events ADD CONSTRAINT order_events_kind_check
+  CHECK (kind IN ('status','note','refund-request','mail','call'));
 
+-- Settings the owner changes without a deploy. One row per key, read through
+-- lib/settings.js, which falls back to the environment when a key is absent —
+-- so an empty table behaves exactly as the site did before this existed.
+CREATE TABLE IF NOT EXISTS settings (
+  key        TEXT PRIMARY KEY,
+  value      TEXT NOT NULL DEFAULT '',
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_by TEXT NOT NULL DEFAULT ''
+);
+
+-- The call queue reads new orders oldest-first; the cash view groups by day.
+CREATE INDEX IF NOT EXISTS idx_orders_status_created ON orders (status, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_orders_phone ON orders (phone);
