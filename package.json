@@ -10,6 +10,7 @@
     "db:setup": "node scripts/setup-db.mjs",
     "test": "node --test \"tests/**/*.test.mjs\"",
     "verify:orders": "node scripts/verify-order-status.mjs",
+    "verify:edit": "node scripts/verify-order-edit.mjs",
     "test:routes": "node scripts/verify-routes.mjs",
     "verify:checkout": "node scripts/verify-checkout-idempotency.mjs",
     "verify:access": "node scripts/verify-order-access.mjs",

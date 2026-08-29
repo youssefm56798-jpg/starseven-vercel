@@ -5,7 +5,8 @@ import { sql } from '../../../../../lib/db.js';
 import { requireAdmin } from '../../../_lib/guard.js';
 import { dt, Flash, money, waLink } from '../../../_lib/ui.js';
 import { STATUSES, nextFrom, eventsFor, logEvent } from '../../../../../lib/order-status.js';
-import { transitionAndNotify } from '../../../../../lib/order-notify.js';
+import { transitionAndNotify, editAndNotify } from '../../../../../lib/order-notify.js';
+import { canEdit, MAX_QTY } from '../../../../../lib/order-edit.js';
 import { formatWindow, zoneFor } from '../../../../../lib/delivery-eta.js';
 
 export const dynamic = 'force-dynamic';
@@ -91,11 +92,144 @@ async function saveDispatch(formData) {
   redirect(backTo(id, 'dispatch_saved'));
 }
 
+/**
+ * The refusals lib/order-edit.js can answer with, as flash codes.
+ *
+ * Every one of them is a sentence an admin can act on, which is why they are
+ * not collapsed into one. The mapping lives here rather than in the module
+ * because the module is not allowed to know what a query string is, and a flash
+ * code is a query string — see lib/order-edit.js for the reasons themselves.
+ */
+const EDIT_FLASH = {
+  'not-found': 'bad_input',
+  'bad-input': 'bad_input',
+  'not-editable': 'edit_locked',
+  stale: 'edit_stale',
+  conflict: 'edit_stale',
+  empty: 'edit_empty',
+  'too-many': 'edit_toomany',
+  'unknown-sku': 'edit_unknown',
+  unpriced: 'edit_unpriced',
+  'no-stock': 'edit_stock',
+  'bad-phone': 'edit_phone',
+  'bad-address': 'edit_address',
+  'coupon-invalid': 'edit_coupon_bad',
+  'coupon-spent': 'edit_coupon_spent',
+  'coupon-min': 'edit_coupon_min',
+  'coupon-gone': 'edit_coupon_gone',
+};
+
+const editFlash = res =>
+  res.ok ? (res.changed ? 'order_edited' : 'edit_nothing') : (EDIT_FLASH[res.reason] || 'bad_input');
+
+/**
+ * Change what is on the order: the lines, and the coupon.
+ *
+ * The two are one form because they are one sum. A coupon has a minimum and a
+ * percentage, so removing a jar can invalidate the code and adding one can
+ * qualify for it — saving them separately would mean saving an order through a
+ * state where the discount does not match the basket, and on a shop that takes
+ * cash at the door that state is a number a driver collects.
+ *
+ * Nothing about money is read from this form. The quantities are quantities and
+ * the coupon is a code; every price, every total and the discount itself are
+ * recomputed in lib/order-edit.js from the database, inside the transaction
+ * that also moves the stock. See app/api/order/route.js, which this mirrors.
+ */
+async function saveItems(formData) {
+  'use server';
+  const admin = await requireAdmin();
+
+  const id = Number(formData.get('id'));
+
+  if (!(await csrfOk(formData.get('_csrf')))) redirect(backTo(id, 'csrf'));
+  if (!Number.isInteger(id) || id <= 0) redirect(backTo(id, 'bad_input'));
+
+  // One field per existing line, named for the row it belongs to. Reading them
+  // back off the form rather than trusting a positional list means a line
+  // deleted by somebody else between render and Save is refused by name.
+  const lines = [];
+  for (const [key, value] of formData.entries()) {
+    const m = /^qty_(\d+)$/.exec(key);
+    if (m) lines.push({ id: Number(m[1]), qty: value });
+  }
+
+  const addSku = String(formData.get('add_sku') || '');
+  const addQty = String(formData.get('add_qty') || '1');
+  const add = addSku ? [{ sku: addSku, qty: addQty }] : [];
+
+  const res = await editAndNotify({
+    orderId: id,
+    actor: `admin:${admin.id}`,
+    expectSeq: Number(formData.get('seq')),
+    lines,
+    add,
+    coupon: String(formData.get('coupon') || ''),
+    notify: formData.get('quiet') !== '1',
+  });
+
+  redirect(backTo(id, editFlash(res)));
+}
+
+/**
+ * Change where it is going: the address, the city, the phone, the note.
+ *
+ * A separate form from the basket, and separate for the reason saveDispatch is
+ * separate from saveStatus: they are corrected at different moments in the same
+ * call, and folding them together would mean an address fix that cannot be
+ * saved until the basket is also valid.
+ *
+ * It goes through the same editOrder() as the basket, so it takes the same
+ * compare-and-swap and lands on the same timeline. A wrong address is the most
+ * expensive fact on a cash-on-delivery order, and it deserves an audit row as
+ * much as a quantity does.
+ */
+async function saveContact(formData) {
+  'use server';
+  const admin = await requireAdmin();
+
+  const id = Number(formData.get('id'));
+
+  if (!(await csrfOk(formData.get('_csrf')))) redirect(backTo(id, 'csrf'));
+  if (!Number.isInteger(id) || id <= 0) redirect(backTo(id, 'bad_input'));
+
+  const res = await editAndNotify({
+    orderId: id,
+    actor: `admin:${admin.id}`,
+    expectSeq: Number(formData.get('seq')),
+    contact: {
+      phone: String(formData.get('phone') || ''),
+      address: String(formData.get('address') || ''),
+      city: String(formData.get('city') || ''),
+      notes: String(formData.get('notes') || ''),
+    },
+    notify: formData.get('quiet') !== '1',
+  });
+
+  redirect(backTo(id, editFlash(res)));
+}
+
+/**
+ * The Items panel: a form while the order can still be edited, and the same
+ * table as plain markup once it cannot.
+ *
+ * A form is only rendered when there is something to submit. A panel that was
+ * always a form would be a form with no controls in it on a shipped order —
+ * submittable by accident and refused by the server, which is a worse way to
+ * say no than not offering it.
+ */
+function ItemsPanel({ editable, action, children }) {
+  if (!editable) return <div className="panel">{children}</div>;
+  return <form action={action} className="panel">{children}</form>;
+}
+
 /** The word the timeline shows for each non-status event kind. */
 const EVENT_LABEL = {
   note: 'Note',
   'refund-request': 'Cancellation asked',
   mail: 'Email sent',
+  edit: 'Order edited',
+  call: 'Call',
 };
 
 export default async function OrderDetail({ params, searchParams }) {
@@ -124,6 +258,31 @@ export default async function OrderDetail({ params, searchParams }) {
   const events = await eventsFor(id);
   const moves = nextFrom(order.status);
   const locked = !moves.length;
+
+  /*
+   * Whether this order can still be changed, and what it could be changed to.
+   *
+   * The policy is lib/order-edit.js and this screen only asks it — a panel that
+   * rendered its own opinion of which statuses are editable would eventually
+   * offer a form the server refuses, which is the same mistake the Cancel
+   * button on the customer order page exists not to make.
+   *
+   * The catalogue is only read when it is going to be shown. Unpriced products
+   * are left out for the reason the edit refuses them: they have no price to
+   * sell at. Products already on the order are kept in, because adding one
+   * again is how an admin says two instead of one, and the edit merges it into
+   * the line that is already there.
+   */
+  const editable = canEdit(order.status);
+  const catalogue = editable
+    ? await sql`
+        SELECT sku, name_en, price, stock
+          FROM products
+         WHERE active = true AND price > 0
+         ORDER BY name_en ASC`
+    : [];
+
+  const seq = Number(order.edit_seq) || 0;
 
   return (
     <>
@@ -161,17 +320,49 @@ export default async function OrderDetail({ params, searchParams }) {
 
         <div className="panel">
           <h2>Delivery</h2>
-          <div style={{ padding: '16px 20px' }}>
-            <div className="kv">
-              <span>Address</span><b>{order.address || '—'}</b>
-              <span>City</span><b>{order.city || '—'}</b>
-              {order.notes ? (<><span>Notes</span><b><i>{order.notes}</i></b></>) : null}
+          {editable ? (
+            <form action={saveContact} style={{ padding: '16px 20px' }}>
+              <input type="hidden" name="_csrf" value={token} />
+              <input type="hidden" name="id" value={order.id} />
+              <input type="hidden" name="seq" value={seq} />
+              <div className="kv">
+                <span>Address</span>
+                <b><input name="address" defaultValue={order.address || ''} maxLength={255}
+                  style={{ width: '100%' }} /></b>
+                <span>City</span>
+                <b><input name="city" defaultValue={order.city || ''} maxLength={80}
+                  style={{ width: '100%' }} /></b>
+                <span>Phone</span>
+                <b><input name="phone" defaultValue={order.phone || ''} maxLength={20} dir="ltr"
+                  style={{ width: '100%' }} /></b>
+                <span>Notes</span>
+                <b><input name="notes" defaultValue={order.notes || ''} maxLength={500}
+                  style={{ width: '100%' }} /></b>
+              </div>
+              <div className="bar-row" style={{ marginTop: '12px' }}>
+                <button className="btn sm" type="submit">Save delivery</button>
+                <label className="muted" style={{ fontSize: '13px' }}>
+                  <input type="checkbox" name="quiet" value="1" /> Do not email
+                </label>
+              </div>
+            </form>
+          ) : (
+            <div style={{ padding: '16px 20px' }}>
+              <div className="kv">
+                <span>Address</span><b>{order.address || '—'}</b>
+                <span>City</span><b>{order.city || '—'}</b>
+                {order.notes ? (<><span>Notes</span><b><i>{order.notes}</i></b></>) : null}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 
-      <div className="panel">
+      <ItemsPanel editable={editable} action={saveItems}>
+        <input type="hidden" name="_csrf" value={token} />
+        <input type="hidden" name="id" value={order.id} />
+        <input type="hidden" name="seq" value={seq} />
+
         <h2>Items</h2>
         <div className="table-scroll">
           <table>
@@ -187,13 +378,19 @@ export default async function OrderDetail({ params, searchParams }) {
                   <td>{it.name}</td>
                   <td className="muted"><code>{it.sku || '—'}</code></td>
                   <td>{money(it.price)}</td>
-                  <td>× {Number(it.qty)}</td>
+                  <td>
+                    {editable ? (
+                      <input type="number" name={`qty_${it.id}`} defaultValue={Number(it.qty)}
+                        min={0} max={MAX_QTY} step={1} style={{ width: '72px' }} />
+                    ) : `× ${Number(it.qty)}`}
+                  </td>
                   <td style={{ textAlign: 'right' }}>{money(Number(it.price) * Number(it.qty))}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+
         <div style={{ padding: '14px 20px', borderTop: '1.5px solid var(--line)' }}>
           <div className="kv kv-money">
             <span>Subtotal</span><b>{money(order.subtotal)}</b>
@@ -204,7 +401,43 @@ export default async function OrderDetail({ params, searchParams }) {
             <span>Total</span><b style={{ fontSize: '18px' }}>{money(order.total)}</b>
           </div>
         </div>
-      </div>
+
+        {editable ? (
+          <div style={{ padding: '14px 20px', borderTop: '1.5px solid var(--line)' }}>
+            <div className="bar-row" style={{ flexWrap: 'wrap', gap: '10px' }}>
+              <select name="add_sku" defaultValue="" style={{ width: '260px' }}>
+                <option value="">Add a product…</option>
+                {catalogue.map(p => (
+                  <option key={p.sku} value={p.sku}>
+                    {p.name_en} — {money(p.price)} ({Number(p.stock)} in stock)
+                  </option>
+                ))}
+              </select>
+              <input type="number" name="add_qty" defaultValue={1} min={1} max={MAX_QTY} step={1}
+                style={{ width: '72px' }} aria-label="Quantity to add" />
+              <input name="coupon" defaultValue={order.coupon || ''} placeholder="Coupon code"
+                maxLength={64} style={{ width: '160px', textTransform: 'uppercase' }} />
+              <button className="btn sm" type="submit">Save items</button>
+              <label className="muted" style={{ fontSize: '13px' }}>
+                <input type="checkbox" name="quiet" value="1" /> Do not email
+              </label>
+            </div>
+            <p className="muted" style={{ margin: '10px 0 0', fontSize: '13px' }}>
+              Set a quantity to 0 to take the line off. Adding a product that is already on the
+              order adds to that line. Totals, the discount and the stock are all recomputed when
+              you save — the figures above are as they stand now. Clearing the coupon gives its
+              redemption back; typing a different one moves the redemption across.
+              The customer is emailed the revised order unless you tick Do not email.
+            </p>
+          </div>
+        ) : (
+          <div className="muted" style={{ padding: '14px 20px', borderTop: '1.5px solid var(--line)' }}>
+            {title(order.status)} orders cannot be edited. Once a parcel is with a courier its
+            contents and the amount written on the waybill are fixed, and past that both remaining
+            statuses are final.
+          </div>
+        )}
+      </ItemsPanel>
 
       <div className="panel">
         <h2>
