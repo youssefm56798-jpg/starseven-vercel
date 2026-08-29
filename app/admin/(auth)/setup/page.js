@@ -49,9 +49,15 @@ async function createFirstAdmin(formData) {
 
   // The WHERE NOT EXISTS is the real guard: two people opening this page at the
   // same moment cannot both create an admin.
+  //
+  // The role is written explicitly rather than left to the column default,
+  // which is 'staff'. This is the bootstrap: the first account has to be the
+  // one that can create the others, or the shop is set up and immediately
+  // locked out of its own accounts screen. Everything after this comes from
+  // /admin/accounts, where an owner chooses the role deliberately.
   const rows = await sql`
-    INSERT INTO admins (email, pass_hash, name)
-    SELECT ${email}, ${hash}, ${name}
+    INSERT INTO admins (email, pass_hash, name, role)
+    SELECT ${email}, ${hash}, ${name}, 'owner'
     WHERE NOT EXISTS (SELECT 1 FROM admins)
     RETURNING id`;
 

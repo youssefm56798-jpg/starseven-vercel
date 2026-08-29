@@ -62,14 +62,21 @@ async function verify(formData) {
   const res = await verifySecondFactor(pending, formData.get('code'));
   if (!res.ok) redirect('/admin/login/verify?m=bad2fa');
 
+  // Suspension is re-read here rather than carried in the pending cookie. The
+  // five minutes between the password and the code is short, and it is exactly
+  // long enough for an owner who has just realised something to suspend an
+  // account — at which point the half-finished login must not be allowed to
+  // finish. Refused as expired: whoever is holding the pending cookie has
+  // already proved the password, so this leaks nothing, and the login screen
+  // says plainly what happened when they try again.
   const rows = await sql`
-    SELECT id, email, name, session_epoch FROM admins WHERE id = ${pending}`;
+    SELECT id, email, name, session_epoch, suspended_at FROM admins WHERE id = ${pending}`;
   const admin = rows[0];
   // The admin row disappeared between the password and the code. Vanishingly
   // unlikely and still not a reason to mint a session for a row that is gone.
-  if (!admin) {
+  if (!admin || admin.suspended_at !== null) {
     await clearPendingSession();
-    redirect('/admin/login?m=expired');
+    redirect(admin ? '/admin/login?m=suspended' : '/admin/login?m=expired');
   }
 
   await sql`UPDATE admins SET last_login = now() WHERE id = ${admin.id}`;

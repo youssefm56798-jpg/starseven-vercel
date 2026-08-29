@@ -125,6 +125,16 @@ test('the walk actually finds the actions it is meant to police', () => {
   }
 });
 
+/*
+ * What counts as proof that an action checked who is calling.
+ *
+ * requireAdmin and currentAdmin read the session cookie. requirePermission and
+ * requireOwner arrived with roles and are accepted because they call
+ * requireAdmin themselves — which is asserted below rather than assumed, so
+ * this list cannot quietly grow into a way of passing without checking.
+ */
+const SESSION_GUARD = /requireAdmin\s*\(\)|currentAdmin\s*\(\)|requirePermission\s*\(|requireOwner\s*\(\)/;
+
 test('every server action checks the CSRF token', () => {
   // Without this an ordinary cross-site form post carries the admin session
   // cookie and the action runs. SameSite=lax on the cookie is not enough on
@@ -145,16 +155,56 @@ test('every server action in the panel also re-checks the session', () => {
 
   const missing = panel
     .filter(a => a.name !== 'logout')     // ending a session cannot require one
-    .filter(a => !/requireAdmin\s*\(\)|currentAdmin\s*\(\)/.test(a.body))
+    .filter(a => !SESSION_GUARD.test(a.body))
     .map(a => `${a.file}:${a.name}`);
   assert.deepEqual(missing, [], `panel actions with no session check:\n${missing.join('\n')}`);
+});
+
+test('the guards this file accepts all actually check the session', () => {
+  /*
+   * The regex above grew when roles arrived: an action that says
+   * requirePermission('products:write') has checked the session, but only
+   * because that helper calls requireAdmin() itself. Widening the pattern
+   * without pinning that is how a test stops testing — the next helper added
+   * to guard.js would be accepted on the strength of its name.
+   *
+   * So the names are checked against the source of the module that defines
+   * them. requireAdmin is the root and reads the cookie directly; every other
+   * accepted name has to reach it.
+   */
+  const guard = readFileSync(join(ROOT, 'app/admin/_lib/guard.js'), 'utf8');
+
+  assert.match(guard, /export async function requireAdmin\s*\(\)[\s\S]*?currentAdmin\s*\(\)/,
+    'requireAdmin no longer reads the session itself');
+
+  for (const name of ['requirePermission', 'requireOwner']) {
+    const at = guard.indexOf(`export async function ${name}`);
+    assert.ok(at >= 0, `${name} is not exported from guard.js`);
+
+    /*
+     * From after the opening brace, not from the declaration.
+     *
+     * The first version of this sliced from `export async function ...`, and
+     * the declaration of requirePermission(permission) matches the very
+     * pattern being searched for — so the test found the function's own name
+     * and passed no matter what the body did. Gutting requireAdmin out of it
+     * did not fail this test, which is how the mistake was caught. A guard
+     * test that cannot fail is worse than no guard test, because it is counted.
+     */
+    const open = guard.indexOf('{', guard.indexOf('(', at));
+    const end = guard.indexOf('\n}', open);
+    const body = guard.slice(open + 1, end > 0 ? end : open + 600);
+
+    assert.match(body, /\brequireAdmin\s*\(\)|\brequirePermission\s*\(/,
+      `${name} is accepted as a session check but its body never performs one`);
+  }
 });
 
 test('the session check comes before anything is written', () => {
   // An action that validated its input, wrote a row and then asked who was
   // calling would be a hole with a tidy-looking guard in it.
   for (const a of ALL) {
-    const guard = a.body.search(/requireAdmin\s*\(\)|currentAdmin\s*\(\)|csrfOk\s*\(/);
+    const guard = a.body.search(new RegExp(`${SESSION_GUARD.source}|csrfOk\\s*\\(`));
     const write = a.body.search(/\bsql`\s*(?:UPDATE|INSERT|DELETE)|createProduct|updateProduct|archiveProduct|discardProduct|restoreProduct|toggleActive|toggleFeatured|transition\s*\(/);
     if (write < 0) continue;
     assert.ok(guard >= 0 && guard < write,

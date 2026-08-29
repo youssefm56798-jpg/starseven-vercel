@@ -20,6 +20,7 @@
     "verify:auth": "node scripts/verify-admin-auth.mjs",
     "verify:backup": "node scripts/verify-backup.mjs",
     "verify:products": "node scripts/verify-product-admin.mjs",
+    "verify:accounts": "node scripts/verify-admin-accounts.mjs",
     "vercel-build": "node scripts/setup-db.mjs && next build"
   },
   "dependencies": {

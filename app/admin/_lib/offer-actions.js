@@ -1,6 +1,7 @@
 'use server';
 
 import { csrfOk, currentAdmin } from '../../../lib/auth.js';
+import { can } from '../../../lib/admin-roles.js';
 import { sql } from '../../../lib/db.js';
 import { sendMail, tplOffer } from '../../../lib/mail.js';
 
@@ -18,7 +19,13 @@ import { sendMail, tplOffer } from '../../../lib/mail.js';
 const BATCH = 25;
 
 export async function sendOfferBatch({ offerId, afterId = 0, csrf }) {
-  if (!(await currentAdmin())) return { error: 'auth' };
+  // A session is not enough. This is the one action in the panel that cannot be
+  // undone by anybody at any price - the mail is delivered - so it is owner
+  // only, and the check is here rather than only on the screen that renders the
+  // button, because this is called from a client component and is therefore a
+  // POST endpoint like any other.
+  const admin = await currentAdmin();
+  if (!admin || !can(admin.role, 'offers:write')) return { error: 'auth' };
   if (!(await csrfOk(csrf))) return { error: 'csrf' };
 
   const id = Number(offerId);

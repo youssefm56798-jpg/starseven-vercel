@@ -146,6 +146,22 @@ const MESSAGES = {
   pw_weak: ['err', 'That password is too easy to guess, or contains your email address.'],
   pw_same: ['err', 'That is already your password.'],
   recovery_used: ['err', 'You signed in with a recovery code, so that one is now spent. Check how many are left on the Security tab.'],
+  // Roles and accounts. A staff member who follows a stale link to an
+  // owner-only screen lands here, so it has to read as an explanation rather
+  // than as an accusation.
+  forbidden: ['err', 'That is owner-only. Ask the shop owner if you need it.'],
+  acct_created: ['ok', 'Account created. Hand the password over in person and have them change it on the Security tab.'],
+  acct_promoted: ['ok', 'That account is now an owner, and has been signed out so the change takes effect.'],
+  acct_demoted: ['ok', 'That account is now staff, and has been signed out so the change takes effect.'],
+  acct_suspended: ['ok', 'Account suspended. Every browser it was signed in to has been signed out.'],
+  acct_restored: ['ok', 'Account restored — they can sign in again.'],
+  acct_removed: ['ok', 'Account deleted. What it already did stays on the order history.'],
+  acct_reset_sent: ['ok', 'A password reset link is on its way to that address.'],
+  acct_duplicate: ['err', 'There is already an account with that email address.'],
+  acct_bad_email: ['err', 'That does not look like an email address.'],
+  acct_missing: ['err', 'That account no longer exists — reload to see the current list.'],
+  acct_self: ['err', 'You cannot change your own role, suspend yourself or delete your own account. Ask the other owner.'],
+  acct_last_owner: ['err', 'That is the last owner. It cannot be demoted, suspended or removed — this is exactly the lockout this screen exists to prevent.'],
 };
 
 export function Flash({ code }) {
@@ -169,6 +185,19 @@ export const LOGIN_MESSAGES = {
   bad2fa: ['err', 'That code is not right. App codes change every 30 seconds — try the current one.'],
   expired: ['err', 'That took too long. Enter your email and password again.'],
   totp_off: ['ok', 'Two-factor is off, and every session has been signed out. Log in again.'],
+  // Said only to somebody who has already produced the right password, so it
+  // reveals nothing an attacker did not already hold — and a member of staff
+  // whose access was withdrawn deserves a straight answer rather than being
+  // told their password is wrong.
+  suspended: ['err', 'That account has been suspended. Ask the shop owner to restore it.'],
+  bad_email: ['err', 'That does not look like an email address.'],
+  reset_sent: ['ok', 'If that address has an admin account, a link to set a new password is on its way. It works once and expires in 30 minutes.'],
+  reset_dead: ['err', 'That reset link has already been used or has expired. Ask for another one.'],
+  pw_reset: ['ok', 'Password set, and every browser signed out. Log in with the new one.'],
+  pw_short: ['err', 'Use a password of at least 10 characters.'],
+  pw_weak: ['err', 'That password is too easy to guess, or contains your email address.'],
+  pw_mismatch: ['err', 'The two passwords do not match.'],
+  bad_input: ['err', 'That did not look right — check the form and try again.'],
 };
 
 /** A wa.me link for an Egyptian mobile number, as the PHP built it. */

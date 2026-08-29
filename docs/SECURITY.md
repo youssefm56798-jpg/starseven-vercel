@@ -20,6 +20,11 @@ This describes the Next.js / Neon Postgres application in this repository.
 | **CSRF** | An `Origin` / `Sec-Fetch-Site` check plus a required `application/json` content type, which a cross-site form post cannot set without a preflight this API never answers. | `lib/credentials.js`, `app/api/order/refund/route.js` |
 | **Order access** | No accounts. A random token in the emails we send, stored only as a SHA-256, granting exactly one order. One order can hold several live links — `order_tokens` — so a status email can carry one without killing the one in the confirmation. See below. | `lib/order-access.js`, `db/schema.sql` |
 | **Admin auth** | Separate cookie, separate table, separate module. A customer session cannot become an admin session. | `lib/auth.js` |
+| **One login per person** | `admins.role` is `owner` or `staff`. An owner creates, suspends and removes accounts from `/admin/accounts`; staff cannot. Enforced in the Server Action **and** again inside the module that writes the row, which re-reads the caller role from the database rather than trusting the session token. | `lib/admin-roles.js`, `lib/admin-accounts.js`, `app/admin/_lib/guard.js` |
+| **Locking the shop out of its own admin** | The last owner cannot be demoted, suspended or removed. The guard is a `FOR UPDATE` CTE over the active owner rows, not a count read from the snapshot — two owners demoting each other at the same moment is write skew, and a count lets both through. | `lib/admin-accounts.js` |
+| **Forgotten admin password** | An emailed link: 32 random bytes, stored only as its SHA-256, single use, 30-minute expiry, and it revokes every session on use. It does **not** clear the second factor and does **not** sign anybody in. | `lib/admin-reset.js`, `db/schema.sql` |
+| **Admin enumeration via `/admin/forgot`** | One response expression reached from both branches, and the lookup, the invalidation of any older link and the mint are a **single statement**, so a hit and a miss cost the same round trip. The send is deferred to `after()`. Measured, not asserted. | `app/admin/(auth)/forgot/page.js`, `scripts/verify-admin-accounts.mjs` |
+| **A departed staff member** | Suspension bumps the session epoch, so every browser they hold is signed out at once; the login screen refuses them after the password; and the session lookup itself will not resolve a suspended row. Three locks, and the row stays so the order history still names a person. | `lib/admin-accounts.js`, `lib/auth.js` |
 | **Stolen admin session** | The token carries the `session_epoch` from its admin row and is refused when that number moves. Changing a password, turning two-factor off and the sign-out-everywhere button all move it. Before this, a leaked cookie was good for its full eight hours and nothing could stop it. | `lib/session-epoch.js`, `lib/auth.js` |
 | **Stolen admin password** | TOTP as a second factor, with hashed single-use recovery codes. A correct password issues a five-minute pending cookie and the verify screen, not a session. | `lib/totp.js`, `lib/admin-security.js` |
 | **Second-factor brute force** | A six-digit code is a million values; the caps are a five-minute pending window, a per-address limit and a per-account limit keyed on the admin id so rotating source addresses buys nothing. | `app/admin/(auth)/login/verify/page.js`, `lib/config.js` |
@@ -128,6 +133,61 @@ These are known gaps, not oversights. Listed so nobody has to rediscover them.
   is on somebody's laptop and this project has no answer for it: no encryption at
   rest, no retention limit, no off-site destination. See
   [`RECOVERY.md`](RECOVERY.md), which lists the same gap from the other side.
+  admin exists; `/admin/setup` is reachable while it is set. It creates that
+  first admin as an `owner` — the bootstrap has to be the role that can create
+  the others, or the shop is set up and immediately locked out of its own
+  accounts screen.
+- **Account management is not itself audited.** Order status moves are, and
+  that is what roles exist to make meaningful. Who suspended whom, and when a
+  role changed, is not recorded beyond `admins.created_by` and
+  `admins.suspended_at`. On a two- or three-person shop the owner is the only
+  person who can do any of it, so the log would have one author; it stops being
+  true the day there is a second owner.
+- **An owner can read every staff password reset link into existence.** That is
+  inherent — an owner can already change any password by other means — but it
+  means "the owner cannot impersonate staff" is not a property this system has,
+  and the audit trail should be read with that in mind.
+
+---
+
+## Admin roles
+
+Two roles, because the shop has two kinds of person and a third would be a
+guess about a shape nobody has. The table is in `lib/admin-roles.js`, it is
+pure, and `tests/admin-accounts.test.mjs` pins it.
+
+| | owner | staff |
+|---|:--:|:--:|
+| Orders — status, notes, call outcomes, dispatch | ✓ | ✓ |
+| Products — read | ✓ | ✓ |
+| Subscribers — read | ✓ | ✓ |
+| Products — price, stock, visibility | ✓ | |
+| Offers — create, edit, broadcast | ✓ | |
+| Subscribers — edit, delete, CSV export | ✓ | |
+| Accounts — create, suspend, remove, change role | ✓ | |
+| Own password, own two-factor, own sessions | ✓ | ✓ |
+
+The line is not "how senior is this person". It is **whether the action leaves a
+trail**:
+
+- Everything staff can do writes an `order_events` row stamped with their admin
+  id. That is the whole reason accounts exist — `lib/order-status.js` records
+  `admin:4` as the actor, and it means nothing if four people are account 4.
+- Everything staff cannot do either leaves no trail, is money, or cannot be
+  undone. **Accounts** is the one that is not negotiable: an account system
+  where any account can mint another is not an account system, and somebody who
+  can suspend accounts can lock the owner out. **Prices and stock** are the
+  money on a shop that takes cash at the door. **A broadcast** is the only
+  action in the panel that cannot be recalled at all. **The CSV export** is the
+  entire customer database in one file — different in kind from reading one
+  subscriber row, which is why reading is allowed and exporting is not.
+
+Every one of those is checked server-side in the Server Action, and again in
+the module that does the writing, which re-reads the caller role from the
+database. Hiding the tab is a courtesy, not a control:
+`tests/admin-accounts.test.mjs` enumerates every Server Action under
+`app/admin/` out of the source and fails if one of them does not check a
+session and a CSRF token.
 
 ---
 
@@ -145,7 +205,13 @@ These are known gaps, not oversights. Listed so nobody has to rediscover them.
       can be reissued but never recovered.
 - [ ] `NEXT_PUBLIC_SITE_URL` set to the real origin. The CSRF origin check
       compares against it, so a wrong value refuses every mutation.
-- [ ] `ADMIN_SETUP_KEY` removed after the first admin is created.
+- [ ] `ADMIN_SETUP_KEY` removed after the first admin is created. That first
+      admin is the owner; everybody else is added from `/admin/accounts`.
+- [ ] **A second owner exists** before the first one turns two-factor on. The
+      last owner cannot be demoted, suspended or removed — that is deliberate —
+      but it also means a single owner who loses both their password and their
+      recovery codes has no route back that does not involve the Neon console.
+      Two owners is the cheap insurance.
 - [ ] `MAIL_FROM` on a domain the client actually controls. It currently
       defaults to `newstarseven.com`, which belongs to an unrelated business —
       see `docs/product-facts.md`.
@@ -162,6 +228,25 @@ These are known gaps, not oversights. Listed so nobody has to rediscover them.
 ## Testing
 
 `npm test` — no database required.
+
+The properties that are SQL are proved against a real Postgres instead, by
+scripts that each build a throwaway Neon database and drop it in a `finally`:
+
+| Command | What it proves |
+|---|---|
+| `npm run verify:auth` | Two-factor, recovery codes and session revocation. |
+| `npm run verify:accounts` | An owner can create staff and staff cannot manage accounts; the last owner cannot be demoted, suspended or removed, including under a race; a reset token is single use, expires and revokes every session; two requests racing on one link cannot both win; and `/admin/forgot` costs the same for a real and a fake address, measured. |
+| `npm run verify:access` | Order links, the two-branch lookup and the `/order/find` timing. |
+| `npm run verify:orders` | The order status machine. |
+| `npm run verify:checkout` | Checkout idempotency. |
+| `npm run verify:indexes` | That each index earns its place, on 200k rows. |
+
+`verify:accounts` includes a **control**: it runs the same two-owner race
+against the statement the code deliberately does not use — the one that counts
+owners from the snapshot instead of locking them — and asserts that both
+demotions succeed and the shop is left with no owner. A race test that would
+also pass with the guard removed proves nothing, so the script proves the guard
+is what is doing the work.
 
 Three of the suites exist because a green build hid a real production failure,
 and are worth keeping for that reason:

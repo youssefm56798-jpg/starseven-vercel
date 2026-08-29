@@ -13,7 +13,8 @@ import {
 } from '../../../../lib/product-form.js';
 import { imageUrl } from '../../../../lib/product-image.js';
 import ConfirmButton from '../../_lib/confirm-button.js';
-import { requireAdmin } from '../../_lib/guard.js';
+import { requirePermission } from '../../_lib/guard.js';
+import { can } from '../../../../lib/admin-roles.js';
 import { Flash } from '../../_lib/ui.js';
 
 export const dynamic = 'force-dynamic';
@@ -106,7 +107,7 @@ const REASONS = {
 
 async function newProduct(formData) {
   'use server';
-  await requireAdmin();
+  await requirePermission('products:write');
   if (!(await csrfOk(formData.get('_csrf')))) to('csrf');
 
   const parsed = parseProductForm(formData, { mode: 'create' });
@@ -138,7 +139,7 @@ async function newProduct(formData) {
 
 async function saveProduct(formData) {
   'use server';
-  await requireAdmin();
+  await requirePermission('products:write');
   if (!(await csrfOk(formData.get('_csrf')))) to('csrf');
 
   const id = Number(formData.get('id'));
@@ -448,7 +449,11 @@ function ProductFields({ prefix, p, uploads }) {
 }
 
 export default async function ProductsPage({ searchParams }) {
-  await requireAdmin();
+  // Readable by staff, writable by the owner. The page keeps the answer so the
+  // controls can be disabled rather than merely failing when pressed - the
+  // refusal itself lives in the actions above, which is where it counts.
+  const viewer = await requirePermission('products:read');
+  const mayWrite = can(viewer.role, 'products:write');
   const sp = await searchParams;
   const token = await csrfToken();
   const uploads = blobEnabled();
@@ -532,7 +537,7 @@ export default async function ProductsPage({ searchParams }) {
                 </label>
               </div>
 
-              <button className="btn" type="submit">Create product</button>
+              <button className="btn" type="submit" disabled={!mayWrite}>Create product</button>
             </form>
           </details>
         </div>
@@ -552,7 +557,7 @@ export default async function ProductsPage({ searchParams }) {
                 <input type="hidden" name="_csrf" value={token} />
                 <input type="hidden" name="id" value={p.id} />
                 <input type="hidden" name="act" value="toggle" />
-                <button className="btn sm ghost" type="submit">{p.active ? 'Hide' : 'Show'}</button>
+                <button className="btn sm ghost" type="submit" disabled={!mayWrite}>{p.active ? 'Hide' : 'Show'}</button>
               </form>
               {/* saveProduct, not save - `save` is undefined and threw a
                   ReferenceError that took the whole product editor down. And
@@ -563,7 +568,7 @@ export default async function ProductsPage({ searchParams }) {
                 <input type="hidden" name="_csrf" value={token} />
                 <input type="hidden" name="id" value={p.id} />
                 <input type="hidden" name="act" value="feature" />
-                <button className="btn sm ghost" type="submit"
+                <button className="btn sm ghost" type="submit" disabled={!mayWrite}
                         title="Show this product on the home page">
                   {p.featured ? 'Unfeature' : 'Feature'}
                 </button>
@@ -590,7 +595,7 @@ export default async function ProductsPage({ searchParams }) {
                 <img src={imageUrl(p.image)} alt="" />
                 <div>
                   <ProductFields prefix={`p${p.id}`} p={p} uploads={uploads} />
-                  <button className="btn" type="submit">Save</button>
+                  <button className="btn" type="submit" disabled={!mayWrite}>Save</button>
                 </div>
               </div>
             </form>
@@ -619,7 +624,7 @@ export default async function ProductsPage({ searchParams }) {
                       <input type="hidden" name="_csrf" value={token} />
                       <input type="hidden" name="id" value={p.id} />
                       <input type="hidden" name="act" value="restore" />
-                      <button className="btn sm ghost" type="submit">Restore</button>
+                      <button className="btn sm ghost" type="submit" disabled={!mayWrite}>Restore</button>
                     </form>
                     {canDiscard && (
                       <form action={saveProduct}>
