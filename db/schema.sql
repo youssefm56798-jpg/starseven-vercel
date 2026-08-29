@@ -344,5 +344,57 @@ CREATE TABLE IF NOT EXISTS rate_limits (
   PRIMARY KEY (bucket, ip)
 );
 
+-- ---------------------------------------------------------------------------
+--  Checkout idempotency
+--
+--  POST /api/order had none, and a checkout that arrives twice is not a rare
+--  event: an impatient customer double-taps Confirm, a mobile connection drops
+--  after the request has already left the phone and the browser replays it, a
+--  back button re-posts. Every one of those wrote a SECOND order, took the
+--  stock a second time and spent the coupon a second time. On a
+--  cash-on-delivery shop that is two drivers at the same door and two lots of
+--  product gone, and the shop finds out when the second one knocks.
+--
+--  The browser now mints one key per checkout attempt and sends it with the
+--  order; a retry of that same attempt sends the same key. This table is where
+--  the key is claimed, and the claim is what makes the write single-shot: the
+--  INSERT is the FIRST statement of the same transaction that writes the
+--  order, so the key and the order commit together or not at all. There is no
+--  read-then-write left to lose the race in, which matters because Neon over
+--  HTTP has no interactive transaction to hold a check and a write together.
+--
+--  `response` keeps the original reply verbatim rather than a pointer to the
+--  order. Rebuilding the reply from the order row would mean re-reading the
+--  order and its items and re-deriving the wording, and the rebuild would
+--  drift from the real thing the first time the reply gains a field. What the
+--  customer saw the first time is what the retry sees.
+--
+--  JSON and not JSONB, which is the unusual choice and the deliberate one.
+--  JSONB normalises: it discards key order and rewrites the text. Nothing here
+--  is ever queried into or indexed, so none of what JSONB buys applies, while
+--  what it costs is the one property this column exists for - that the reply
+--  handed to a retry is the same bytes as the reply handed to the request that
+--  won. JSON stores the text exactly as given.
+--
+--  The key is high-entropy and minted in the browser, because the stored reply
+--  carries the order reference and the phone number the shop is about to call.
+--  Guessing a key is the only way to reach one, and a 122-bit random value is
+--  not guessable.
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS order_attempts (
+  idem_key    TEXT PRIMARY KEY,
+  ref         TEXT NOT NULL DEFAULT '',
+  response    JSON NOT NULL,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- A retry lands within seconds and a browser replay within minutes. Nothing
+-- needs a key that is a month old, and without this the table grows by one row
+-- per order forever. There is no scheduler on this stack, so the deploy is the
+-- recurring job: db:setup runs the whole schema on every build, and this is a
+-- no-op the moment the backlog is gone. The index is what keeps it cheap.
+CREATE INDEX IF NOT EXISTS idx_order_attempts_age ON order_attempts (created_at);
+DELETE FROM order_attempts WHERE created_at < now() - interval '30 days';
+
 
 

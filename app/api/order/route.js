@@ -5,9 +5,10 @@
  * treated as a suggestion, never as fact.
  *
  * Body: { name, phone, address, email, city?, notes?, coupon?, consent?,
- *         lang?, hp?, items: [ { sku, qty } ] }
+ *         lang?, hp?, idempotency_key?, items: [ { sku, qty } ] }
  */
 
+import { after } from 'next/server';
 import { sql, clientIp, rateOk } from '../../../lib/db.js';
 import { ok, fail, readJson, langOf, orderRef, token40 } from '../../../lib/http.js';
 import { discountFor, cartTotals } from '../../../lib/pricing.js';
@@ -37,6 +38,50 @@ export async function POST(req) {
 
   const ip = clientIp(req);
   if (!(await rateOk('order', ip, ...limits.order))) return tooMany(lang);
+
+  /* --------------------------------------------------------- idempotency */
+
+  /*
+   * One key per checkout attempt, minted in the browser; every retry of that
+   * same attempt carries the same one. See db/schema.sql for the shape of the
+   * table it is claimed in, and the write below for the claim itself.
+   *
+   * Anything that is not a plausible key is treated as ABSENT rather than
+   * refused. A tab that was opened before this deploy has no key to send, and a
+   * checkout that answers 400 to those customers is a worse outage than the bug
+   * this fixes: the shop would stop taking orders from everyone with a stale
+   * page open until they happened to reload. Without a key the route behaves
+   * exactly as it did before - one order per request, no replay protection -
+   * which is a degradation, not a break.
+   */
+  const rawKey = str(body.idempotency_key, 100);
+  const idemKey = /^[A-Za-z0-9_.:-]{16,100}$/.test(rawKey) ? rawKey : '';
+
+  /**
+   * The reply this key was already answered with, as a finished response, or
+   * null if the key has not been claimed.
+   *
+   * Called in three places, and only the third is the guarantee:
+   *
+   *   here      the courteous check, the same shape as the coupon cap check
+   *             below. It answers the common case - a replayed POST arriving
+   *             well after the first one finished - without redoing any of the
+   *             work. It is NOT what makes the guarantee: two requests landing
+   *             together both look here and both find nothing, because neither
+   *             has committed yet.
+   *   refusals  on the way out of the two checks whose answer a concurrent
+   *             winner can change under us. See each of them.
+   *   the write the claim lost. That one is the guarantee.
+   */
+  const replayed = async () => {
+    if (!idemKey) return null;
+    const [prior] = await sql`
+      SELECT response FROM order_attempts WHERE idem_key = ${idemKey} LIMIT 1`;
+    return prior?.response ? ok(prior.response) : null;
+  };
+
+  const replay = await replayed();
+  if (replay) return replay;
 
   /* ------------------------------------------------------------- customer */
 
@@ -107,7 +152,14 @@ export async function POST(req) {
     const stock = Number(p.stock);
 
     if (stock < qty) {
-      return fail(
+      // Ask the key again before refusing. A duplicate of this same attempt can
+      // arrive while the first one is still in flight — too early to have seen
+      // its claim above — and then read the stock AFTER it committed. The units
+      // that are missing are then the ones this customer's own first request
+      // took, and telling them their order sold out is both wrong and alarming:
+      // the order exists. Only the world changing between two identical
+      // requests can land here, which is exactly what the key is for.
+      return (await replayed()) ?? fail(
         ar ? `الكمية المطلوبة من "${p.name_ar}" مش متوفرة حالياً.`
            : `We do not have that many of "${p.name_en}" in stock.`,
         409, { field: 'items', sku: p.sku, stock },
@@ -172,7 +224,11 @@ export async function POST(req) {
     // courteous check - the guard inside the write transaction is what actually
     // enforces it, because two orders can pass this line at once.
     if (off.max_uses != null && Number(off.used_count) >= Number(off.max_uses)) {
-      return fail(
+      // Same reason as the stock check above, and this is the one that fires in
+      // practice: on a single-use code, a duplicate submit reads used_count
+      // after the first request has already spent it, and would be told the
+      // code is finished when it was their own order that finished it.
+      return (await replayed()) ?? fail(
         ar ? 'كود الخصم ده خلص.' : 'That discount code has been fully used.',
         422, { field: 'coupon' },
       );
@@ -217,6 +273,36 @@ export async function POST(req) {
   ({ subtotal, discount } = t);
   const { shipping, total } = t;
 
+  /* ---------------------------------------------------------------- reply */
+
+  /**
+   * The answer the customer gets, built BEFORE the write rather than after it.
+   *
+   * It has to exist before, because the idempotency claim stores it: a retry of
+   * this attempt is answered from the stored copy, and storing a copy means
+   * having one to store. Everything in here is already decided by this point -
+   * the totals came from the database, the reference is the one about to be
+   * written - so nothing is being guessed ahead of the write.
+   */
+  const replyFor = ref => {
+    // Prefilled WhatsApp text so the customer can jump straight into the chat.
+    const waLines = [ar ? `أوردر رقم ${ref}` : `Order ${ref}`];
+    for (const it of items) waLines.push(`• ${it.name} × ${it.qty}`);
+    waLines.push(`${ar ? 'الإجمالي: ' : 'Total: '}${money(total)} ${site.currency}`);
+
+    return {
+      ref,
+      subtotal,
+      discount,
+      shipping,
+      total,
+      wa: `https://wa.me/${site.whatsapp}?text=${encodeURIComponent(waLines.join('\n'))}`,
+      message: ar
+        ? `استلمنا طلبك ★ هنكلمك على ${phone} نأكد التوصيل.`
+        : `Order received ★ We will call you on ${phone} to confirm delivery.`,
+    };
+  };
+
   /* ---------------------------------------------------------------- write */
 
   /**
@@ -231,15 +317,60 @@ export async function POST(req) {
    *    between our check above and this write, that is a division by zero and
    *    Postgres rolls the entire order back rather than overselling.
    */
-  const writeFor = ref => {
-    const stmts = [sql`
+  const writeFor = (ref, reply) => {
+    const stmts = [];
+
+    /*
+     * Claim the idempotency key, and do it FIRST.
+     *
+     * This is the statement that makes a double-submit impossible, and it is
+     * the only one in the batch whose guard is about a request rather than a
+     * row. The shape is the house pattern - a guarded write, then
+     * `SELECT 1 / count(*)::int` so a zero-row match divides by zero and rolls
+     * the whole batch back - but what it is guarding on is unusual enough to
+     * spell out:
+     *
+     *   ON CONFLICT DO NOTHING against a UNIQUE key does not just fail when the
+     *   conflicting row is already committed. When the conflicting row was
+     *   inserted by a transaction that has not finished yet, Postgres makes
+     *   this INSERT WAIT on that transaction and only then decides. So a
+     *   duplicate that arrives while the first request is still mid-flight -
+     *   the case a check-then-insert cannot see, and the case that actually
+     *   happens on a double-tap - blocks here and loses here.
+     *
+     *   The loser gets zero rows, divides by zero, and its entire batch is
+     *   rolled back: no order row, no stock taken, no coupon spent. The winner
+     *   commits the key and the order together, so there is no window in which
+     *   one exists without the other.
+     *
+     * First in the batch, not last, and that ordering is load-bearing: a loser
+     * that had already decremented stock would sit on those product rows while
+     * it waited, and every unrelated order for the same product would queue
+     * behind a request that is about to roll back anyway. Waiting before
+     * touching anything costs nothing and holds nothing.
+     *
+     * With no key the statement is simply absent and the batch is what it
+     * always was.
+     */
+    if (idemKey) {
+      stmts.push(sql`
+        WITH claimed AS (
+          INSERT INTO order_attempts (idem_key, ref, response)
+          VALUES (${idemKey}, ${ref}, ${JSON.stringify(reply)}::json)
+          ON CONFLICT (idem_key) DO NOTHING
+          RETURNING idem_key
+        )
+        SELECT 1 / count(*)::int AS guard FROM claimed`);
+    }
+
+    stmts.push(sql`
       INSERT INTO orders (ref, name, phone, address, city, notes, lang,
                           subtotal, shipping, discount, total, coupon, source, ip,
                           email, access_hash)
       VALUES (${ref}, ${name}, ${phone}, ${address}, ${city}, ${notes}, ${lang},
               ${subtotal}, ${shipping}, ${discount}, ${total}, ${couponCode}, 'web', ${ip},
               ${custEmail}, ${accessHash})
-      RETURNING id`];
+      RETURNING id`);
 
     for (const it of items) {
       // Casts are explicit because a bare parameter in an INSERT ... SELECT
@@ -283,15 +414,19 @@ export async function POST(req) {
   };
 
   let ref = '';
+  let reply = null;
   let written = false;
   let writeErr = null;
 
   // order_ref() is four random digits within a day, so a collision is unlikely
   // but not impossible. A duplicate is worth retrying; anything else is not.
+  // A retry is safe for the claim too: the collision aborted the batch, so the
+  // key it tried to take was rolled back with everything else and is free again.
   for (let attempt = 0; attempt < 5 && !written; attempt++) {
     ref = orderRef();
+    reply = replyFor(ref);
     try {
-      await sql.transaction(writeFor(ref));
+      await sql.transaction(writeFor(ref, reply));
       written = true;
     } catch (e) {
       writeErr = e;
@@ -302,8 +437,28 @@ export async function POST(req) {
   if (!written) {
     console.error('[s7] order failed:', writeErr?.code || '', writeErr?.message || writeErr);
 
-    // 22012 is division_by_zero — our stock guard firing, not a real fault.
+    /*
+     * 22012 is division_by_zero — one of our own guards, never a real fault.
+     * Three of them can raise it now and they mean different things, so ask
+     * which before choosing what to tell the customer.
+     *
+     * A row under our key can only have been written by somebody else: our own
+     * batch rolled back, so whatever it claimed went with it. And the claim
+     * blocked until that other transaction finished, so by the time we are
+     * here the winner has already committed and its reply is readable. No
+     * polling, no retry loop, no sleep — the wait already happened, inside the
+     * statement.
+     *
+     * The customer sees the original order confirmation, which is the truth:
+     * their order was placed, exactly once, by the request that got there
+     * first.
+     */
     if (writeErr?.code === '22012') {
+      const lost = await replayed();
+      if (lost) return lost;
+
+      // No claim in the way, so it was the stock guard or the coupon guard.
+      // The stock is the one a customer can act on, so that is the message.
       return fail(
         ar ? 'واحد من المنتجات خلص من المخزن دلوقتي. راجع السلة وجرّب تاني.'
            : 'One of those items just sold out. Check your cart and try again.',
@@ -348,36 +503,37 @@ export async function POST(req) {
 
   /* ---------------------------------------------------------------- notify */
 
-  // The order is already saved. Mail is best-effort from here on — a bounced
-  // notification must never turn a placed order into an error.
-  try {
-    const [aSub, aHtml] = tplOrderAdmin(order, items);
-    if (mail.notifyTo) await sendMail({ to: mail.notifyTo, subject: aSub, html: aHtml, kind: 'order-admin' });
+  /*
+   * Two mails to Resend, AFTER the response rather than before it.
+   *
+   * They were awaited inline, which put two round trips to a third party on the
+   * critical path of a checkout — hundreds of milliseconds of a customer
+   * staring at "Placing your order…" for work whose result they will not see on
+   * this page anyway. The order is already committed by the time we get here,
+   * so there is nothing left for the customer to wait on.
+   *
+   * The try/catch stays and stays wide. A mail failure must never turn a placed
+   * order into an error, and now it structurally cannot: the response has
+   * already gone out. The same discipline as app/api/subscribe/route.js, which
+   * defers its confirmation send for a different reason.
+   */
+  after(async () => {
+    try {
+      const [aSub, aHtml] = tplOrderAdmin(order, items);
+      if (mail.notifyTo) await sendMail({ to: mail.notifyTo, subject: aSub, html: aHtml, kind: 'order-admin' });
 
-    // The link is the whole point of the confirmation now — it is the only
-    // copy of the token that will ever exist.
-    const [cSub, cHtml] = tplOrder(order, items, lang, orderUrl(ref, accessToken, lang));
-    await sendMail({ to: custEmail, subject: cSub, html: cHtml, kind: 'order' });
-  } catch (e) {
-    console.error('[s7] order mail failed:', e?.message || e);
-  }
+      // The link is the whole point of the confirmation now — it is the only
+      // copy of the token that will ever exist.
+      const [cSub, cHtml] = tplOrder(order, items, lang, orderUrl(ref, accessToken, lang));
+      await sendMail({ to: custEmail, subject: cSub, html: cHtml, kind: 'order' });
+    } catch (e) {
+      console.error('[s7] order mail failed:', e?.message || e);
+    }
+  });
 
   /* ----------------------------------------------------------------- reply */
 
-  // Prefilled WhatsApp text so the customer can jump straight into the chat.
-  const waLines = [ar ? `أوردر رقم ${ref}` : `Order ${ref}`];
-  for (const it of items) waLines.push(`• ${it.name} × ${it.qty}`);
-  waLines.push(`${ar ? 'الإجمالي: ' : 'Total: '}${money(total)} ${site.currency}`);
-
-  return ok({
-    ref,
-    subtotal,
-    discount,
-    shipping,
-    total,
-    wa: `https://wa.me/${site.whatsapp}?text=${encodeURIComponent(waLines.join('\n'))}`,
-    message: ar
-      ? `استلمنا طلبك ★ هنكلمك على ${phone} نأكد التوصيل.`
-      : `Order received ★ We will call you on ${phone} to confirm delivery.`,
-  });
+  // The very same object the claim stored, so a retry of this attempt cannot
+  // be answered with anything different from what was sent here.
+  return ok(reply);
 }
