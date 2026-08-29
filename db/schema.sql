@@ -710,3 +710,109 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_recovery_hash  ON admin_recovery_codes (co
 -- Serves the count on the security screen and the delete-and-reissue that
 -- regenerating a set does, both of which read every row for one admin.
 CREATE INDEX IF NOT EXISTS idx_recovery_admin ON admin_recovery_codes (admin_id, used_at);
+
+-- ---------------------------------------------------------------------------
+--  Two people at the till: roles, and accounts that can be created
+--
+--  The panel supported exactly one login. app/admin/(auth)/setup made the first
+--  admin and then refused for ever, no screen added a second, and a forgotten
+--  password meant hand-inserting a bcrypt hash into Neon. So a shop with two
+--  people processing orders shared one login, which quietly destroys the only
+--  audit trail this system keeps: lib/order-status.js writes admin:4 as the
+--  actor on every status move, and that means nothing when four people are
+--  account 4.
+--
+--  role is TEXT plus a CHECK rather than an enum, matching every other status
+--  column in this file, and the constraint is dropped and re-added because
+--  Postgres has no ALTER CONSTRAINT for a CHECK. The default is staff and not
+--  owner, so a row written by code that has not been taught about roles gets
+--  the smaller of the two sets of powers rather than the larger one.
+--
+--  suspended_at rather than a boolean, because when somebody lost access is a
+--  question the shop will eventually ask and a flag cannot answer it.
+--  Suspension is the reversible half of removal: the row stays, so every
+--  order_events row naming that admin still resolves to a person.
+--
+--  created_by records which owner opened the account. Deliberately not a
+--  foreign key: the owner may be removed later, and that must neither take
+--  this record with it nor block the delete.
+-- ---------------------------------------------------------------------------
+ALTER TABLE admins ADD COLUMN IF NOT EXISTS role         TEXT NOT NULL DEFAULT 'staff';
+ALTER TABLE admins ADD COLUMN IF NOT EXISTS suspended_at TIMESTAMPTZ;
+ALTER TABLE admins ADD COLUMN IF NOT EXISTS created_by   INT;
+
+ALTER TABLE admins DROP CONSTRAINT IF EXISTS admins_role_check;
+ALTER TABLE admins ADD CONSTRAINT admins_role_check CHECK (role IN ('owner','staff'));
+
+-- The admin that already exists is whoever set the shop up, so it is the owner.
+-- Guarded on there being no owner yet and pinned to the oldest row, which makes
+-- it a no-op on the second deploy and stops it ever promoting a staff account
+-- created later. Production has no admins at all yet, so on the live database
+-- this matches nothing and the first owner comes from /admin/setup instead.
+UPDATE admins SET role = 'owner'
+ WHERE id = (SELECT id FROM admins ORDER BY id LIMIT 1)
+   AND NOT EXISTS (SELECT 1 FROM admins WHERE role = 'owner');
+
+-- No index on role. This table holds a handful of rows and always will, and the
+-- role is read on the same lookup that already fetches session_epoch, so it
+-- costs no extra round trip on the path of every admin request.
+
+-- ---------------------------------------------------------------------------
+--  Resetting an admin password
+--
+--  Until now the only way back from a forgotten password was to open the Neon
+--  console and paste a bcrypt hash over the column by hand. That is not a
+--  recovery procedure, it is a reason to keep using a password you can
+--  remember.
+--
+--  Same token discipline as order_tokens and admin_recovery_codes, for the same
+--  reason: what is stored is the SHA-256 of a random 32 bytes, the token itself
+--  lives in one email and nowhere else, and a dump of this table is therefore
+--  not a way into the panel. SHA-256 rather than bcrypt because the secret is
+--  256 bits of machine randomness, where the slowness bcrypt sells is buying
+--  nothing, and because the claim has to be one indexed read.
+--
+--  Three properties, and each one is a column:
+--
+--    expires_at   a short life. Unlike an order link, which is a credential for
+--                 one order that a customer is meant to keep for weeks, this
+--                 one grants an identity, and the mailbox it lands in is the
+--                 whole of its security. Thirty minutes is long enough to walk
+--                 to a desk and short enough that an old mail found later is
+--                 already dead.
+--
+--    used_at      single use, claimed by the WHERE clause of the UPDATE that
+--                 spends it and never by a SELECT followed by an UPDATE. Two
+--                 requests racing on one link cannot both win, which is the
+--                 mechanism admin_recovery_codes uses and for the same reason.
+--                 A stamp rather than a delete, so a spent token stays visible
+--                 and can never be re-issued by chance.
+--
+--    requested_ip who asked. It answers the question somebody will ask after an
+--                 account is taken over, and it is the audit half of a feature
+--                 whose whole point is that a stranger can cause it to run.
+--
+--  Rows go with the admin, because a live link into an account that no longer
+--  exists is a loose end nobody would think to sweep.
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS admin_password_resets (
+  id           INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  admin_id     INT NOT NULL REFERENCES admins(id) ON DELETE CASCADE,
+  -- SHA-256 of the token, hex. The token itself is never written, here or
+  -- anywhere else. Same rule order_tokens and admin_recovery_codes follow.
+  token_hash   TEXT NOT NULL,
+  expires_at   TIMESTAMPTZ NOT NULL,
+  used_at      TIMESTAMPTZ,
+  requested_ip TEXT NOT NULL DEFAULT '',
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+-- The claim is a lookup on the digest and has to find one row without an
+-- ORDER BY to make it deterministic. Unique, so a mint that somehow replayed
+-- cannot leave two rows for one token either.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_admin_reset_hash ON admin_password_resets (token_hash);
+-- Serves the invalidate-the-older-ones half of issuing a link.
+CREATE INDEX IF NOT EXISTS idx_admin_reset_admin ON admin_password_resets (admin_id, used_at);
+-- Nothing needs a reset row older than the longest life a token has, by a wide
+-- margin. There is no scheduler on this stack, so the deploy is the recurring
+-- job, exactly as it is for order_attempts above.
+DELETE FROM admin_password_resets WHERE created_at < now() - interval '30 days';

@@ -44,13 +44,30 @@ async function doLogin(formData) {
   }
 
   const rows = await sql`
-    SELECT id, email, name, pass_hash, session_epoch, totp_enrolled_at
+    SELECT id, email, name, pass_hash, session_epoch, totp_enrolled_at, suspended_at
       FROM admins WHERE email = ${email} LIMIT 1`;
   const admin = rows[0];
   const ok = await bcrypt.compare(pass, admin ? admin.pass_hash : DUMMY_HASH);
 
   // Same answer either way — never reveal which half was wrong.
   if (!admin || !ok) redirect('/admin/login?m=bad');
+
+  /*
+   * A suspended account, checked AFTER the password and not in the query above.
+   *
+   * The order is what makes the honest message safe. Filtering suspended rows
+   * out of the SELECT would fold suspension into the generic wrong-email-or-
+   * password answer, which is correct but tells a member of staff nothing about
+   * why the password they know is right is being refused. Checking it here
+   * means the message is only ever shown to somebody who has just proved they
+   * hold the password for this account, so it discloses nothing they did not
+   * already have — and the bcrypt comparison has already been paid either way,
+   * so it costs no timing difference.
+   *
+   * Suspension already killed the sessions this account held, by bumping the
+   * epoch. This is the other half: it stops a new one being minted.
+   */
+  if (admin.suspended_at !== null) redirect('/admin/login?m=suspended');
 
   /*
    * The password was right, which is not the same as being signed in.
@@ -101,6 +118,9 @@ export default async function LoginPage({ searchParams }) {
             <input id="pass" type="password" name="pass" required autoComplete="current-password" />
             <button type="submit">Log in</button>
           </form>
+          <p className="sub" style={{ marginTop: '14px' }}>
+            <a href="/admin/forgot">Forgotten your password?</a>
+          </p>
         </div>
       </div>
     </div>

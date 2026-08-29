@@ -3,9 +3,22 @@ import { redirect } from 'next/navigation';
 import { csrfOk, csrfToken } from '../../../../lib/auth.js';
 import { sql } from '../../../../lib/db.js';
 import { bySlug } from '../../../../lib/hairtypes.js';
+import { can } from '../../../../lib/admin-roles.js';
 import ConfirmButton from '../../_lib/confirm-button.js';
-import { requireAdmin } from '../../_lib/guard.js';
+import { requirePermission } from '../../_lib/guard.js';
 import { day, Flash } from '../../_lib/ui.js';
+
+/*
+ * Read for everyone signed in, write and export for the owner.
+ *
+ * The list itself is not a new class of secret to somebody who can already read
+ * every order, which carries the same names, phones, addresses and emails — and
+ * a caller asking whether they are on the list is an order-desk question. The
+ * bulk CSV is different in kind rather than in degree: it is the whole customer
+ * database in one file, it is the single most valuable thing that can walk out
+ * of this panel, and no order has ever needed it. Deleting a subscriber is
+ * destructive and likewise has nothing to do with the order desk.
+ */
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Subscribers — Star Seven admin' };
@@ -24,7 +37,7 @@ function backTo(status, q, msg) {
 
 async function subAction(formData) {
   'use server';
-  await requireAdmin();
+  await requirePermission('subscribers:write');
 
   const fStatus = String(formData.get('f_status') || '');
   const fQ = String(formData.get('q_back') || '').slice(0, 80);
@@ -50,7 +63,9 @@ async function subAction(formData) {
 }
 
 export default async function SubscribersPage({ searchParams }) {
-  await requireAdmin();
+  const me = await requirePermission('subscribers:read');
+  const mayWrite = can(me.role, 'subscribers:write');
+  const mayExport = can(me.role, 'subscribers:export');
   const sp = await searchParams;
   const token = await csrfToken();
 
@@ -122,8 +137,10 @@ export default async function SubscribersPage({ searchParams }) {
                 effect never runs, so the panel sits opaque over the admin for
                 the full 2500ms STUCK_MS failsafe and is then torn down with no
                 animation. */}
-            <a className="btn sm ghost" href="/admin/subscribers/export" data-no-transition="">Export CSV</a>
-            <Link className="btn sm red" href="/admin/offers">Send an offer</Link>
+            {mayExport ? (
+              <a className="btn sm ghost" href="/admin/subscribers/export" data-no-transition="">Export CSV</a>
+            ) : null}
+            {mayExport ? <Link className="btn sm red" href="/admin/offers">Send an offer</Link> : null}
           </span>
         </h2>
 
@@ -153,6 +170,7 @@ export default async function SubscribersPage({ searchParams }) {
                       <td><span className={`pill ${s.status}`}>{s.status}</span></td>
                       <td className="muted">{day(s.created_at)}</td>
                       <td>
+                        {mayWrite ? (
                         <form action={subAction} className="bar-row">
                           <input type="hidden" name="_csrf" value={token} />
                           <input type="hidden" name="id" value={s.id} />
@@ -172,6 +190,7 @@ export default async function SubscribersPage({ searchParams }) {
                             Delete
                           </ConfirmButton>
                         </form>
+                        ) : <span className="muted">—</span>}
                       </td>
                     </tr>
                   );

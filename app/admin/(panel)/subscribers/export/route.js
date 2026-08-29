@@ -1,4 +1,5 @@
 import { currentAdmin } from '../../../../../lib/auth.js';
+import { can } from '../../../../../lib/admin-roles.js';
 import { sql } from '../../../../../lib/db.js';
 
 export const dynamic = 'force-dynamic';
@@ -29,6 +30,20 @@ export async function GET() {
   // Route handlers do not run layouts, so the session check lives here too.
   const admin = await currentAdmin();
   if (!admin) return new Response(null, { status: 302, headers: { Location: '/admin/login' } });
+
+  /*
+   * And the permission, because this is the one URL in the panel that hands
+   * over the entire customer list as a file.
+   *
+   * A route handler has no form and no button, so the tab strip hiding the link
+   * on the subscribers screen protects nothing at all here - anybody with a
+   * session can type this address. Staff can read the list a row at a time,
+   * which is what answering a phone call needs; they cannot take a copy of it,
+   * which is what nothing needs.
+   */
+  if (!can(admin.role, 'subscribers:export')) {
+    return new Response(null, { status: 302, headers: { Location: '/admin?m=forbidden' } });
+  }
 
   const enc = new TextEncoder();
   let offset = 0;

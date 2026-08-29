@@ -3,8 +3,20 @@ import { csrfOk, csrfToken } from '../../../../lib/auth.js';
 import { sql } from '../../../../lib/db.js';
 import { bySlug, HAIR_TYPES } from '../../../../lib/hairtypes.js';
 import { normaliseLines, normaliseLongText } from '../../../../lib/product-copy.js';
-import { requireAdmin } from '../../_lib/guard.js';
+import { can } from '../../../../lib/admin-roles.js';
+import { requirePermission } from '../../_lib/guard.js';
 import { Flash, imgSrc } from '../../_lib/ui.js';
+
+/*
+ * Read for everyone signed in, write for the owner.
+ *
+ * Somebody on the phone to a customer has to be able to say what is in stock,
+ * so the screen is open. Price and stock ARE the money on a shop that takes
+ * cash at the door — a price typed with a digit missing is a real loss on every
+ * order placed before anyone notices — and changing them has nothing to do with
+ * processing an order. So the form is drawn only for an owner and the action
+ * refuses anybody else regardless of what the page drew.
+ */
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Products — Star Seven admin' };
@@ -27,7 +39,7 @@ function cleanHairTypes(raw) {
 
 async function saveProduct(formData) {
   'use server';
-  await requireAdmin();
+  await requirePermission('products:write');
 
   if (!(await csrfOk(formData.get('_csrf')))) redirect('/admin/products?m=csrf');
 
@@ -79,7 +91,8 @@ async function saveProduct(formData) {
 }
 
 export default async function ProductsPage({ searchParams }) {
-  await requireAdmin();
+  const me = await requirePermission('products:read');
+  const mayWrite = can(me.role, 'products:write');
   const sp = await searchParams;
   const token = await csrfToken();
 
@@ -93,6 +106,13 @@ export default async function ProductsPage({ searchParams }) {
         the primary recommendation, the rest are backups. The reasoning behind the current mapping is
         in <code>/docs/hair-type-research.md</code>.
       </p>
+
+      {mayWrite ? null : (
+        <p className="sub">
+          You can see everything here so you can answer a customer, and the shop owner
+          sets the prices. Nothing on this page will save.
+        </p>
+      )}
 
       <Flash code={sp?.m} />
 
@@ -112,7 +132,7 @@ export default async function ProductsPage({ searchParams }) {
                   <input type="hidden" name="_csrf" value={token} />
                   <input type="hidden" name="id" value={p.id} />
                   <input type="hidden" name="act" value="toggle" />
-                  <button className="btn sm ghost" type="submit">{p.active ? 'Hide' : 'Show'}</button>
+                  <button className="btn sm ghost" type="submit" disabled={!mayWrite}>{p.active ? 'Hide' : 'Show'}</button>
                 </form>
                 {/* saveProduct, not save - `save` is undefined and threw a
                     ReferenceError that took the whole product editor down. And
@@ -123,7 +143,7 @@ export default async function ProductsPage({ searchParams }) {
                   <input type="hidden" name="_csrf" value={token} />
                   <input type="hidden" name="id" value={p.id} />
                   <input type="hidden" name="act" value="feature" />
-                  <button className="btn sm ghost" type="submit"
+                  <button className="btn sm ghost" type="submit" disabled={!mayWrite}
                           title="Show this product on the home page">
                     {p.featured ? 'Unfeature' : 'Feature'}
                   </button>
@@ -136,6 +156,12 @@ export default async function ProductsPage({ searchParams }) {
                 <input type="hidden" name="_csrf" value={token} />
                 <input type="hidden" name="id" value={p.id} />
 
+                {/* A fieldset rather than a per-input `disabled`, so a field
+                    added later is read-only for staff by default instead of
+                    editable by omission. It greys the editor out; the control
+                    is saveProduct, which calls requirePermission before it
+                    reads a single field. */}
+                <fieldset disabled={!mayWrite} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}>
                 <div className="prod-grid">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={imgSrc(p.image)} alt="" />
@@ -249,6 +275,7 @@ export default async function ProductsPage({ searchParams }) {
                     <button className="btn" type="submit">Save</button>
                   </div>
                 </div>
+                </fieldset>
               </form>
             </div>
           </div>

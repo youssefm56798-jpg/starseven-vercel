@@ -2,9 +2,18 @@ import { redirect } from 'next/navigation';
 import { csrfOk, csrfToken } from '../../../../lib/auth.js';
 import { sql } from '../../../../lib/db.js';
 import ConfirmButton from '../../_lib/confirm-button.js';
-import { requireAdmin } from '../../_lib/guard.js';
+import { requirePermission } from '../../_lib/guard.js';
 import { dayShort, dt, Flash, money, trimNum } from '../../_lib/ui.js';
 import BroadcastButton from './broadcast.js';
+
+/*
+ * Owner only, screen and actions alike.
+ *
+ * A discount code is money by another name and a broadcast is the one thing in
+ * this panel that cannot be undone at all — it is thousands of emails already
+ * delivered. Neither is anything the order desk needs, so neither is something
+ * staff can reach. See lib/admin-roles.js for the whole split.
+ */
 
 export const dynamic = 'force-dynamic';
 // A broadcast batch is 25 real SMTP calls; the default 15s ceiling is too tight.
@@ -15,7 +24,7 @@ const TYPES = ['percent', 'fixed', 'none'];
 
 async function createOffer(formData) {
   'use server';
-  await requireAdmin();
+  await requirePermission('offers:write');
 
   if (!(await csrfOk(formData.get('_csrf')))) redirect('/admin/offers?m=csrf');
 
@@ -49,7 +58,7 @@ async function createOffer(formData) {
 
 async function offerAction(formData) {
   'use server';
-  await requireAdmin();
+  await requirePermission('offers:write');
 
   if (!(await csrfOk(formData.get('_csrf')))) redirect('/admin/offers?m=csrf');
 
@@ -69,7 +78,7 @@ async function offerAction(formData) {
 }
 
 export default async function OffersPage({ searchParams }) {
-  await requireAdmin();
+  await requirePermission('offers:write');
   const sp = await searchParams;
   const token = await csrfToken();
 

@@ -15,6 +15,7 @@
     "verify:access": "node scripts/verify-order-access.mjs",
     "verify:indexes": "node scripts/verify-indexes.mjs",
     "verify:auth": "node scripts/verify-admin-auth.mjs",
+    "verify:accounts": "node scripts/verify-admin-accounts.mjs",
     "vercel-build": "node scripts/setup-db.mjs && next build"
   },
   "dependencies": {
