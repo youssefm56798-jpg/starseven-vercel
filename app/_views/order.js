@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import { localePath } from '../../lib/urls.js';
 import { currencyLabel, whole } from '../../lib/money.js';
-import { orderFor, itemsFor } from '../../lib/order-access.js';
+import { orderFor, itemsFor, timelineFor } from '../../lib/order-access.js';
+import { formatStamp, formatWindow } from '../../lib/delivery-eta.js';
 import { Dir, Nav, Footer, waLink } from '../_components/Chrome.js';
 // The bracketed folder is a real directory name, not a placeholder. The client
 // component is colocated with the route it belongs to, and only files named
@@ -93,6 +94,130 @@ const STATUS = {
 };
 
 /**
+ * When it is coming.
+ *
+ * The tracker above this says which of four boxes the order is in and nothing
+ * about time, which is not the question anyone opens this page to ask. The
+ * window itself is written on the order when the shop confirms it by phone —
+ * see lib/order-status.js and lib/delivery-eta.js — so this component only
+ * renders what is already there and never invents a date of its own.
+ *
+ * Four cases, and each one says something different rather than falling back
+ * to a shrug:
+ *
+ *   cancelled   the window is irrelevant; what matters is when it was stopped,
+ *               which is what orders.cancelled_at is for and what nothing on
+ *               this site rendered until now. The date is dropped rather than
+ *               guessed at for a row cancelled before that column existed.
+ *   delivered   also no window: it has arrived, the tracker says so, and a
+ *               line predicting its arrival would read as a mistake.
+ *   a window    the whole point.
+ *   no window   an order the shop has not confirmed yet. Saying so is better
+ *               than saying nothing, because the silence otherwise reads as a
+ *               page that is broken.
+ *
+ * The range goes inside a <bdi>. It mixes Arabic weekday names with digits and
+ * an en dash, and in an RTL paragraph the bidi algorithm will happily reorder
+ * the two ends of a range that is not isolated — so the customer is shown the
+ * window backwards. The tracking reference is isolated for the same reason and
+ * pinned to LTR on top of it, because it is a Latin-and-digits code the
+ * courier printed and it has to be readable back to them character for
+ * character.
+ */
+function ExpectedDelivery({ order, ar }) {
+  const lang = ar ? 'ar' : 'en';
+
+  if (order.status === 'cancelled') {
+    const when = formatStamp(order.cancelled_at, lang);
+    return (
+      <p className="ord-eta ord-eta-off">
+        {when
+          ? (ar ? <>الأوردر ده اتلغى يوم <bdi>{when}</bdi>.</> : <>This order was cancelled on <bdi>{when}</bdi>.</>)
+          : (ar ? 'الأوردر ده اتلغى.' : 'This order was cancelled.')}
+      </p>
+    );
+  }
+
+  if (order.status === 'delivered') return null;
+
+  const arriving = formatWindow(order.expected_from, order.expected_to, lang);
+
+  if (!arriving) {
+    return (
+      <p className="ord-eta ord-eta-off">
+        {ar
+          ? 'هنكلمك نأكد الأوردر الأول، وأول ما يتأكد هتلاقي معاد التوصيل هنا.'
+          : 'We will call to confirm your order first. Your delivery window shows up here as soon as we do.'}
+      </p>
+    );
+  }
+
+  return (
+    <div className="ord-eta">
+      <p className="ord-eta-when">
+        {ar ? 'بيوصلك ' : 'Arrives '}
+        <bdi>{arriving}</bdi>
+      </p>
+      <p className="ord-eta-note">
+        {ar
+          ? 'دي أيام شغل من السبت للخميس، والمندوب بيكلمك قبل ما يجي.'
+          : 'Working days, Saturday to Thursday. The courier calls you before they arrive.'}
+      </p>
+      {(order.courier || order.tracking_ref) && (
+        <p className="ord-eta-courier">
+          {order.courier ? (ar ? `مع ${order.courier}` : `With ${order.courier}`) : null}
+          {order.courier && order.tracking_ref ? ' · ' : null}
+          {order.tracking_ref
+            ? (<>{ar ? 'رقم الشحنة ' : 'Tracking '}<bdi dir="ltr">{order.tracking_ref}</bdi></>)
+            : null}
+        </p>
+      )}
+    </div>
+  );
+}
+
+/**
+ * The history of the order, as much of it as belongs to the customer.
+ *
+ * The rows come from lib/order-access.js, which is where the decision about
+ * what a token entitles someone to read lives, and which never selects the
+ * columns this must not print — the actor, the internal notes, the mail log.
+ * That filtering deliberately does not happen here: a component is the wrong
+ * place to hold a security rule, because the next person to edit the markup
+ * has no way of knowing one was being enforced by omission.
+ *
+ * So this renders whatever it is handed. A status row is shown with the same
+ * words the tracker uses, so the two cannot describe the same order
+ * differently, and the only free text that reaches the page is the reason the
+ * customer typed into their own cancellation request.
+ */
+function History({ events, ar }) {
+  if (!events.length) return null;
+  const lang = ar ? 'ar' : 'en';
+
+  return (
+    <section className="ord-sec">
+      <h2>{ar ? 'اللي حصل لحد دلوقتي' : 'What has happened so far'}</h2>
+      <ol className="ord-tl">
+        {events.map(e => (
+          <li key={e.id}>
+            <span className="ord-tl-when">{formatStamp(e.created_at, lang)}</span>
+            <span className="ord-tl-what">
+              <b>
+                {e.kind === 'status'
+                  ? (STATUS[e.to_status] ? (ar ? STATUS[e.to_status].ar : STATUS[e.to_status].en) : e.to_status)
+                  : (ar ? 'طلبت الإلغاء' : 'You asked to cancel')}
+              </b>
+              {e.note ? <span className="ord-tl-note"> — {e.note}</span> : null}
+            </span>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
+/**
  * The order itself.
  *
  * This one takes no language from the route, and that is deliberate: the order
@@ -107,7 +232,7 @@ export default async function OrderDetail({ order, token }) {
   const ar = lang === 'ar';
   const L = p => localePath(p, lang);
 
-  const items = await itemsFor(order.id);
+  const [items, events] = await Promise.all([itemsFor(order.id), timelineFor(order.id)]);
   const st = STATUS[order.status] || STATUS.new;
   const cancelled = order.status === 'cancelled';
   const money = v => `${whole(v)} ${currencyLabel(lang)}`;
@@ -134,6 +259,8 @@ export default async function OrderDetail({ order, token }) {
             ))}
           </ol>
         )}
+
+        <ExpectedDelivery order={order} ar={ar} />
 
         <section className="ord-sec">
           <h2>{ar ? 'اللي طلبته' : 'What you ordered'}</h2>
@@ -165,6 +292,8 @@ export default async function OrderDetail({ order, token }) {
             <bdi dir="ltr">{order.phone}</bdi>
           </p>
         </section>
+
+        <History events={events} ar={ar} />
 
         <RefundRequest
           lang={lang}

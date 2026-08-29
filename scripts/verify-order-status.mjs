@@ -101,6 +101,9 @@ try {
     status TEXT NOT NULL DEFAULT 'new'
            CHECK (status IN ('new','confirmed','shipped','delivered','cancelled')),
     coupon TEXT NOT NULL DEFAULT '',
+    city TEXT NOT NULL DEFAULT '',
+    expected_from DATE,
+    expected_to DATE,
     cancelled_at TIMESTAMPTZ)`);
   await db(`CREATE TABLE order_items (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -123,15 +126,23 @@ try {
   process.env.DATABASE_URL = url.toString();
   const { transition, logEvent, eventsFor } = await import('../lib/order-status.js');
 
-  const mkOrder = async (status, coupon, qty) => {
+  const mkOrder = async (status, coupon, qty, city = '') => {
     const [p] = await db`INSERT INTO products (stock) VALUES (10) RETURNING id`;
-    const [o] = await db`INSERT INTO orders (status, coupon)
-                         VALUES (${status}, ${coupon}) RETURNING id`;
+    const [o] = await db`INSERT INTO orders (status, coupon, city)
+                         VALUES (${status}, ${coupon}, ${city}) RETURNING id`;
     await db`INSERT INTO order_items (order_id, product_id, qty)
              VALUES (${o.id}, ${p.id}, ${qty})`;
     return { orderId: o.id, productId: p.id };
   };
   const statusOf = async id => (await db`SELECT status FROM orders WHERE id = ${id}`)[0]?.status;
+  // Read as text for the same reason the app reads it as text: the driver turns
+  // a DATE into a JS Date at local midnight, and comparing that to a string the
+  // module produced would fail or pass depending on the machine.
+  const windowOf = async id => {
+    const [row] = await db`SELECT expected_from::text AS f, expected_to::text AS t
+                             FROM orders WHERE id = ${id}`;
+    return [row?.f ?? null, row?.t ?? null];
+  };
   const stockOf = async id => Number((await db`SELECT stock FROM products WHERE id = ${id}`)[0]?.stock);
   const usesOf = async c => Number((await db`SELECT used_count FROM offers WHERE code = ${c}`)[0]?.used_count);
 
@@ -274,6 +285,74 @@ try {
     check('stock credited exactly once', await stockOf(productId), 13);
     check('coupon credited exactly once', await usesOf('SAVE10'), 3);
     check('exactly one audit row', (await eventsFor(orderId)).length, 1);
+  }
+
+  /* ------------------------------------------------------------------ 11 */
+
+  console.log('\n  the delivery window');
+  {
+    // The expected values come from the same pure module the app uses, and it
+    // is loaded here rather than reimplemented: a test that hard-codes the
+    // dates is a test of the calendar, and it starts failing on its own on
+    // whichever Thursday it was written near.
+    const { deliveryWindow } = await import('../lib/delivery-eta.js');
+
+    // Confirming stamps a window, and the zone the city belongs to decides it.
+    {
+      const { orderId } = await mkOrder('new', '', 1, 'القاهرة');
+      check('no window before it is confirmed', await windowOf(orderId), [null, null]);
+      await transition({ orderId, to: 'confirmed', actor: 'admin:1' });
+      const want = deliveryWindow('القاهرة');
+      check('a Cairo order gets the metro window', await windowOf(orderId), [want.from, want.to]);
+    }
+
+    // A city nobody recognises still gets a date rather than a blank.
+    {
+      const { orderId } = await mkOrder('new', '', 1, 'عزبة اللي مش في الجدول');
+      await transition({ orderId, to: 'confirmed' });
+      const want = deliveryWindow('nowhere in the table');
+      const got = await windowOf(orderId);
+      check('an unrecognised city gets the fallback window', got, [want.from, want.to]);
+      check('and it is a real pair of dates', [got[0] !== null, got[1] >= got[0]], [true, true]);
+    }
+
+    // The promise does not move. This is the invariant the COALESCE exists for:
+    // once a customer has been shown a date, a later move must not change it.
+    {
+      const { orderId } = await mkOrder('new', '', 1, 'أسوان');
+      await transition({ orderId, to: 'confirmed' });
+      const first = await windowOf(orderId);
+      await transition({ orderId, to: 'shipped' });
+      check('shipping does not move the window', await windowOf(orderId), first);
+      await transition({ orderId, to: 'confirmed' });
+      check('re-confirming does not move it either', await windowOf(orderId), first);
+    }
+
+    // An order packed without being confirmed first still gets a date.
+    {
+      const { orderId } = await mkOrder('new', '', 1, 'طنطا');
+      await transition({ orderId, to: 'shipped' });
+      const want = deliveryWindow('طنطا');
+      check('new -> shipped stamps one too', await windowOf(orderId), [want.from, want.to]);
+    }
+
+    // Moves that are not a confirm or a ship leave the columns alone.
+    {
+      const { orderId } = await mkOrder('new', '', 1, 'القاهرة');
+      await transition({ orderId, to: 'cancelled' });
+      check('cancelling promises nothing', await windowOf(orderId), [null, null]);
+    }
+
+    // And the guard covers the window as well as the move. A refused
+    // transition must not leave an arrival date on an order that did not move
+    // — which is exactly what a second UPDATE outside the batch would do.
+    {
+      const { orderId } = await mkOrder('cancelled', '', 1, 'القاهرة');
+      const res = await transition({ orderId, to: 'confirmed' });
+      check('the move is refused', res.reason, 'illegal-transition');
+      check('and no window was written', await windowOf(orderId), [null, null]);
+      check('and the status is untouched', await statusOf(orderId), 'cancelled');
+    }
   }
 
 } finally {

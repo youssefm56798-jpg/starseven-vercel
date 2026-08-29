@@ -314,6 +314,36 @@ CREATE INDEX IF NOT EXISTS idx_order_events_order ON order_events (order_id, id)
 -- cancelled in March without walking the event log.
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS cancelled_at TIMESTAMPTZ;
 
+-- ---------------------------------------------------------------------------
+--  When it is coming
+--
+--  The order page showed a four-step tracker and not one date, so the only way
+--  a customer could find out when to expect the parcel was to ask. These four
+--  columns are the answer.
+--
+--  expected_from / expected_to are the delivery window, written once by
+--  lib/order-status.js in the same transaction that moves the order to
+--  confirmed, and derived from the governorate in orders.city through the SLA
+--  table in lib/delivery-eta.js. They are DATE and not TIMESTAMPTZ on purpose:
+--  what is being stored is a pair of calendar days in Cairo, and a timestamp
+--  would carry an hour nobody promised and would render as the previous
+--  evening for anyone west of Greenwich.
+--
+--  They are deliberately NOT recomputed on later moves. A window that slides
+--  forward every time somebody touches the order is worse than no window, so
+--  the writer only fills a column that is still NULL.
+--
+--  courier / tracking_ref are for the admin to fill in by hand once the parcel
+--  is handed over. Free text, because this shop is not integrated with any
+--  courier API and the reference is whatever is written on the waybill.
+--  Empty string rather than NULL, matching every other optional text column on
+--  this table, so nothing that reads them has to test for both.
+-- ---------------------------------------------------------------------------
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS expected_from DATE;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS expected_to   DATE;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS courier       TEXT NOT NULL DEFAULT '';
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS tracking_ref  TEXT NOT NULL DEFAULT '';
+
 CREATE TABLE IF NOT EXISTS quiz_results (
   id          INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   hair_type   TEXT NOT NULL,
