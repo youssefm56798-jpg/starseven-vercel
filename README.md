@@ -43,6 +43,21 @@ and checkout pages need the database.
   together or not at all. The legal moves live in one table there,
   `delivered` and `cancelled` are terminal, and `tests/order-status.test.mjs`
   fails if an UPDATE of that column appears anywhere else.
+- **An admin session can be killed, and the epoch is how.** The login cookie is
+  a signed JWT with an eight-hour life, which on its own is not revocable at
+  all. It now carries the `session_epoch` from its admin row, and
+  `lib/auth.js` refuses any token whose epoch is not current — so bumping that
+  one integer ends every session that admin holds, everywhere. Changing a
+  password bumps it, so does turning two-factor off, so does the
+  sign-out-everywhere button. Only `lib/session-epoch.js` may write it, and
+  `tests/admin-security.test.mjs` fails if a second writer appears.
+- **Two-factor is hand-rolled, and that is on purpose.** `lib/totp.js` is RFC
+  4226 and RFC 6238 over WebCrypto, about two hundred lines, no dependency. The
+  price of that choice is paid in `tests/totp.test.mjs`, which checks every
+  published RFC vector. The shared secret is encrypted at rest under a key
+  derived from `SESSION_SECRET`, so rotating that variable signs everyone out
+  **and** requires re-enrolment. Recovery codes are stored as SHA-256 and
+  claimed by a guarded `UPDATE`, never by a read followed by a write.
 - **`hair_types` on a product is a CSV in priority order** — the first slug wins
   the primary recommendation. The three gels are deliberately `straight` only,
   because the wavy panel tells customers to avoid hard gels; `tests/hairtypes.test.mjs`
@@ -97,5 +112,14 @@ Read in this order:
 |---|---|
 | `npm run dev` | Dev server |
 | `npm run build` | Production build |
-| `npm test` | Test suite — 295 tests, no database needed |
+| `npm test` | Test suite — no database needed, and it must stay that way |
 | `npm run db:setup` | Apply `db/schema.sql` then `db/seed.sql` |
+| `npm run verify:orders` | The order state machine, against a throwaway database |
+| `npm run verify:auth` | Admin two-factor and session revocation, same arrangement |
+| `npm run verify:indexes` | Every index, `EXPLAIN ANALYZE`d on 200k seeded orders |
+
+The three `verify:` scripts are not tests and are not run by `npm test`. Each
+one creates its own Neon database, applies the real schema to it, works only in
+there and drops it in a `finally` — so they are safe to run with the production
+connection string in the environment, and they cover the parts of the code that
+are mostly SQL and cannot be exercised without a server.

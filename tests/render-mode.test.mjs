@@ -134,6 +134,70 @@ test('the dynamic allow-list matches path segments, not substrings', () => {
   assert.ok(!isExempt('app/en/shop/page.js'));
 });
 
+/**
+ * The four routes that must never be cached, asserted rather than merely
+ * exempted.
+ *
+ * Everything above this point is one rule - a page that is supposed to be
+ * static must not read the request - and the allow-list is how the four routes
+ * that genuinely do read it are let through. That is a hole: being on the
+ * allow-list only means these tests stop checking, so deleting the
+ * `force-dynamic` from app/order/[ref]/page.js passes every test in this file
+ * while turning the order page into a prerender.
+ *
+ * On /checkout that would be a cache-freshness bug. On /order/[ref] it is a
+ * data breach: the page is opened with a token in the query string and shows
+ * one customer name, address and phone number, so a cached copy is that
+ * customer served to whoever asks next. The comment at the top of both route
+ * files says so at length. This is the test that makes the comment binding.
+ *
+ * `revalidate` is checked too, and not out of tidiness. `force-dynamic` and a
+ * revalidate window in the same file contradict each other, and the resolution
+ * is a Next implementation detail rather than something anyone should have to
+ * know - so the pair is refused outright.
+ */
+const NEVER_CACHED = [
+  'app/checkout/page.js',
+  'app/en/checkout/page.js',
+  'app/order/[ref]/page.js',
+  'app/en/order/[ref]/page.js',
+];
+
+for (const rel of NEVER_CACHED) {
+  test(`${rel} is force-dynamic and stays that way`, () => {
+    assert.ok(PAGES.includes(rel), `${rel} is not where this test expects it - was it moved?`);
+    const src = code(readFileSync(join(ROOT, rel), 'utf8'));
+
+    assert.match(src, /export\s+const\s+dynamic\s*=\s*['"]force-dynamic['"]/,
+      'does not export dynamic = "force-dynamic". This route is keyed by something ' +
+      'in the request - a cart, or a token that opens exactly one order - so a ' +
+      'prerendered copy is one visitor served to the next.');
+
+    assert.doesNotMatch(src, /export\s+const\s+revalidate\s*=/,
+      'exports a revalidate window as well as force-dynamic. The two contradict ' +
+      'each other; which wins is an implementation detail nobody should have to know.');
+  });
+}
+
+/**
+ * The catalogue endpoint, which is the opposite case: it reads nothing from the
+ * request and every visitor gets the same answer, so it should be prerendered
+ * and revalidated rather than run per request. It has no `dynamic` export and
+ * must not grow one - `force-dynamic` here would silently put a function and
+ * two Neon queries back in front of every uncached hit.
+ */
+test('app/api/products/route.js is cached, not forced dynamic', () => {
+  const src = code(readFileSync(join(ROOT, 'app/api/products/route.js'), 'utf8'));
+
+  const declared = /export\s+const\s+revalidate\s*=\s*([^;\n]+)/.exec(src);
+  assert.ok(declared, 'does not export a revalidate, so it runs on every request');
+  assert.notEqual(declared[1].trim(), '0', 'revalidate = 0 is the same as not caching at all');
+
+  assert.doesNotMatch(src, /export\s+const\s+dynamic\s*=/,
+    'exports a dynamic mode. The catalogue reads nothing from the request; forcing ' +
+    'it dynamic puts a function and two database queries back on every hit.');
+});
+
 for (const rel of PAGES) {
   test(`${rel} is a static page: no request-scoped reads, and a revalidate window`, {
     skip: isExempt(rel) ? 'on the dynamic allow-list - this route must read the request' : false,

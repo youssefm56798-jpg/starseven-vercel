@@ -11,19 +11,42 @@ export default async function Dashboard({ searchParams }) {
   const admin = await requireAdmin();
   const sp = await searchParams;
 
-  // One round trip for all six KPIs — Neon charges a request per statement.
-  // 'Africa/Cairo' is written inline because "today" has to mean today in the
-  // shop's timezone, and the rows are stored as UTC.
+  /*
+   * One round trip for all six KPIs — Neon charges a request per statement.
+   * 'Africa/Cairo' is written inline because "today" has to mean today in the
+   * shop's timezone, and the rows are stored as UTC.
+   *
+   * The two date-bounded counts used to compare a converted value on the left:
+   *
+   *     WHERE (created_at AT TIME ZONE 'Africa/Cairo')::date = <today>
+   *
+   * which reads correctly and cannot use an index, because the thing being
+   * compared has to be computed for every row first. Nor can it be rescued
+   * with an expression index: converting a timestamptz into a named zone is
+   * STABLE, not IMMUTABLE — the answer depends on the timezone database, which
+   * is allowed to change — and Postgres will not index a function that may
+   * change its mind. So both KPIs were a sequential scan of the whole orders
+   * table, twice, every time this screen was opened.
+   *
+   * Rewritten as a half-open range against the raw column. The boundary is
+   * still computed in Cairo time, so the answer is the same to the second, but
+   * it is computed once for the whole query and then the index on created_at
+   * is seeked to it. date_trunc lands on local midnight as a naive timestamp;
+   * the second AT TIME ZONE reads that back as the instant it names.
+   */
   const [kpi] = await sql`
+    WITH bounds AS (
+      SELECT
+        date_trunc('day',   now() AT TIME ZONE 'Africa/Cairo') AT TIME ZONE 'Africa/Cairo' AS day0,
+        date_trunc('month', now() AT TIME ZONE 'Africa/Cairo') AT TIME ZONE 'Africa/Cairo' AS mon0
+    )
     SELECT
       (SELECT COUNT(*) FROM orders WHERE status = 'new') AS orders_new,
-      (SELECT COUNT(*) FROM orders
-        WHERE (created_at AT TIME ZONE 'Africa/Cairo')::date
-            = (now() AT TIME ZONE 'Africa/Cairo')::date) AS orders_today,
-      (SELECT COALESCE(SUM(total), 0) FROM orders
-        WHERE status <> 'cancelled'
-          AND date_trunc('month', created_at AT TIME ZONE 'Africa/Cairo')
-            = date_trunc('month', now() AT TIME ZONE 'Africa/Cairo')) AS rev_month,
+      (SELECT COUNT(*) FROM orders, bounds
+        WHERE orders.created_at >= bounds.day0) AS orders_today,
+      (SELECT COALESCE(SUM(total), 0) FROM orders, bounds
+        WHERE orders.created_at >= bounds.mon0
+          AND orders.status <> 'cancelled') AS rev_month,
       (SELECT COALESCE(AVG(total), 0) FROM orders WHERE status <> 'cancelled') AS aov,
       (SELECT COUNT(*) FROM subscribers WHERE status = 'active') AS subs_active,
       (SELECT COUNT(*) FROM subscribers WHERE status = 'pending') AS subs_pending`;

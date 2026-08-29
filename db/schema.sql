@@ -346,3 +346,172 @@ CREATE TABLE IF NOT EXISTS rate_limits (
 
 
 
+-- ---------------------------------------------------------------------------
+--  Indexes for the queries that grow
+--
+--  Two indexes, both written against one statement that is already in the code
+--  and both measured before being kept. An index nobody asked for is not free:
+--  orders is written on every checkout and again on every status move, so every
+--  index on it is paid for at the till.
+--
+--  Measured means scripts/verify-indexes.mjs, which builds a throwaway database
+--  with two hundred thousand orders in it and prints the plan with and without
+--  each one. Three further indexes were written, measured and then deleted
+--  because the numbers said they did nothing. What they were and why they did
+--  nothing is recorded below and in that script, so the next person to have the
+--  same good idea can read the answer instead of doing the work again.
+-- ---------------------------------------------------------------------------
+
+-- Serves the search box on app/admin/(panel)/orders/page.js:
+--     ... WHERE (ref || ' ' || name || ' ' || phone) ILIKE $1 ...
+--
+-- 146 ms to 0.97 ms on 200k orders, and the gap widens with the table, because
+-- what it replaces is a sequential scan of every order in the shop. A leading %
+-- gives a btree no prefix to seek on, so no ordinary index could help however
+-- the three columns were arranged. It is the one read here that gets slower in
+-- exact proportion to the shop doing well, and it runs every time somebody
+-- rings up about an order.
+--
+-- pg_trgm indexes the three-character substrings of a value, which is what LIKE
+-- and ILIKE are actually looking for, and gin_trgm_ops covers both. One index
+-- over the three columns concatenated rather than three separate ones: the
+-- screen always searches all three together, three indexes would be three
+-- writes per order to answer one question, and a BitmapOr across three GIN
+-- scans is slower than one scan of one. A GIN index can only be used by a
+-- predicate whose left-hand side is exactly the expression it was built on,
+-- which is why the page had to stop writing the search as three ORs.
+--
+-- The space in the join earns its place twice: it stops a reference running
+-- into a name and matching across the seam by accident, and it lets somebody
+-- type a name and a phone number into one box and have that match.
+--
+-- Two things this cannot do, both fine. A search shorter than three characters
+-- has no whole trigram to look up and falls back to a scan; 200 rows is a
+-- sensible answer to a one-letter search anyway. And the three columns are all
+-- NOT NULL, so the concatenation can never collapse to NULL and lose a row.
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE INDEX IF NOT EXISTS idx_orders_search
+    ON orders USING gin ((ref || ' ' || name || ' ' || phone) gin_trgm_ops);
+
+-- Serves the two date-bounded KPIs in app/admin/(panel)/page.js - orders today
+-- and revenue this month. 177 ms to 0.08 ms and 213 ms to 8.5 ms on 200k rows.
+--
+-- Both were written as an equality on a converted value:
+--     WHERE (created_at AT TIME ZONE 'Africa/Cairo')::date = <today in Cairo>
+-- which reads correctly and can never use an index, because the thing being
+-- compared has to be computed for every row before it can be compared at all.
+-- Nor can it be rescued with an expression index: converting a timestamptz into
+-- a named zone is STABLE rather than IMMUTABLE - the answer depends on the
+-- timezone database, which is allowed to change - and Postgres will not index a
+-- function that may change its mind. So the dashboard scanned the whole orders
+-- table twice on every load, and this index only becomes usable once both KPIs
+-- are rewritten as a half-open range on the raw column. They have been.
+--
+-- A BRIN index would be the textbook choice for an append-only timestamp and
+-- would cost a fraction of the space. Not here: status is indexed, so every
+-- status move is a non-HOT update that writes the row to the end of the heap,
+-- and BRIN is only fast while physical order still tracks time. It would look
+-- excellent on a freshly loaded table and decay in production, which is the
+-- worst way for an index to be wrong.
+CREATE INDEX IF NOT EXISTS idx_orders_created ON orders (created_at DESC);
+
+-- ---------------------------------------------------------------------------
+--  Three indexes that were written and then thrown away
+--
+--  All three read as obviously right and measured at 1.0x. Recorded here rather
+--  than silently omitted, because each one is a mistake that is easy to make
+--  twice.
+--
+--  orders (status, id DESC), for the status filter on the orders screen. The
+--  screen asks for 200 rows and the primary key is already in id order, so
+--  Postgres reads the primary key backwards and discards the rows that do not
+--  match the status. Two hundred matches turn up long before that walk gets
+--  expensive, whichever status is chosen - even cancelled, which is a small
+--  share of the table and absent from the newest rows. Measured at 1.0x, 1.0x
+--  and 1.5x across three statuses. This would change if the screen ever grew
+--  pagination deep enough that the LIMIT stopped saving it.
+--
+--  subscribers (status, id), for the broadcast cursor and the subscriber list.
+--  Same reason, same 1.0x. The broadcast reads WHERE status = active AND id >
+--  cursor, and nine subscribers in ten are active, so walking the primary key
+--  from the cursor finds a batch almost immediately.
+--
+--  quiz_results (created_at, hair_type), replacing (hair_type, created_at
+--  DESC). The dashboard filters on created_at and groups by hair_type, so the
+--  existing index looks like the wrong way round and the swap looks free. It is
+--  not free - it is an index rebuild on a deploy - and it is worth nothing:
+--  Postgres reaches the range through the existing index with a skip scan, and
+--  what the query actually costs is the heap fetch for the count, which neither
+--  index avoids.
+-- ---------------------------------------------------------------------------
+
+-- ---------------------------------------------------------------------------
+--  Admin sessions that can be killed, and a second factor
+--
+--  Two separate problems, one table, so they are described together.
+--
+--  session_epoch is the answer to a stolen admin cookie. The session is a
+--  signed JWT with an eight-hour life and nothing on the server to check it
+--  against, which means that until this column existed there was no way to end
+--  one early - not by changing the password, not by anything. The token now
+--  carries the epoch it was minted under and the verifier refuses any token
+--  whose epoch is not the current one, so bumping this column by one
+--  invalidates every session that admin holds, everywhere, at once. An integer
+--  rather than a timestamp because the only question ever asked of it is
+--  whether two values are equal, and a counter cannot be confused by a clock.
+--
+--  The TOTP columns are the second factor. totp_secret holds the shared secret
+--  ENCRYPTED, not in the clear - see lib/totp.js. A password hash is useless to
+--  somebody holding a database dump; a plaintext TOTP secret is not, and the
+--  whole point of the second factor is that stealing the first one is not
+--  enough. totp_pending holds a secret that has been generated but not yet
+--  proved, so an enrolment that is abandoned halfway cannot lock anyone out.
+--
+--  totp_last_step is replay protection. A code is valid for a thirty-second
+--  step and for one step either side of it, so a code read over a shoulder or
+--  out of a phishing page is usable for up to ninety seconds.
+--  Recording the step that was accepted and refusing anything at or below it
+--  closes that window to the single use it was meant to have.
+-- ---------------------------------------------------------------------------
+ALTER TABLE admins ADD COLUMN IF NOT EXISTS session_epoch  INT NOT NULL DEFAULT 0;
+ALTER TABLE admins ADD COLUMN IF NOT EXISTS totp_secret    TEXT NOT NULL DEFAULT '';
+ALTER TABLE admins ADD COLUMN IF NOT EXISTS totp_pending   TEXT NOT NULL DEFAULT '';
+ALTER TABLE admins ADD COLUMN IF NOT EXISTS totp_enrolled_at TIMESTAMPTZ;
+ALTER TABLE admins ADD COLUMN IF NOT EXISTS totp_last_step BIGINT NOT NULL DEFAULT 0;
+ALTER TABLE admins ADD COLUMN IF NOT EXISTS password_changed_at TIMESTAMPTZ;
+
+-- ---------------------------------------------------------------------------
+--  Recovery codes
+--
+--  The way back in when the phone is gone. Ten codes, shown once at enrolment
+--  and never again.
+--
+--  Stored as a SHA-256 digest, exactly as orders.access_hash is, and for the
+--  same reason: a dump of this table must not be a way in. Hashed with SHA-256
+--  rather than bcrypt on purpose. bcrypt is slow so that guessing a
+--  human-chosen password is slow, and that cost only buys anything when the
+--  secret is guessable. These are fifty bits of machine-generated randomness,
+--  where guessing is not on the table - and the slowness would have to be paid
+--  ten times over on every attempt, because verification has to compare against
+--  every unused code. A digest lookup is one indexed read instead.
+--
+--  used_at rather than a delete, so that a used code stays in the table and can
+--  never be re-issued by chance, and so that the panel can honestly say how
+--  many are left. Single use is enforced by the UPDATE that claims it, not by
+--  a read followed by a write: WHERE used_at IS NULL means two requests racing
+--  on the same code cannot both win.
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS admin_recovery_codes (
+  id         INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  admin_id   INT NOT NULL REFERENCES admins(id) ON DELETE CASCADE,
+  code_hash  TEXT NOT NULL,
+  used_at    TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+-- The lookup at sign-in is by digest alone, and a digest belongs to one code.
+-- Unique so a collision is a constraint violation rather than two admins
+-- sharing a way in.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_recovery_hash  ON admin_recovery_codes (code_hash);
+-- Serves the count on the security screen and the delete-and-reissue that
+-- regenerating a set does, both of which read every row for one admin.
+CREATE INDEX IF NOT EXISTS idx_recovery_admin ON admin_recovery_codes (admin_id, used_at);

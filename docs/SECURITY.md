@@ -20,6 +20,10 @@ This describes the Next.js / Neon Postgres application in this repository.
 | **CSRF** | An `Origin` / `Sec-Fetch-Site` check plus a required `application/json` content type, which a cross-site form post cannot set without a preflight this API never answers. | `lib/credentials.js`, `app/api/order/refund/route.js` |
 | **Order access** | No accounts. A random token in the confirmation email, stored only as a SHA-256, granting exactly one order. See below. | `lib/order-access.js` |
 | **Admin auth** | Separate cookie, separate table, separate module. A customer session cannot become an admin session. | `lib/auth.js` |
+| **Stolen admin session** | The token carries the `session_epoch` from its admin row and is refused when that number moves. Changing a password, turning two-factor off and the sign-out-everywhere button all move it. Before this, a leaked cookie was good for its full eight hours and nothing could stop it. | `lib/session-epoch.js`, `lib/auth.js` |
+| **Stolen admin password** | TOTP as a second factor, with hashed single-use recovery codes. A correct password issues a five-minute pending cookie and the verify screen, not a session. | `lib/totp.js`, `lib/admin-security.js` |
+| **Second-factor brute force** | A six-digit code is a million values; the caps are a five-minute pending window, a per-address limit and a per-account limit keyed on the admin id so rotating source addresses buys nothing. | `app/admin/(auth)/login/verify/page.js`, `lib/config.js` |
+| **Replayed one-time codes** | A TOTP code is live for ninety seconds across the drift window, which is long enough to use twice. The accepted step is recorded and anything at or below it is refused. Recovery codes are claimed by `WHERE used_at IS NULL`, so two requests racing on one code cannot both win. | `lib/admin-security.js` |
 | **Broken access control** | An order is reachable only through its own token, and the refund write goes to the id that token unlocked — no route reads an order id from a body or query string. Asserted by tests that grep the route files. | `lib/order-access.js`, `tests/order-access.test.mjs` |
 | **Order enumeration** | A wrong token, a wrong reference and a reference that does not exist render the same page, from a single failure branch. | `app/order/[ref]/page.js` |
 | **Rate limiting** | Fixed-window per-IP limiter in a single statement, so concurrent requests cannot race between read and write. Covers ordering, the newsletter, the quiz, admin login and refund requests. | `lib/db.js`, `lib/config.js` |
@@ -87,7 +91,14 @@ These are known gaps, not oversights. Listed so nobody has to rediscover them.
 
 - [ ] `SESSION_SECRET` set to a long random string. The **admin login** throws
       without it — this is not a soft failure. Customer order links do not use
-      it; they are hashed tokens, not signed ones.
+      it; they are hashed tokens, not signed ones. It now also derives the key
+      that encrypts the TOTP secrets, so **rotating it signs every admin out
+      and requires two-factor to be set up again**. That is the deliberate
+      price of not storing a second factor in the clear.
+- [ ] Two-factor turned on for every admin, from the Security tab, and the ten
+      recovery codes saved somewhere that is not the machine that signs in.
+      They are shown once; the table holds only their SHA-256, so a lost set
+      can be reissued but never recovered.
 - [ ] `NEXT_PUBLIC_SITE_URL` set to the real origin. The CSRF origin check
       compares against it, so a wrong value refuses every mutation.
 - [ ] `ADMIN_SETUP_KEY` removed after the first admin is created.
