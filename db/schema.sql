@@ -468,9 +468,22 @@ ALTER TABLE order_events DROP CONSTRAINT IF EXISTS order_events_kind_check;
 ALTER TABLE order_events ADD CONSTRAINT order_events_kind_check
   CHECK (kind IN ('status','note','refund-request','mail','call'));
 
--- Settings the owner changes without a deploy. One row per key, read through
--- lib/settings.js, which falls back to the environment when a key is absent —
--- so an empty table behaves exactly as the site did before this existed.
+-- Settings the owner changes without a deploy. One row per key.
+--
+-- NOTHING READS THIS TABLE YET. The comment here used to say it was read
+-- through lib/settings.js, which falls back to the environment when a key is
+-- absent. That file does not exist and never did: grep the repository for
+-- settings and this file is the only hit. The table is created on every deploy
+-- and is empty, so it costs nothing and does nothing.
+--
+-- Left in place rather than dropped, because the shape is right and the fee
+-- variables it is meant to displace - SHIPPING_FEE and FREE_DELIVERY_OVER,
+-- which today can only be changed by editing Vercel and redeploying - are
+-- exactly the kind of thing the owner should not need an engineer for. What is
+-- missing is the reader. It is backed up for the same reason: the day somebody
+-- writes that reader, the rows here stop being reconstructible from anything in
+-- git, and a backup set that has to be remembered on that day is a backup set
+-- that will not be.
 CREATE TABLE IF NOT EXISTS settings (
   key        TEXT PRIMARY KEY,
   value      TEXT NOT NULL DEFAULT '',

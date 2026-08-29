@@ -23,11 +23,11 @@ and checkout pages need the database.
 | Path | What lives there |
 |---|---|
 | `app/` | Pages and API routes. `_components/` is shared UI, `api/` is the JSON endpoints, `admin/` is the back office. |
-| `lib/` | Logic, mostly framework-free so it is directly testable: pricing, phone normalisation, hair-type data and ranking, credentials, carts, markdown, mail templates. The two that do import from Next are `customer-auth.js` and `auth.js`, because sessions live in cookies. |
+| `lib/` | Logic, mostly framework-free so it is directly testable: pricing, phone normalisation, hair-type data and ranking, credentials, carts, markdown, mail templates. The one that imports from Next is `auth.js`, because the admin session lives in a cookie. There are no customer sessions — accounts were removed, and `lib/order-access.js` is what replaced them. |
 | `db/` | `schema.sql` and `seed.sql`. Both safe to re-run. |
-| `scripts/` | `setup-db.mjs` applies the SQL files. `verify-order-status.mjs` exercises the order state machine against a real Postgres — it creates its own throwaway database and drops it, so it is safe to point at any connection string. |
+| `scripts/` | `setup-db.mjs` applies the SQL files. `backup-db.mjs` and `restore-db.mjs` are the backup pair. The `verify-*.mjs` scripts exercise the SQL against a real Postgres — each creates its own throwaway database and drops it, so they are safe to point at any connection string. |
 | `tests/` | `node --test`. No database needed. |
-| `docs/` | Deployment, security notes, and the hair-type research the finder is based on. |
+| `docs/` | Deployment, recovery, security notes, and the hair-type research the finder is based on. |
 
 ## Things worth knowing before changing code
 
@@ -82,15 +82,21 @@ Read in this order:
    actually is, with real ingredient lists read off the packaging, and the
    places the site currently contradicts them.
 4. [`docs/DEPLOY.md`](docs/DEPLOY.md) — Vercel and Neon setup.
+5. [`docs/RECOVERY.md`](docs/RECOVERY.md) — what to do when the shop is down and
+   nobody who built it is answering. Read it before you need it, not after.
 
 ### Three things that will surprise you
 
-- **55 of the 63 products are `active = false` with `price = 0`.** That is
-  deliberate, not unfinished. The manufacturer catalogue carries no prices, and
-  a guessed price on a cash-on-delivery shop is an argument at the customer's
-  door. The client sets price and stock in the admin and ticks Active. A
-  category with nothing live **404s** rather than serving an empty grid, and the
-  sitemap only lists categories that hold something.
+- **31 of the 63 products are live at `price = 0`.** That is deliberate, not
+  unfinished. The manufacturer catalogue carries no prices, and a guessed price
+  on a cash-on-delivery shop is an argument at the customer's door — so the
+  storefront reads a zero price as "ask us" and shows a WhatsApp button where
+  Add to cart would be. `stock` stays 0 on those rows as a second lock, so even
+  a bug that rendered a buy button could not take the order. They are seeded
+  `active = FALSE` and switched on further down `db/seed.sql`; hiding them
+  answered the pricing question and lost the range. The client sets price and
+  stock in the admin. A category with nothing live **404s** rather than serving
+  an empty grid, and the sitemap only lists categories that hold something.
 
 - **The database migrates on every deploy.** `vercel-build` runs
   `scripts/setup-db.mjs` before `next build`, applying `db/schema.sql` then
@@ -99,6 +105,13 @@ Read in this order:
   admin. If you add a statement, keep that property, and keep apostrophes out
   of SQL comments: the splitter tracks quote state and reads one as an
   unterminated string.
+
+  This also means the whole order history is inside the blast radius of one
+  careless migration, and that promoting an older deployment does **not** undo
+  it — Vercel promotes a build it already has, so `setup-db.mjs` does not run
+  again and the data stays as the bad statement left it. **Take a backup before
+  any deploy that touches `db/`:** `npm run backup`. What to do when it is
+  already too late is [`docs/RECOVERY.md`](docs/RECOVERY.md).
 
 - **Some tests read source files as text rather than executing them.** That is
   on purpose. They guard against omissions — a route that forgets the CSRF
@@ -115,9 +128,9 @@ database, applies `db/schema.sql` to it and drops it in a `finally`. None of the
 writes to the connection string in your environment, and each asserts that
 before its first write rather than trusting it.
 
-There are six, and each one covers something the unit tests structurally cannot:
-SQL that only a server can execute, or a race that needs two requests genuinely
-in flight at the same moment. `npm run test:routes` is the broadest — it starts a
+There are seven, and each one covers something the unit tests structurally
+cannot: SQL that only a server can execute, or a race that needs two requests
+genuinely in flight at the same moment. `npm run test:routes` is the broadest — it starts a
 real Next server on a spare port, points it at a throwaway database, and calls
 every endpoint in `app/api` over HTTP: the honeypots, the origin and
 content-type guards, the 413s, the rate limiters actually filling, and the
@@ -138,16 +151,23 @@ taken the stock. If you add a verification script, make it overlap the requests.
 | `npm run dev` | Dev server |
 | `npm run build` | Production build |
 | `npm run db:setup` | Apply `db/schema.sql` then `db/seed.sql` |
+| `npm run backup` | Dump the ten tables a restore needs, into gitignored `backups/` |
+| `npm run restore` | Load a dump back. Refuses to land on top of live rows |
 | `npm test` | Test suite — no database needed, and it must stay that way |
 | `npm run test:routes` | Every `app/api` route over HTTP, against a throwaway database |
 | `npm run verify:orders` | The order state machine, including a concurrent double cancel |
 | `npm run verify:checkout` | Checkout idempotency, including a five-way simultaneous duplicate |
 | `npm run verify:access` | Order links: migration, tampering, and `/order/find` timing |
 | `npm run verify:auth` | Admin two-factor and session revocation |
+| `npm run verify:backup` | Backup and restore, end to end, on values chosen to be hostile |
 | `npm run verify:indexes` | Every index, `EXPLAIN ANALYZE`d on 200k seeded orders |
 
-The three `verify:` scripts are not tests and are not run by `npm test`. Each
-one creates its own Neon database, applies the real schema to it, works only in
-there and drops it in a `finally` — so they are safe to run with the production
-connection string in the environment, and they cover the parts of the code that
-are mostly SQL and cannot be exercised without a server.
+The `verify:` scripts and `test:routes` are not tests and are not run by
+`npm test`. Each one creates its own Neon database, applies the real schema to
+it, works only in there and drops it in a `finally` — so they are safe to run
+with the production connection string in the environment, and they cover the
+parts of the code that are mostly SQL and cannot be exercised without a server.
+
+`npm run backup` is the exception and the one script that is pointed at
+production on purpose, because that is its job. It protects itself differently:
+it refuses to send any statement that is not a `SELECT`.

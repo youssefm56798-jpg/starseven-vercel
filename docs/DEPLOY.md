@@ -85,6 +85,41 @@ Deploy, then visit `https://<your-domain>/admin/setup`, enter the value of
 route refuses to run once an admin exists, but leaving the key set is one less
 lock on the door than you need.
 
+## 5b. Backups — do this on day one
+
+Step 4 is also the largest risk in this project: `db/schema.sql` and
+`db/seed.sql` are applied to the **production** database on every deploy, before
+the site is built. One careless statement in either file reaches the entire
+order history, and it reaches it on the deploy that introduces it.
+
+Take a dump before any deploy that touches `db/`:
+
+```bash
+npm run backup
+```
+
+It only ever runs `SELECT`, so it is safe against production. The output lands in
+`backups/`, which is gitignored twice over — the file holds customer names,
+addresses, phone numbers, the mailing list and the admin password hashes, so get
+it off the machine that made it.
+
+Prove it works before you need it to:
+
+```bash
+npm run verify:backup                            # the round trip, on a throwaway database
+npm run verify:backup -- --dump backups/<file>   # rehearse the real file
+```
+
+Neon also keeps a point-in-time recovery window, which is better than a dump
+whenever the damage is recent enough to be inside it. **Find out how long yours
+is** — Neon Console → project → Settings → Storage — because on the free tier it
+is short, and it is the number that decides whether a Friday-evening mistake is
+recoverable on Monday.
+
+Everything else — what to do when a migration has already wiped something, when
+the database is unreachable, when a deploy broke production, and how to look at
+yesterday's data without touching today's — is [`RECOVERY.md`](RECOVERY.md).
+
 ## 6. Domain
 
 Vercel → project → **Domains** → add the domain and follow the DNS instructions.
@@ -113,6 +148,13 @@ sitemap and canonical tags point at the real address rather than the
   build — safe for showing work before it goes live.
 - If a deploy goes wrong, Vercel → **Deployments** → the previous one →
   **Promote to Production**. It's instant; there is nothing to rebuild.
+
+  **That rolls back the code and not the data.** Promoting reuses a build Vercel
+  already has, so `vercel-build` does not run again and `setup-db.mjs` does not
+  run again — which is what makes it instant, and which means any migration the
+  bad deploy applied is still applied. Do not reach for **Redeploy** instead:
+  that *does* rebuild, and rebuilding re-runs the statement that broke it. If
+  data is wrong rather than just the site, see [`RECOVERY.md`](RECOVERY.md).
 
 ## Local development
 

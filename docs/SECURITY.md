@@ -114,6 +114,16 @@ These are known gaps, not oversights. Listed so nobody has to rediscover them.
   be with the courier.
 - **`ADMIN_SETUP_KEY` should be removed from the environment** once the first
   admin exists; `/admin/setup` is reachable while it is set.
+- **A database dump is the most sensitive artifact this project produces**, and
+  nothing controls where one goes once it is written. `npm run backup` writes
+  customer names, addresses, phone numbers, the mailing list and the admin
+  password hashes to a file. It lands in `backups/`, which is gitignored twice
+  over — by `backups/*` in the root `.gitignore` and by `backups/.gitignore` from
+  the inside, so that neither rule is the only thing in the way, and
+  `tests/backup-format.test.mjs` fails if either is removed. Past that the file
+  is on somebody's laptop and this project has no answer for it: no encryption at
+  rest, no retention limit, no off-site destination. See
+  [`RECOVERY.md`](RECOVERY.md), which lists the same gap from the other side.
 
 ---
 
