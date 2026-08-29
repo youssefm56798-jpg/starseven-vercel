@@ -91,11 +91,31 @@ Read in this order:
   omission has no behaviour to assert against. Each one exists because the
   corresponding failure reached production behind a green build.
 
+### Where a test goes
+
+`npm test` runs with no database and must stay that way — it is what makes a
+fresh clone testable in seconds. Anything that needs a real Postgres is a script
+under `scripts/`, run on demand, and every one of them creates its own throwaway
+database, applies `db/schema.sql` to it and drops it in a `finally`. None of them
+writes to the connection string in your environment, and each asserts that
+before its first write rather than trusting it.
+
+There are two. `npm run verify:orders` exercises the SQL in
+`lib/order-status.js`. `npm run test:routes` starts a real Next server on a spare
+port, points it at a throwaway database, and calls every endpoint in `app/api`
+over HTTP — the honeypots, the origin and content-type guards, the 413s, the
+rate limiters actually filling, and the concurrent cases that the sequential
+ones cannot see: two checkouts racing for one unit of stock, five racing for one
+redemption of a capped code. Pass a case-file name (`npm run test:routes --
+refund`) to run one on its own.
+
 ## Commands
 
 | | |
 |---|---|
 | `npm run dev` | Dev server |
 | `npm run build` | Production build |
-| `npm test` | Test suite — 295 tests, no database needed |
+| `npm test` | Test suite — no database needed |
+| `npm run test:routes` | Every `app/api` route over HTTP, against a throwaway database |
+| `npm run verify:orders` | The order state machine, against a throwaway database |
 | `npm run db:setup` | Apply `db/schema.sql` then `db/seed.sql` |

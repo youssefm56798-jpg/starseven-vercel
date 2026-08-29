@@ -10,6 +10,7 @@
     "db:setup": "node scripts/setup-db.mjs",
     "test": "node --test \"tests/**/*.test.mjs\"",
     "verify:orders": "node scripts/verify-order-status.mjs",
+    "test:routes": "node scripts/verify-routes.mjs",
     "vercel-build": "node scripts/setup-db.mjs && next build"
   },
   "dependencies": {
