@@ -9,6 +9,7 @@ const TABS = [
   ['/admin/subscribers', 'Subscribers'],
   ['/admin/offers', 'Offers'],
   ['/admin/products', 'Products'],
+  ['/admin/security', 'Security'],
 ];
 
 /** The tab strip. Client-side only because it needs the current pathname. */

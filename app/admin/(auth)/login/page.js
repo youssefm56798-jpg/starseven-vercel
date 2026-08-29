@@ -1,7 +1,9 @@
 import bcrypt from 'bcryptjs';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { createSession, csrfOk, csrfToken, currentAdmin } from '../../../../lib/auth.js';
+import {
+  createSession, csrfOk, csrfToken, currentAdmin, startPendingSession,
+} from '../../../../lib/auth.js';
 import { limits } from '../../../../lib/config.js';
 import { clientIp, rateOk, sql } from '../../../../lib/db.js';
 import { LOGIN_MESSAGES } from '../../_lib/ui.js';
@@ -41,12 +43,36 @@ async function doLogin(formData) {
     redirect('/admin/login?m=rate');
   }
 
-  const rows = await sql`SELECT id, email, name, pass_hash FROM admins WHERE email = ${email} LIMIT 1`;
+  const rows = await sql`
+    SELECT id, email, name, pass_hash, session_epoch, totp_enrolled_at
+      FROM admins WHERE email = ${email} LIMIT 1`;
   const admin = rows[0];
   const ok = await bcrypt.compare(pass, admin ? admin.pass_hash : DUMMY_HASH);
 
   // Same answer either way — never reveal which half was wrong.
   if (!admin || !ok) redirect('/admin/login?m=bad');
+
+  /*
+   * The password was right, which is not the same as being signed in.
+   *
+   * An admin with a second factor enrolled gets the pending cookie and the
+   * verify screen instead of a session. Two things about that are load-bearing.
+   * The pending cookie is a different cookie carrying a different audience
+   * claim, so nothing that reads the session can mistake the half-finished
+   * login for a finished one by failing to check a field — the session either
+   * exists or it does not. And last_login is stamped where the session is
+   * actually created, not here, so it means "got in" rather than "typed the
+   * right password", which is what somebody reading that column to see whether
+   * an account has been compromised needs it to mean.
+   *
+   * The branch cannot be used to learn anything: reaching it at all requires
+   * the password, so it tells an attacker only about an account they already
+   * hold the first factor for.
+   */
+  if (admin.totp_enrolled_at !== null) {
+    await startPendingSession(admin);
+    redirect('/admin/login/verify');
+  }
 
   await sql`UPDATE admins SET last_login = now() WHERE id = ${admin.id}`;
   await createSession(admin);

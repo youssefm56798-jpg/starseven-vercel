@@ -11,11 +11,38 @@ import { fail } from '../../../lib/http.js';
 import { HAIR_TYPES, productPublic } from '../../../lib/hairtypes.js';
 import { site } from '../../../lib/config.js';
 
-// The catalogue changes a few times a week at most, so a minute of staleness
-// buys every visitor a cached response instead of a database round trip. The
-// caching is done with a Cache-Control header on the response rather than
-// `revalidate`, which would additionally prerender this at build time — and a
-// build should not need a reachable database to succeed.
+/*
+ * The catalogue changes a few times a week at most, so a minute of staleness
+ * buys every visitor a cached response instead of a database round trip.
+ *
+ * This used to be done with the Cache-Control header alone, and deliberately
+ * not with `revalidate`, on the grounds that revalidate additionally prerenders
+ * the route at build time and a build should not need a reachable database to
+ * succeed. The first half of that was right and the second half turns out not
+ * to be a cost at all, which is worth writing down because the reasoning is not
+ * obvious from the outside.
+ *
+ * A header alone caches at the CDN. It does nothing about the invocation: a
+ * request that misses - a cold region, the first hit after the window expires,
+ * anything sent with no-cache - still starts a function, still opens a Neon
+ * connection and still runs two queries. `revalidate` moves the whole thing
+ * into the prerender: the payload is built once at deploy, served from the edge
+ * with no function and no database behind it, and regenerated in the background
+ * once a minute by whichever request happens to arrive after the window closes.
+ *
+ * And the build stays safe without a database, because of the try/catch below
+ * rather than in spite of it. Next will not prerender a route handler that
+ * answers with an error status, so on a build with no DATABASE_URL the 503 path
+ * runs, the route falls back to being dynamic, and the build succeeds - which
+ * is exactly the behaviour the old comment was protecting. Verified: with
+ * .env.local removed the build prints the catalogue warning and marks this
+ * route dynamic instead of static.
+ *
+ * The header stays alongside. On a prerendered route the two agree with each
+ * other, and it is the only caching there is on the build where the route came
+ * out dynamic.
+ */
+export const revalidate = 60;
 
 /** The six tiles, without the long `ar`/`en` copy being reshaped. */
 const tiles = HAIR_TYPES.map(t => ({

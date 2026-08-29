@@ -86,6 +86,14 @@ const MESSAGES = {
   offer_needs_text: ['err', 'Arabic title and body are required.'],
   csrf: ['err', 'Session expired — reload the page and try again.'],
   bad_input: ['err', 'That did not look right — check the form and try again.'],
+  pw_changed: ['ok', 'Password changed. Every other browser has been signed out.'],
+  pw_wrong: ['err', 'That is not your current password.'],
+  rate: ['err', 'Too many attempts. Wait a few minutes and try again.'],
+  pw_mismatch: ['err', 'The two new passwords do not match.'],
+  pw_short: ['err', 'Use a new password of at least 10 characters.'],
+  pw_weak: ['err', 'That password is too easy to guess, or contains your email address.'],
+  pw_same: ['err', 'That is already your password.'],
+  recovery_used: ['err', 'You signed in with a recovery code, so that one is now spent. Check how many are left on the Security tab.'],
 };
 
 export function Flash({ code }) {
@@ -101,6 +109,14 @@ export const LOGIN_MESSAGES = {
   csrf: ['err', 'Session expired — reload the page and try again.'],
   created: ['ok', 'Admin created. Log in below.'],
   bye: ['ok', 'Signed out.'],
+  bye_all: ['ok', 'Signed out everywhere. Every other browser has been signed out too.'],
+  // One message for a wrong app code and a wrong recovery code, the same way
+  // the password screen gives one message for a wrong email and a wrong
+  // password: telling somebody which half they got right is telling them
+  // something they did not have.
+  bad2fa: ['err', 'That code is not right. App codes change every 30 seconds — try the current one.'],
+  expired: ['err', 'That took too long. Enter your email and password again.'],
+  totp_off: ['ok', 'Two-factor is off, and every session has been signed out. Log in again.'],
 };
 
 /** A wa.me link for an Egyptian mobile number, as the PHP built it. */

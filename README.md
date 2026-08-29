@@ -43,6 +43,21 @@ and checkout pages need the database.
   together or not at all. The legal moves live in one table there,
   `delivered` and `cancelled` are terminal, and `tests/order-status.test.mjs`
   fails if an UPDATE of that column appears anywhere else.
+- **An admin session can be killed, and the epoch is how.** The login cookie is
+  a signed JWT with an eight-hour life, which on its own is not revocable at
+  all. It now carries the `session_epoch` from its admin row, and
+  `lib/auth.js` refuses any token whose epoch is not current — so bumping that
+  one integer ends every session that admin holds, everywhere. Changing a
+  password bumps it, so does turning two-factor off, so does the
+  sign-out-everywhere button. Only `lib/session-epoch.js` may write it, and
+  `tests/admin-security.test.mjs` fails if a second writer appears.
+- **Two-factor is hand-rolled, and that is on purpose.** `lib/totp.js` is RFC
+  4226 and RFC 6238 over WebCrypto, about two hundred lines, no dependency. The
+  price of that choice is paid in `tests/totp.test.mjs`, which checks every
+  published RFC vector. The shared secret is encrypted at rest under a key
+  derived from `SESSION_SECRET`, so rotating that variable signs everyone out
+  **and** requires re-enrolment. Recovery codes are stored as SHA-256 and
+  claimed by a guarded `UPDATE`, never by a read followed by a write.
 - **`hair_types` on a product is a CSV in priority order** — the first slug wins
   the primary recommendation. The three gels are deliberately `straight` only,
   because the wavy panel tells customers to avoid hard gels; `tests/hairtypes.test.mjs`
@@ -100,14 +115,21 @@ database, applies `db/schema.sql` to it and drops it in a `finally`. None of the
 writes to the connection string in your environment, and each asserts that
 before its first write rather than trusting it.
 
-There are two. `npm run verify:orders` exercises the SQL in
-`lib/order-status.js`. `npm run test:routes` starts a real Next server on a spare
-port, points it at a throwaway database, and calls every endpoint in `app/api`
-over HTTP — the honeypots, the origin and content-type guards, the 413s, the
-rate limiters actually filling, and the concurrent cases that the sequential
-ones cannot see: two checkouts racing for one unit of stock, five racing for one
-redemption of a capped code. Pass a case-file name (`npm run test:routes --
-refund`) to run one on its own.
+There are six, and each one covers something the unit tests structurally cannot:
+SQL that only a server can execute, or a race that needs two requests genuinely
+in flight at the same moment. `npm run test:routes` is the broadest — it starts a
+real Next server on a spare port, points it at a throwaway database, and calls
+every endpoint in `app/api` over HTTP: the honeypots, the origin and
+content-type guards, the 413s, the rate limiters actually filling, and the
+concurrent cases the sequential ones cannot see, like two checkouts racing for
+one unit of stock or five racing for one redemption of a capped code. Pass a
+case-file name (`npm run test:routes -- refund`) to run one on its own.
+
+A note on why several of them exist at all: three separate bugs in this
+repository passed a sequential test and failed a concurrent one — a double
+cancel crediting stock twice, a double-submitted checkout writing two orders,
+and a duplicate request being told an item had sold out when its own twin had
+taken the stock. If you add a verification script, make it overlap the requests.
 
 ## Commands
 
@@ -115,7 +137,17 @@ refund`) to run one on its own.
 |---|---|
 | `npm run dev` | Dev server |
 | `npm run build` | Production build |
-| `npm test` | Test suite — no database needed |
-| `npm run test:routes` | Every `app/api` route over HTTP, against a throwaway database |
-| `npm run verify:orders` | The order state machine, against a throwaway database |
 | `npm run db:setup` | Apply `db/schema.sql` then `db/seed.sql` |
+| `npm test` | Test suite — no database needed, and it must stay that way |
+| `npm run test:routes` | Every `app/api` route over HTTP, against a throwaway database |
+| `npm run verify:orders` | The order state machine, including a concurrent double cancel |
+| `npm run verify:checkout` | Checkout idempotency, including a five-way simultaneous duplicate |
+| `npm run verify:access` | Order links: migration, tampering, and `/order/find` timing |
+| `npm run verify:auth` | Admin two-factor and session revocation |
+| `npm run verify:indexes` | Every index, `EXPLAIN ANALYZE`d on 200k seeded orders |
+
+The three `verify:` scripts are not tests and are not run by `npm test`. Each
+one creates its own Neon database, applies the real schema to it, works only in
+there and drops it in a `finally` — so they are safe to run with the production
+connection string in the environment, and they cover the parts of the code that
+are mostly SQL and cannot be exercised without a server.

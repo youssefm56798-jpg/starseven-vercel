@@ -67,21 +67,37 @@ export default async function OrdersPage({ searchParams }) {
   const q = String(sp?.q || '').trim().slice(0, 80);
   const like = `%${q}%`;
 
-  // Four complete queries rather than one assembled string: the values stay
-  // parameters and the SQL stays readable.
+  /*
+   * Four complete queries rather than one assembled string: the values stay
+   * parameters and the SQL stays readable.
+   *
+   * The search reads the three columns concatenated rather than as three ORs,
+   * and that is not a stylistic choice. A leading % gives a btree no prefix to
+   * seek on, so this was a sequential scan of the whole orders table however it
+   * was written; the fix is the pg_trgm GIN index in db/schema.sql, and a GIN
+   * index can only be used by a predicate whose left-hand side is exactly the
+   * expression it was built on. Three ORs would need three indexes and a
+   * BitmapOr across them, which is three writes per order to answer one
+   * question and a slower read than the single scan this gets.
+   *
+   * The space between the columns matters twice over. It stops a reference
+   * running into a name and matching a substring that spans the join by
+   * accident, and it is what lets somebody type a name and a phone number into
+   * one box and have it match - which is what a person doing that meant.
+   */
   let orders;
   if (status && q) {
     orders = await sql`
       SELECT * FROM orders
        WHERE status = ${status}
-         AND (ref ILIKE ${like} OR name ILIKE ${like} OR phone ILIKE ${like})
+         AND (ref || ' ' || name || ' ' || phone) ILIKE ${like}
        ORDER BY id DESC LIMIT 200`;
   } else if (status) {
     orders = await sql`SELECT * FROM orders WHERE status = ${status} ORDER BY id DESC LIMIT 200`;
   } else if (q) {
     orders = await sql`
       SELECT * FROM orders
-       WHERE ref ILIKE ${like} OR name ILIKE ${like} OR phone ILIKE ${like}
+       WHERE (ref || ' ' || name || ' ' || phone) ILIKE ${like}
        ORDER BY id DESC LIMIT 200`;
   } else {
     orders = await sql`SELECT * FROM orders ORDER BY id DESC LIMIT 200`;
