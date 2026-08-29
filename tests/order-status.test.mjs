@@ -7,6 +7,8 @@ import { fileURLToPath } from 'node:url';
 import {
   STATUSES,
   LEGAL,
+  SELF_CANCELLABLE,
+  canSelfCancel,
   nextFrom,
   canMove,
   transition,
@@ -111,6 +113,42 @@ test('the three in-flight statuses move freely between each other', () => {
 test('every non-terminal status can reach delivered', () => {
   for (const s of ['new', 'confirmed', 'shipped']) {
     assert.ok(reachable(s).has('delivered'), `${s} cannot reach delivered`);
+  }
+});
+
+/* -------------------------------------------- what a customer may do alone */
+
+test('every self-cancellable status can legally reach cancelled', () => {
+  // The one that matters. A status listed as self-cancellable that the
+  // transition table refuses would put a Cancel button on the order page that
+  // answers with a 500 when pressed.
+  for (const s of SELF_CANCELLABLE) {
+    assert.ok(STATUSES.includes(s), `${s} is not a real status`);
+    assert.ok(canMove(s, 'cancelled'), `${s} is offered to customers but cannot be cancelled`);
+  }
+});
+
+test('a customer cannot cancel once a parcel is moving, or after it stopped', () => {
+  // shipped is the line: past it a real person is carrying real goods to a door
+  // where the money is collected, and cancelling does not undo that trip.
+  for (const s of ['shipped', 'delivered', 'cancelled']) {
+    assert.equal(canSelfCancel(s), false, `${s} should not be self-cancellable`);
+  }
+});
+
+test('self-cancellable is narrower than what the table allows', () => {
+  // If these ever became the same set, the distinction would have collapsed and
+  // customers would be cancelling shipped orders.
+  const canBeCancelled = STATUSES.filter(s => canMove(s, 'cancelled'));
+  assert.ok(
+    SELF_CANCELLABLE.length < canBeCancelled.length,
+    'every cancellable status is now self-cancellable — the shipped guard is gone',
+  );
+});
+
+test('canSelfCancel refuses anything it does not recognise', () => {
+  for (const bad of ['', 'nonsense', 'NEW', null, undefined, 0]) {
+    assert.equal(canSelfCancel(bad), false, `accepted ${String(bad)}`);
   }
 });
 

@@ -7,7 +7,8 @@ import { Dir, Nav, Footer, waLink } from '../_components/Chrome.js';
 // component is colocated with the route it belongs to, and only files named
 // page.js, layout.js or route.js are treated as routes, so importing across the
 // segment from here is ordinary module resolution.
-import RefundRequest from '../order/[ref]/RefundRequest.js';
+import CancelOrder from '../order/[ref]/CancelOrder.js';
+import { canSelfCancel } from '../../lib/order-status.js';
 
 /**
  * A customer looking at their own order, rendered once and mounted at
@@ -166,11 +167,17 @@ export default async function OrderDetail({ order, token }) {
           </p>
         </section>
 
-        <RefundRequest
+        {/* Whether this order is still the customer's to cancel is decided
+            here, on the server, from the same module the API checks against —
+            rather than in the client component, which would have to import
+            lib/order-status.js and drag the database driver into the browser
+            bundle to ask. */}
+        <CancelOrder
           lang={lang}
           refValue={order.ref}
           token={token}
           status={order.status}
+          selfCancellable={canSelfCancel(order.status)}
           requestedAt={order.refund_requested_at ? String(order.refund_requested_at) : null}
           reason={order.refund_reason || ''}
         />
