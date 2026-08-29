@@ -57,6 +57,34 @@ const nextConfig = {
         { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
         { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
       ],
+    }, {
+      /*
+       * The JSON endpoints get their own, tighter policy.
+       *
+       * lib/http.js already attaches `default-src 'none'; frame-ancestors
+       * 'none'` to every API response, and until now that header never reached
+       * a client. The rule above matches `/:path*`, which matches `/api/...`
+       * too, and a header declared in this config REPLACES one set by the
+       * route rather than deferring to it — so every JSON response shipped the
+       * page policy, which permits inline script and allows framing from the
+       * same origin. The comment in lib/http.js and the bytes on the wire have
+       * been disagreeing since the day it was written.
+       *
+       * Later rules win, so this one has to sit after the catch-all. Nothing in
+       * an API response is a document: no scripts, no styles, no fonts, and
+       * nothing that should ever be put in a frame, so the policy says exactly
+       * that. The rest of the security headers are repeated because replacing
+       * is replacing — omitting them here would strip nosniff and HSTS from
+       * /api, which is worse than the problem being fixed.
+       */
+      source: '/api/:path*',
+      headers: [
+        { key: 'Content-Security-Policy', value: "default-src 'none'; frame-ancestors 'none'" },
+        { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains' },
+        { key: 'X-Content-Type-Options', value: 'nosniff' },
+        { key: 'X-Frame-Options', value: 'DENY' },
+        { key: 'Referrer-Policy', value: 'no-referrer' },
+      ],
     }];
   },
 };

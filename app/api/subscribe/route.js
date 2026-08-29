@@ -25,8 +25,30 @@ export async function POST(req) {
   const lang = langOf(body.lang);
   const ar = lang === 'ar';
 
-  // Honeypot: pretend it worked, save nothing.
-  if (trapped(body.hp)) return ok({ status: 'pending' });
+  /*
+   * The reply a successful signup gets, built once and used by all three of
+   * the branches that must be indistinguishable from outside: a genuine new
+   * signup, an address that is already subscribed, and a bot that filled the
+   * honeypot.
+   *
+   * It used to be built only where the real signup returns, and the honeypot
+   * answered `{ ok, status }` while everything else answered
+   * `{ ok, status, emailed, message }`. A strict subset is a tell: a bot that
+   * submits once with the trap filled and once without can compare the two
+   * replies and learn the field is a trap, after which it simply stops filling
+   * it and the honeypot is worth nothing. The whole point of answering a bot
+   * with success is that it goes away believing it succeeded.
+   */
+  const pendingResponse = () => ok({
+    status: 'pending',
+    emailed: true,
+    message: ar
+      ? 'بعتنالك إيميل تأكيد — افتحه وأكّد اشتراكك.'
+      : 'Check your inbox for a confirmation email.',
+  });
+
+  // Honeypot: pretend it worked, save nothing, and look exactly like success.
+  if (trapped(body.hp)) return pendingResponse();
 
   const ip = clientIp(req);
   if (!(await rateOk('subscribe', ip, ...limits.subscribe))) return tooMany(lang);
@@ -69,14 +91,7 @@ export async function POST(req) {
   // written, nothing sent, and the caller cannot tell the two apart.
   const existing = await sql`SELECT status FROM subscribers WHERE email = ${email} LIMIT 1`;
   const alreadyActive = existing[0]?.status === 'active';
-  const pendingResponse = ok({
-    status: 'pending',
-    emailed: true,
-    message: ar
-      ? 'بعتنالك إيميل تأكيد — افتحه وأكّد اشتراكك.'
-      : 'Check your inbox for a confirmation email.',
-  });
-  if (alreadyActive) return pendingResponse;
+  if (alreadyActive) return pendingResponse();
 
   // Pending or previously unsubscribed — refresh the token and re-send.
   // Blank fields keep whatever we already knew instead of wiping it.
@@ -111,5 +126,5 @@ export async function POST(req) {
     }
   });
 
-  return pendingResponse;
+  return pendingResponse();
 }

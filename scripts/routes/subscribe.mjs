@@ -145,18 +145,15 @@ export default async function subscribe({ db, api, ip, check, checkThat, section
   const afterBot = await api('/api/subscribe', { method: 'POST', ip: hpBudget, json: { email: fresh() } });
   check('eight trapped requests spend none of the limit', afterBot.status, 200);
 
-  // Worth recording rather than asserting as a flaw: the trapped response is
-  // `{ok, status}` and a real one is `{ok, status, emailed, message}`, so a bot
-  // that compares the two CAN tell that the field gave it away. Harmless as
-  // long as the trap is not the only defence — the limiter and the honest
-  // validation are both behind it — but it is not the "answer exactly like a
-  // success" the route comment describes.
+  // This was recorded as a finding and is now a guarantee. The trapped reply
+  // used to be `{ok, status}` while a real one was `{ok, status, emailed,
+  // message}`, and a strict subset is a tell: submit once with the field filled
+  // and once without, compare, and the trap has identified itself — after which
+  // a bot simply stops filling it and the honeypot is worth nothing. The route
+  // builds one response now and all three indistinguishable branches return it.
   const realBody = await post({ email: fresh() }, 'sub-shape');
-  checkThat('the trapped body is a strict subset of a real one, not a copy of it',
-    JSON.stringify(hp.json) !== JSON.stringify(realBody.json),
-    'they matched — the note below is out of date, which is good news');
-  note('FINDING (minor): the honeypot reply omits `emailed` and `message`, so a bot');
-  note('        can tell the trap fired. Returning the same body would close it.');
+  check('the trapped body is byte-identical to a real one',
+    JSON.stringify(hp.json), JSON.stringify(realBody.json));
 
   /* -------------------------------------------------- re-subscribing paths */
 
