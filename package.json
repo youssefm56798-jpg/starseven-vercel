@@ -19,11 +19,13 @@
     "verify:indexes": "node scripts/verify-indexes.mjs",
     "verify:auth": "node scripts/verify-admin-auth.mjs",
     "verify:backup": "node scripts/verify-backup.mjs",
+    "verify:products": "node scripts/verify-product-admin.mjs",
     "vercel-build": "node scripts/setup-db.mjs && next build"
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.10.4",
     "@vercel/analytics": "^2.0.1",
+    "@vercel/blob": "^2.8.0",
     "@vercel/speed-insights": "^2.0.0",
     "bcryptjs": "^2.4.3",
     "framer-motion": "^11.11.17",

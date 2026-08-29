@@ -8,6 +8,7 @@ import { currencyLabel, whole } from '../../lib/money.js';
 import { Dir, Nav, Footer, Crumb, shopCategories } from '../_components/Chrome.js';
 import AddButton from '../_components/AddButton.js';
 import { QuickViewProvider, QuickViewButton } from '../_components/QuickView.js';
+import { imageUrl } from '../../lib/product-image.js';
 
 /**
  * The shop, rendered once and mounted at three addresses.
@@ -197,7 +198,7 @@ export default async function ShopView({ kind, lang }) {
                 <div className="card" key={p.sku} style={{ '--c': p.color }}>
                   <Link className="card-hit" href={L(`/product/${p.slug}`)}>
                     {chip && <span className="chip">{chip}</span>}
-                    <img src={`/${p.image}`} alt={name} loading="lazy" width="300" height="300" />
+                    <img src={imageUrl(p.image)} alt={name} loading="lazy" width="300" height="300" />
                     <h3>{name}</h3>
                     <div className="sub">{sub}</div>
                   </Link>

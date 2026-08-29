@@ -9,6 +9,7 @@ import {
   ld, typeRange, formatCounts, gapNote, indexLd, breadcrumbLd,
 } from '../hair-types/lib.js';
 import '../hair-types/hairtypes.css';
+import { imageUrl } from '../../lib/product-image.js';
 
 /**
  * The hair-type index, rendered once and mounted at both addresses.
@@ -209,7 +210,7 @@ export default async function HairTypesIndexView({ lang }) {
                   {best ? (
                     <div className="ht-pick">
                       <Link className="ht-pick-main" href={L(`/product/${best.slug}`)}>
-                        <img src={`/${best.image}`} alt={ar ? best.name_ar : best.name_en}
+                        <img src={imageUrl(best.image)} alt={ar ? best.name_ar : best.name_en}
                           width="120" height="120" loading="lazy" />
                         <span>
                           <b className="ht-pick-lbl">{ar ? 'الاختيار الصح' : 'The right one'}</b>

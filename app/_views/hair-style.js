@@ -12,6 +12,7 @@ import {
   ld, styleLabel, styleGap, styleMeta, styleFaq, howToLd, styleBreadcrumbLd,
 } from '../hair-styles/lib.js';
 import '../hair-styles/hairstyles.css';
+import { imageUrl } from '../../lib/product-image.js';
 
 /**
  * One hair style, rendered once and mounted at both addresses.
@@ -211,7 +212,7 @@ export default async function HairStyleView({ slug, lang }) {
                     : (ar ? 'اللي هيوصلك له' : 'What gets you there')}
                 </span>
                 <Link href={L(`/product/${best.slug}`)}>
-                  <img src={`/${best.image}`} alt={ar ? best.name_ar : best.name_en}
+                  <img src={imageUrl(best.image)} alt={ar ? best.name_ar : best.name_en}
                     width="200" height="200" />
                 </Link>
                 <h3>

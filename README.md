@@ -104,7 +104,19 @@ Read in this order:
   `ON CONFLICT DO NOTHING` so a redeploy can never revert a price edited in the
   admin. If you add a statement, keep that property, and keep apostrophes out
   of SQL comments: the splitter tracks quote state and reads one as an
-  unterminated string.
+  unterminated string. A statement that matches on a *shape* rather than on a
+  SKU must also say `origin = 'seed'`, or it will reach the products the owner
+  added in the admin — `tests/product-schema.test.mjs` enforces that.
+
+- **Deleting a product archives it.** `products.archived_at` is set, `active`
+  goes false, and the row stays. `order_items.product_id` has no foreign key,
+  so a real delete leaves old order lines pointing at nothing and the restock
+  in `lib/order-status.js` silently credits a cancelled order to no shelf; and
+  a deleted seeded SKU stops conflicting with `db/seed.sql`, so the next deploy
+  inserts it again and the pricing statements publish it. The full reasoning is
+  at the top of `lib/product-admin.js`, which is the only file allowed to write
+  the products table. The one real `DELETE` is for a product that was added in
+  the admin, has never been ordered, and is already archived.
 
   This also means the whole order history is inside the blast radius of one
   careless migration, and that promoting an older deployment does **not** undo
@@ -156,11 +168,13 @@ taken the stock. If you add a verification script, make it overlap the requests.
 | `npm test` | Test suite — no database needed, and it must stay that way |
 | `npm run test:routes` | Every `app/api` route over HTTP, against a throwaway database |
 | `npm run verify:orders` | The order state machine, including a concurrent double cancel |
+| `npm run verify:edit` | Editing a placed order: stock, coupons and two admins racing |
 | `npm run verify:checkout` | Checkout idempotency, including a five-way simultaneous duplicate |
 | `npm run verify:access` | Order links: migration, tampering, and `/order/find` timing |
 | `npm run verify:auth` | Admin two-factor and session revocation |
 | `npm run verify:backup` | Backup and restore, end to end, on values chosen to be hostile |
 | `npm run verify:indexes` | Every index, `EXPLAIN ANALYZE`d on 200k seeded orders |
+| `npm run verify:products` | Adding, editing and archiving a product, and what a redeploy does to one |
 
 The `verify:` scripts and `test:routes` are not tests and are not run by
 `npm test`. Each one creates its own Neon database, applies the real schema to

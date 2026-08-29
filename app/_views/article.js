@@ -7,6 +7,7 @@ import { currencyLabel, whole } from '../../lib/money.js';
 import { renderMarkdown } from '../../lib/markdown.js';
 import { bySlug } from '../../lib/hairtypes.js';
 import { Dir, Nav, Footer, Crumb } from '../_components/Chrome.js';
+import { imageUrl } from '../../lib/product-image.js';
 
 /**
  * One article, rendered once and mounted at two addresses.
@@ -257,7 +258,7 @@ export default async function ArticleView({ slug, lang: want }) {
 
           {prod && (
             <div className="article-cta">
-              <img src={`/${prod.image}`} alt={ar ? prod.name_ar : prod.name_en}
+              <img src={imageUrl(prod.image)} alt={ar ? prod.name_ar : prod.name_en}
                 width="96" height="96" />
               <div className="t">
                 <h4>{ar ? prod.name_ar : prod.name_en}</h4>

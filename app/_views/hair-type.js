@@ -12,6 +12,7 @@ import {
   ld, typeRange, gapNote, typeMeta, typeFaq, articleLd, breadcrumbLd,
 } from '../hair-types/lib.js';
 import '../hair-types/hairtypes.css';
+import { imageUrl } from '../../lib/product-image.js';
 
 /**
  * One hair type, rendered once and mounted at both addresses.
@@ -197,7 +198,7 @@ export default async function HairTypeView({ slug, lang }) {
               <div className="ht-rec">
                 <span className="ht-rec-badge">{ar ? 'الترشيح' : 'Our pick'}</span>
                 <Link href={L(`/product/${best.slug}`)}>
-                  <img src={`/${best.image}`} alt={ar ? best.name_ar : best.name_en}
+                  <img src={imageUrl(best.image)} alt={ar ? best.name_ar : best.name_en}
                     width="200" height="200" />
                 </Link>
                 <h3>
