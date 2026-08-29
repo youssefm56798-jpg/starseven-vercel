@@ -113,6 +113,44 @@ async function runFile(exec, relPath) {
 const envLoaded =
   loadEnvFile(join(ROOT, '.env.local')) + loadEnvFile(join(ROOT, '.env'));
 
+/*
+ * A preview build must never migrate the live database.
+ *
+ * vercel-build runs this script before next build, on EVERY deployment —
+ * production, preview and the ones Vercel makes for a pull request. And
+ * DATABASE_URL in this project is one value scoped to Production, Preview and
+ * Development alike, so all three resolve to the same Neon database. Opening a
+ * pull request therefore applied db/schema.sql AND db/seed.sql to the shop that
+ * is taking orders, from a branch nobody had reviewed yet.
+ *
+ * Nothing had gone wrong yet only because the seed is written to be
+ * non-destructive. That is a property of the file as it stands today, not a
+ * guarantee about the next statement somebody adds to it, and it is the wrong
+ * thing to be relying on: a migration is exactly the kind of change a preview
+ * exists to test BEFORE it reaches production.
+ *
+ * So a non-production Vercel build skips the migration and lets next build
+ * proceed. The schema it needs is already there, because it is pointed at the
+ * same database. This is a stopgap and worth saying so: the real fix is a
+ * separate Neon branch with its own DATABASE_URL scoped to Preview, after which
+ * this guard becomes belt and braces rather than the only thing standing
+ * between a pull request and the live catalogue.
+ *
+ * VERCEL_ENV is set by the platform and is one of production / preview /
+ * development. It is absent locally, where this script is run deliberately by a
+ * person, so local use is unaffected. ALLOW_NONPROD_MIGRATE exists for the day
+ * a real preview database is wired up and its schema genuinely does need
+ * applying.
+ */
+const vercelEnv = process.env.VERCEL_ENV;
+if (vercelEnv && vercelEnv !== 'production' && process.env.ALLOW_NONPROD_MIGRATE !== '1') {
+  console.log(`\n  Skipping migration: VERCEL_ENV is "${vercelEnv}", not "production".`);
+  console.log('  This deployment shares DATABASE_URL with production, and a preview');
+  console.log('  build must not migrate the live database. Set ALLOW_NONPROD_MIGRATE=1');
+  console.log('  once a separate preview database exists.\n');
+  process.exit(0);
+}
+
 const url = process.env.DATABASE_URL;
 if (!url) {
   fail(
