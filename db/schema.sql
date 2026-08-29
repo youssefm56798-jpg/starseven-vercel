@@ -464,9 +464,13 @@ CREATE TABLE IF NOT EXISTS rate_limits (
 -- the same timeline as the status moves, so it is a kind of order event rather
 -- than a table of its own. Older databases were built before this kind
 -- existed, so the constraint is replaced rather than assumed.
+--
+-- `edit` joins it for the same reason and from the same call: what the customer
+-- asks for on that call is usually a change to the order, and lib/order-edit.js
+-- records every one of them here. See the block further down for what it holds.
 ALTER TABLE order_events DROP CONSTRAINT IF EXISTS order_events_kind_check;
 ALTER TABLE order_events ADD CONSTRAINT order_events_kind_check
-  CHECK (kind IN ('status','note','refund-request','mail','call'));
+  CHECK (kind IN ('status','note','refund-request','mail','call','edit'));
 
 -- Settings the owner changes without a deploy. One row per key, read through
 -- lib/settings.js, which falls back to the environment when a key is absent —
@@ -710,3 +714,35 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_recovery_hash  ON admin_recovery_codes (co
 -- Serves the count on the security screen and the delete-and-reissue that
 -- regenerating a set does, both of which read every row for one admin.
 CREATE INDEX IF NOT EXISTS idx_recovery_admin ON admin_recovery_codes (admin_id, used_at);
+
+-- ---------------------------------------------------------------------------
+--  Editing an order that has not shipped yet
+--
+--  On a cash-on-delivery shop the confirmation call is the workflow, and what
+--  the customer says on it is almost always a change: two jars not one, the
+--  address is wrong, add the gel, I forgot the discount code. The admin could
+--  do none of that, so staff cancelled the order and asked the customer to
+--  place it again - which loses orders and inflates the cancellation rate,
+--  the one number a cash-on-delivery shop is judged on.
+--
+--  lib/order-edit.js is the writer, and edit_seq is what makes it safe to have
+--  more than one person in the panel at once.
+--
+--  It is a compare-and-swap counter, and nothing else. Every edit reads it,
+--  recomputes the whole basket from the lines it read under that number, and
+--  then writes with AND edit_seq = <the number it read>. When two admins press
+--  Save on the same order in the same second, only one of those writes can
+--  match: the other matches zero rows, divides by zero, and its stock, its
+--  lines and its coupon roll back together. Without it the second edit would
+--  land on top of the first while its own totals still described the basket
+--  as it was before, and the order would end up carrying lines that do not add
+--  up to its own total.
+--
+--  An integer rather than a timestamp, for the reason admins.session_epoch is
+--  one: the only question ever asked of it is whether two values are equal, and
+--  a counter cannot be confused by a clock.
+--
+--  Nothing indexes it. It is only ever read and written through the primary key
+--  of the row it sits on.
+-- ---------------------------------------------------------------------------
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS edit_seq INT NOT NULL DEFAULT 0;

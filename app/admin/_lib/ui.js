@@ -68,6 +68,30 @@ const MESSAGES = {
   order_cancelled: ['ok', 'Order cancelled — stock and coupon returned.'],
   note_added: ['ok', 'Note added.'],
   dispatch_saved: ['ok', 'Courier and tracking reference saved.'],
+  /*
+   * Editing an order. Every refusal lib/order-edit.js can answer with has its
+   * own line, because each one has a different next action for whoever is on
+   * the phone at the time — and a single "could not save that" would leave them
+   * guessing which. None of them can carry a value: a flash is a query string,
+   * and a message the URL can carry is a message an attacker can choose, so the
+   * ones about a specific product or a specific code say where to look instead
+   * of naming it.
+   */
+  order_edited: ['ok', 'Order updated — totals, stock and the coupon have all been recalculated.'],
+  edit_nothing: ['ok', 'Nothing changed, so nothing was saved.'],
+  edit_stale: ['err', 'This order changed while you had it open. Reload and make the change again — nothing was saved.'],
+  edit_locked: ['err', 'That order has shipped or is finished, so its contents can no longer be changed.'],
+  edit_empty: ['err', 'An order cannot be emptied. Cancel it instead — that returns the stock and tells the customer.'],
+  edit_toomany: ['err', 'That is too many separate lines for one order.'],
+  edit_unknown: ['err', 'That product is not on sale, so it cannot be added.'],
+  edit_unpriced: ['err', 'That product has no price yet, so it cannot be added to an order.'],
+  edit_stock: ['err', 'There is not enough stock for that quantity. Nothing was changed — reload to see what is left.'],
+  edit_phone: ['err', 'That is not a valid Egyptian mobile number.'],
+  edit_address: ['err', 'The address is too short to deliver to.'],
+  edit_coupon_bad: ['err', 'That discount code is not valid, or it has expired.'],
+  edit_coupon_spent: ['err', 'That discount code has been fully used.'],
+  edit_coupon_min: ['err', 'This order is now below the minimum that code applies on. Clear the code or add to the order.'],
+  edit_coupon_gone: ['err', 'The code on this order no longer exists in Offers. Clear it to save the change.'],
   // Delivered and cancelled are terminal, so the panel does not offer a way out
   // of either. Reaching this means the order moved in another tab between the
   // page rendering and Save being pressed.
