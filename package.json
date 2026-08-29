@@ -12,6 +12,7 @@
     "verify:orders": "node scripts/verify-order-status.mjs",
     "test:routes": "node scripts/verify-routes.mjs",
     "verify:checkout": "node scripts/verify-checkout-idempotency.mjs",
+    "verify:access": "node scripts/verify-order-access.mjs",
     "vercel-build": "node scripts/setup-db.mjs && next build"
   },
   "dependencies": {

@@ -1,8 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
-import { tplStatus, MAILED } from '../lib/order-mail.js';
+import { tplStatus, tplOrderLink, MAILED } from '../lib/order-mail.js';
 import { STATUSES } from '../lib/order-status.js';
+
+const ROOT = new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1');
 
 /**
  * The status notices, with no database and no mail server.
@@ -135,21 +139,21 @@ test('a numeric string total is formatted, not mangled', () => {
   assert.match(html, /295 EGP/);
 });
 
-/* ---------------------------------------------- the link that is not there */
+/* ---------------------------------------------------------------- the link */
 
-test('no template links to the order page while there is no token to link with', () => {
-  // The access token is never stored, only its digest, so at the moment a
-  // status changes there is no way to rebuild the tracking URL. A template that
-  // linked anyway would produce a dead link in a real customer's inbox.
+test('a template invents no link when it is not given one', () => {
+  // These notices now carry a real tracking URL, minted per message against
+  // the order_tokens table. The one thing that must not happen when the mint
+  // fails is a fabricated URL: a link built from a guess, or from a token that
+  // was never stored, is a dead link in a real customer inbox and worse than
+  // the button being absent. A missing trackUrl means no button at all.
   for (const status of MAILED) {
     const [, html] = tplStatus(order, status, 'en');
     assert.doesNotMatch(html, /\/order\//, `${status} links to an order page it cannot address`);
   }
 });
 
-test('but every template renders the link once it is given one', () => {
-  // The retro-fit path: when the token table lands, each call site passes the
-  // URL and the copy does not have to be touched.
+test('every template renders the link once it is given one', () => {
   const url = 'https://newstarseven.com/order/S7-2708-1234?t=abc';
   for (const status of MAILED) {
     for (const lang of ['ar', 'en']) {
@@ -157,4 +161,81 @@ test('but every template renders the link once it is given one', () => {
       assert.ok(html.includes(url), `${status}/${lang} ignored the tracking url`);
     }
   }
+});
+
+test('the footer stops telling people to find a link that is already on screen', () => {
+  const url = 'https://newstarseven.com/order/S7-2708-1234?t=abc';
+  const [, without] = tplStatus(order, 'shipped', 'en');
+  const [, with_] = tplStatus(order, 'shipped', 'en', url);
+  assert.match(without, /Open the tracking link in your order confirmation email/);
+  assert.doesNotMatch(with_, /Open the tracking link in your order confirmation email/);
+  // WhatsApp survives both. It is the only way to reach a human from an email
+  // sent from a no-reply address.
+  for (const html of [without, with_]) assert.match(html, /wa\.me/);
+});
+
+test('a status notice actually gets a link at the call site', () => {
+  /*
+   * The templates have taken a `trackUrl` since they were written and rendered
+   * nothing, because nothing passed one. That is the bug this whole change
+   * exists to fix, and it lives at the call site rather than in the copy — so
+   * it would come back silently, and every test above would still pass.
+   */
+  const notify = readFileSync(join(ROOT, 'lib/order-notify.js'), 'utf8');
+  assert.match(notify, /mintOrderLink\(order, 'status-mail'\)/,
+    'notifyStatus does not mint a link');
+  assert.match(notify, /tplStatus\(order, status, [^)]*, trackUrl\)/,
+    'the minted link is not handed to the template');
+  // And nothing may be minted for a status that produces no message: an unused
+  // token is a live credential nobody asked for.
+  assert.ok(notify.indexOf('MAILED.includes(status)') < notify.indexOf('mintOrderLink('),
+    'a link is minted before it is known that a message will be sent');
+});
+
+/* ------------------------------------------------- the link, sent again */
+
+const found = { ref: 'S7-2708-1234', email: 'a@b.com', lang: 'ar' };
+const link = 'https://newstarseven.com/order/S7-2708-1234?t=xyz';
+
+test('the recovery mail carries the link and the reference, in both languages', () => {
+  for (const lang of ['ar', 'en']) {
+    const [subject, html] = tplOrderLink(found, lang, link);
+    assert.ok(subject.includes(found.ref), `${lang} subject omits the ref`);
+    assert.doesNotMatch(subject, /[\r\n]/);
+    assert.ok(html.includes(link), `${lang} body omits the link`);
+    assert.match(html, /<!DOCTYPE html>/);
+  }
+  assert.match(tplOrderLink(found, 'ar', link)[1], /dir="rtl"/);
+  assert.match(tplOrderLink(found, 'en', link)[1], /dir="ltr"/);
+});
+
+test('the recovery mail tells someone who did not ask for it that nothing happened', () => {
+  // Anyone who knows a customer address can cause this to be sent. The person
+  // who receives one they did not ask for has to be able to tell, from the mail
+  // alone, that no action is required of them.
+  assert.match(tplOrderLink(found, 'en', link)[1], /If you did not ask for this link/);
+  assert.match(tplOrderLink(found, 'ar', link)[1], /لو مش إنت اللي طلبت اللينك/);
+});
+
+test('the recovery mail carries nothing about the order but its reference', () => {
+  // It goes to whoever asked. The endpoint answers a stranger exactly as it
+  // answers the customer, so a wrong guess must not be worth making: no name,
+  // no address, no phone number, no total.
+  // A phone number that shares no digits with the shop own WhatsApp number,
+  // which every one of these mails carries in its footer by design.
+  const rich = { ...found, name: 'Youssef', phone: '01555444333', total: 295,
+    address: '12 Some Street', city: 'Cairo' };
+  for (const lang of ['ar', 'en']) {
+    const [, html] = tplOrderLink(rich, lang, link);
+    for (const leak of ['Youssef', '01555444333', 'Some Street', 'Cairo', '295']) {
+      assert.ok(!html.includes(leak), `${lang} recovery mail leaks ${leak}`);
+    }
+  }
+});
+
+test('a crafted reference cannot inject markup into the recovery mail', () => {
+  const evil = { ...found, ref: '"><script>alert(1)</script>' };
+  const [, html] = tplOrderLink(evil, 'en', link);
+  assert.doesNotMatch(html, /<script>/);
+  assert.ok(html.includes('&lt;script&gt;'));
 });

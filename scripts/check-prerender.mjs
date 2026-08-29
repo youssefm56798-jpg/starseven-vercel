@@ -68,8 +68,18 @@ const MUST_BE_STATIC = [
  * coupon out of the request and the order page is a live status lookup; a
  * cached copy of either is a wrong answer served confidently, which is worse
  * than a slow one.
+ *
+ * /order/find is here for a sharper version of the same reason. It renders one
+ * visitor answer to "have you sent me my link", and that answer is deliberately
+ * identical whether or not anything was found — so a frozen copy of it would
+ * be the shop telling the next person their link is on its way when it is not.
+ * Both language trees, because both are real route files now.
  */
-const MUST_BE_DYNAMIC = ['/checkout', '/en/checkout', '/order/[ref]'];
+const MUST_BE_DYNAMIC = [
+  '/checkout', '/en/checkout',
+  '/order/[ref]', '/en/order/[ref]',
+  '/order/find', '/en/order/find',
+];
 
 /**
  * One prerendered HTML file, checked on disk rather than in the manifest.

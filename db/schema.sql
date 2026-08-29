@@ -269,6 +269,14 @@ DROP TABLE IF EXISTS users;
 --
 --  No expiry: a customer chasing a refund six weeks later still needs it, and
 --  the token guards one order rather than an account.
+--
+--  One order can hold several live links now - see order_tokens further down,
+--  which is where every new one is written. access_hash is still filled at
+--  checkout and still read, and both are deliberate: a deploy that had to be
+--  rolled back would otherwise strand every order placed while the new code
+--  was live, and the schema is applied at build time, before the old code
+--  stops serving. The column goes when no deployment that reads it can come
+--  back.
 -- ---------------------------------------------------------------------------
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS email TEXT NOT NULL DEFAULT '';
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS access_hash TEXT NOT NULL DEFAULT '';
@@ -313,6 +321,80 @@ CREATE INDEX IF NOT EXISTS idx_order_events_order ON order_events (order_id, id)
 -- the order page, and the only way to tell a cancelled-today order from one
 -- cancelled in March without walking the event log.
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS cancelled_at TIMESTAMPTZ;
+
+-- ---------------------------------------------------------------------------
+--  The links into one order
+--
+--  orders.access_hash holds the SHA-256 of exactly one token: the one in the
+--  confirmation email. One digest per order opens the order and does nothing
+--  else, and two things it could not do had both become expensive.
+--
+--    A status email could not link to the order. At the moment an order ships
+--    there is no token to build a URL from - only a digest - and writing a
+--    fresh one into that column would silently kill the link already sitting
+--    in the inbox of the customer. So four emails went out saying an order had
+--    moved and none of them could say where to look.
+--
+--    Losing the email was a dead end. Nothing could be re-sent, because there
+--    was nothing left to re-send.
+--
+--  A row per link answers both, and it does so by adding rather than
+--  replacing: every link handed out so far keeps working, because minting a
+--  new one does not touch the old row. The discipline is unchanged - the token
+--  lives in one email and nowhere else, and this table holds its digest.
+--
+--  purpose is a label for whoever is reading the table later, never a
+--  permission. Every live row opens the same single order, so nothing branches
+--  on it; it is here so that "where did this link come from" has an answer.
+--
+--  expires_at is NULL for the links a customer is meant to keep, and that is
+--  the original decision restated rather than a new one: somebody chasing a
+--  refund six weeks later still needs the link, and a token that grants one
+--  order rather than an identity is not a session. The recovery link from
+--  /order/find is the single exception and carries a date. Not because it
+--  travels less safely - it lands in the same mailbox the confirmation did -
+--  but because it is the only token a stranger can cause to be minted, and the
+--  only one whose loss costs the customer nothing, since the page that made it
+--  will make another on request. An unbounded pile of credentials that nobody
+--  asked for is avoidable there and nowhere else.
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS order_tokens (
+  id         INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  order_id   INT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+  -- SHA-256 of the token, hex. The token itself is never written, here or
+  -- anywhere else. Same rule access_hash has always followed.
+  token_hash TEXT NOT NULL,
+  purpose    TEXT NOT NULL DEFAULT 'checkout'
+             CHECK (purpose IN ('checkout','status-mail','recovery')),
+  -- NULL means no expiry. See the note above for which links get one.
+  expires_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+-- Unique rather than plain, on two counts. The lookup is by digest and has to
+-- answer in one row without an ORDER BY to make it deterministic, and a mint
+-- that somehow replayed cannot then leave two rows for one token.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_order_tokens_hash ON order_tokens (token_hash);
+-- For reading the links of one order, which is what an admin looking at a
+-- support call wants.
+CREATE INDEX IF NOT EXISTS idx_order_tokens_order ON order_tokens (order_id, id);
+
+-- Every link handed out before this table existed, moved in without being
+-- reissued. The customer keeps the email they already have: the digest is the
+-- same value, it just lives in a row now instead of a column.
+--
+-- Idempotent twice over, because db:setup re-runs this whole file on every
+-- deploy. NOT EXISTS makes the second run a no-op. DISTINCT ON is insurance
+-- against two orders carrying the same digest - which 32 random bytes make
+-- absurd, but the unique index above would answer it by aborting the deploy
+-- rather than by skipping a row, and a schema file must never be able to do
+-- that.
+INSERT INTO order_tokens (order_id, token_hash, purpose, created_at)
+SELECT DISTINCT ON (o.access_hash)
+       o.id, o.access_hash, 'checkout'::text, o.created_at
+  FROM orders o
+ WHERE o.access_hash <> ''
+   AND NOT EXISTS (SELECT 1 FROM order_tokens t WHERE t.token_hash = o.access_hash)
+ ORDER BY o.access_hash, o.id;
 
 CREATE TABLE IF NOT EXISTS quiz_results (
   id          INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

@@ -372,6 +372,28 @@ export async function POST(req) {
               ${custEmail}, ${accessHash})
       RETURNING id`);
 
+    /*
+     * The same digest as a token row.
+     *
+     * order_tokens is where links live now — one row per link, so a status
+     * email can mint its own without killing this one. See lib/order-access.js.
+     *
+     * The column above is written as well, and stays written for one more
+     * release. The schema is applied at build time while the previous
+     * deployment is still serving, so a rollback would otherwise leave every
+     * order placed in between with its digest in a table the older code has
+     * never heard of, and no way in at all.
+     *
+     * It finds its parent through `ref` for the same reason the item rows do:
+     * the id cannot be read back mid-batch. The casts are explicit for the
+     * reason documented on the item insert below — a bare parameter in an
+     * INSERT ... SELECT target list has no column to take its type from.
+     */
+    stmts.push(sql`
+      INSERT INTO order_tokens (order_id, token_hash, purpose)
+      SELECT id, ${accessHash}::text, 'checkout'::text
+        FROM orders WHERE ref = ${ref}`);
+
     for (const it of items) {
       // Casts are explicit because a bare parameter in an INSERT ... SELECT
       // target list has no column to take its type from, unlike VALUES.

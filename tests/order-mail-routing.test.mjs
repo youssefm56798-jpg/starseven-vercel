@@ -159,33 +159,53 @@ test('the access token reaches the customer and nobody else', () => {
   assert.ok(!/\?t=/.test(admin), "the shop's alert carries a tracking link");
 });
 
-test('no status notice can carry a token, because none is recoverable', () => {
-  // notifyStatus calls tplStatus with no trackUrl, and it cannot do otherwise:
-  // the token is not stored, so at the moment a status changes there is nothing
-  // to rebuild the link from. This pins that — if a token table is ever added,
-  // this test is the one that has to be revisited deliberately.
+test('a status notice carries a link only when it is given one', () => {
+  // Revisited deliberately, which is what the previous version of this test
+  // asked for. It asserted that no notice could ever carry a token, because at
+  // the time none was recoverable — the digest was all that was stored. The
+  // order_tokens table changed that: a notice can now mint its own link
+  // without disturbing the one already in the customer's inbox.
+  //
+  // What survives is the half that was always the real guarantee — a template
+  // invents nothing. Given no URL it renders no link, so a caller that cannot
+  // safely produce one cannot accidentally publish a guessable one.
   const order = { ref: 'S7-2708-1111', name: 'Alice', phone: '01000000000', total: 130 };
   for (const status of MAILED) {
     for (const lang of ['ar', 'en']) {
-      const [, html] = tplStatus({ ...order, lang }, status, lang);
-      assert.ok(!/\?t=/.test(html), `the ${status} notice (${lang}) carries a tracking link`);
+      const [, bare] = tplStatus({ ...order, lang }, status, lang);
+      assert.ok(!/\?t=/.test(bare), `the ${status} notice (${lang}) invented a tracking link`);
     }
   }
 });
 
 test('nothing in the mail path holds state between messages', async () => {
   // A module-level `let` is how one order's address ends up on another order's
-  // mail. Sending the same order twice, with a different order in between,
-  // must produce byte-identical messages.
+  // mail. Sending the same order twice, with a different order in between, must
+  // produce the same message to the same person.
+  //
+  // This used to assert byte-equality, and that stopped being the right proxy
+  // when each notice began minting its own single-use link: two sends for one
+  // order now legitimately differ, in the token and nowhere else. Comparing the
+  // messages with the tokens masked keeps the original property — that nothing
+  // is retained between sends — while allowing the one difference that is
+  // supposed to be there.
   sends.length = 0;
   await notifyStatus(1, 'shipped');
   await notifyStatus(2, 'shipped');
   await notifyStatus(1, 'shipped');
 
+  const maskToken = html => String(html).replace(/([?&]t=)[^"'&\s]+/g, '$1<TOKEN>');
+
   assert.equal(sends.length, 3);
   assert.deepEqual(sends[0].to, sends[2].to);
   assert.equal(sends[0].subject, sends[2].subject);
-  assert.equal(sends[0].html, sends[2].html,
+  assert.equal(maskToken(sends[0].html), maskToken(sends[2].html),
     'the same order produced two different messages — something is being held between sends');
   assert.notDeepEqual(sends[0].to, sends[1].to);
+
+  // And the reason the mask is safe: where a token IS present, it must differ
+  // every time. A repeated one would mean a link was being reused or cached,
+  // which is the failure the mask could otherwise hide.
+  const tokens = sends.map(s => (String(s.html).match(/[?&]t=([^"'&\s]+)/) || [])[1]).filter(Boolean);
+  assert.equal(new Set(tokens).size, tokens.length, 'a tracking token was reused across messages');
 });
