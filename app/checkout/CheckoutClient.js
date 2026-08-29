@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { localePath } from '../../lib/urls.js';
 import Link from 'next/link';
 import { readCart, writeCart, setQty as setCartQty, clearCart } from '../../lib/cart.js';
@@ -70,6 +70,73 @@ async function api(path, body) {
   return data;
 }
 
+/* ------------------------------------------------------- idempotency key */
+
+/**
+ * One key per checkout attempt. POST /api/order claims it inside the same
+ * transaction that writes the order, so two requests carrying the same key can
+ * only ever produce one order — the second is answered with the first one's
+ * confirmation. See db/schema.sql.
+ *
+ * It lives in localStorage rather than in a ref alone, because the retry that
+ * matters most is the one the component does not survive: the request left the
+ * phone, the connection dropped before the reply came back, and the customer
+ * reloaded and pressed Confirm again. A key held only in memory is gone by
+ * then, the second submit looks brand new to the server, and that is the
+ * double order.
+ *
+ * The attempt ends the moment the server answers at all — success or refusal —
+ * because an answer means the server has decided and there is nothing left to
+ * replay. Only a request that got no answer keeps its key.
+ */
+const KEY_STORE = 's7_checkout_key';
+
+/**
+ * How long a key that never got an answer stays usable.
+ *
+ * There has to be a limit, and it is a real trade-off in both directions. Too
+ * short and a customer who reloads after a dropped connection gets a fresh key
+ * and a second order — the exact bug. Too long and a stale key from an attempt
+ * whose answer was lost could be picked up by a genuinely NEW order much later,
+ * which would be shown the old confirmation and never placed at all. Half an
+ * hour is comfortably longer than any retry and far shorter than the gap
+ * between two real orders from one person.
+ */
+const KEY_TTL_MS = 30 * 60 * 1000;
+
+function mintKey() {
+  try {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
+    const bytes = crypto.getRandomValues(new Uint8Array(16));
+    return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
+  } catch {
+    // No Web Crypto at all, which in practice means a browser old enough that
+    // nothing else here works either. Weaker than random, still long enough to
+    // be a usable deduplication token, and never trusted as a secret.
+    return `k${Date.now().toString(36)}${Math.random().toString(36).slice(2)}${Math.random().toString(36).slice(2)}`;
+  }
+}
+
+/** A key from an attempt that never got an answer, if it is still fresh. */
+function storedKey() {
+  try {
+    const held = JSON.parse(localStorage.getItem(KEY_STORE) || 'null');
+    if (held && typeof held.k === 'string' && Date.now() - Number(held.t) < KEY_TTL_MS) {
+      return held.k;
+    }
+  } catch { /* private mode, or something else wrote over the slot */ }
+  return '';
+}
+
+function rememberKey(k) {
+  try { localStorage.setItem(KEY_STORE, JSON.stringify({ k, t: Date.now() })); }
+  catch { /* private mode: the key still covers this page, just not a reload */ }
+}
+
+function forgetKey() {
+  try { localStorage.removeItem(KEY_STORE); } catch { /* nothing to forget */ }
+}
+
 function Field({ id, label, val, set, err, type = 'text', ta, ...rest }) {
   return (
     <div className="ff">
@@ -104,6 +171,23 @@ export default function CheckoutClient({ lang, add, catalog, shipping, currency 
   const [top, setTop] = useState('');
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(null);
+
+  // Not state: nothing renders from it, and a re-render must not change it.
+  const attempt = useRef('');
+
+  /** The key for the attempt in progress, recovered or minted on first use. */
+  const attemptKey = () => {
+    if (!attempt.current) {
+      attempt.current = storedKey() || mintKey();
+      rememberKey(attempt.current);
+    }
+    return attempt.current;
+  };
+
+  const endAttempt = () => {
+    attempt.current = '';
+    forgetKey();
+  };
 
   // Plain interpolation put the ISO code and the number in one bidi run, so an
   // Arabic page rendered "EGP 295" instead of "295 جنيه". The caller now sends the
@@ -187,13 +271,21 @@ export default function CheckoutClient({ lang, add, catalog, shipping, currency 
         name: f.name.trim(), phone: f.phone.trim(), address: f.addr.trim(),
         city: f.city.trim(), email: f.email.trim(), notes: f.notes.trim(),
         coupon: applied ? applied.code : '', consent: consent ? 1 : 0,
-        lang, hp, items: lines.map(l => ({ sku: l.sku, qty: l.qty })),
+        lang, hp, idempotency_key: attemptKey(),
+        items: lines.map(l => ({ sku: l.sku, qty: l.qty })),
       });
+      endAttempt();
       setDone(res);
       clearCart();
       setCart([]);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (e) {
+      // A refusal is still an answer: the server saw this attempt and decided,
+      // so it is over and the next submit is a new one with a new key. Only a
+      // request that got NO answer keeps its key, because that is the case
+      // where the order may well have been written and only the reply lost —
+      // and sending the same key again is what stops it being written twice.
+      if (e.message !== NET) endAttempt();
       setTop(e.message === NET ? T.e_net : e.message);
     } finally {
       setBusy(false);
