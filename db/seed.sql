@@ -1697,15 +1697,25 @@ ON CONFLICT (sku) DO NOTHING;
 --
 --  Guarded on price = 0 AND active = false, so this touches a row exactly once
 --  and can never overwrite a price set later in the admin.
+--
+--  And guarded on origin = seed, which is the half that was missing. The shape
+--  these two look for - no price yet, not on the shop yet - is also exactly
+--  what a product half-written in the admin looks like while the owner is
+--  still deciding what to charge for it. Without the origin test the next
+--  deploy would finish that decision for them: 45 EGP, 200 in stock, live on
+--  the shop. The catalogue rows this was written for are seeded, so naming
+--  that costs nothing and closes it.
 -- ---------------------------------------------------------------------------
 UPDATE products
    SET price = 45, stock = 200, active = TRUE
  WHERE price = 0 AND active = FALSE
+   AND origin = 'seed'
    AND kind IN ('wax', 'gelwax');
 
 UPDATE products
    SET price = 40, stock = 200, active = TRUE
  WHERE price = 0 AND active = FALSE
+   AND origin = 'seed'
    AND kind IN ('gel', 'cream')
    AND size_ml = 250;
 
@@ -1867,10 +1877,18 @@ WHERE sku IN ('S7-W120-COCONU', 'S7-W135-OLIVE', 'S7-W135-ARGAN', 'S7-W135-COCON
 --
 --  Guarded on price = 0 AND active = FALSE, so this touches a row once and a
 --  price set later in the admin is never disturbed.
+--
+--  And on origin = seed, which matters more here than on the two pricing
+--  statements above, because this one names no format at all. Every hidden,
+--  unpriced row in the table matched it - including one an owner had created
+--  in the admin ten minutes earlier and not finished. This statement would
+--  have put that on the shop, at no price, on the next deploy. The rows it was
+--  written for all came from the seed, so it says so.
 -- ---------------------------------------------------------------------------
 UPDATE products
    SET active = TRUE
- WHERE price = 0 AND active = FALSE;
+ WHERE price = 0 AND active = FALSE
+   AND origin = 'seed';
 
 
 -- ---------------------------------------------------------------------------

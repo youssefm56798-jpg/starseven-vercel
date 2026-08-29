@@ -105,6 +105,34 @@ const MESSAGES = {
   product_saved: ['ok', 'Product saved.'],
   product_toggled: ['ok', 'Product visibility changed.'],
   product_featured: ['ok', 'Home page selection changed.'],
+  product_created: ['ok', 'Product created. It is in the list below.'],
+  product_archived: ['ok', 'Archived — off the shop, and at the bottom of this page if you want it back.'],
+  product_restored: ['ok', 'Restored, still hidden. Press Show when it is ready to sell.'],
+  product_discarded: ['ok', 'Deleted for good. That SKU and web address are free again.'],
+  product_missing: ['err', 'That product no longer exists.'],
+  product_needs_name: ['err', 'Both names are required — Arabic and English.'],
+  product_bad_kind: ['err', 'Pick a category from the list.'],
+  product_bad_colour: ['err', 'The accent colour has to be a six-digit hex value like #D7291D.'],
+  product_bad_sku: ['err', 'A SKU is letters, digits and hyphens, 2 to 40 characters. Nothing else.'],
+  product_bad_slug: ['err', 'The web address needs at least two Latin letters or digits. Type one, or give the product an English name.'],
+  product_bad_image: ['err', 'Every product needs a picture: upload one, or type the path of a file under public/.'],
+  product_dupe_sku: ['err', 'Another product already uses that SKU. SKUs are permanent, so pick a different one.'],
+  product_dupe_slug: ['err', 'Another product already uses that web address. Pick a different one.'],
+  product_dupe: ['err', 'That SKU or web address is already taken.'],
+  // Reachable when the product was archived in another tab between this page
+  // rendering and the button being pressed.
+  product_locked: ['err', 'That product is archived. Restore it first.'],
+  discard_seeded: ['err', 'This SKU comes from the deploy seed. Deleting the row would only make the next deploy add it back, live — so it stays archived.'],
+  discard_ordered: ['err', 'This product is on past orders. Deleting it would stop those orders putting stock back if they are ever cancelled, so it stays archived.'],
+  discard_not_archived: ['err', 'Archive it first. Deleting for good is only offered from the archive.'],
+  image_empty: ['err', 'That file was empty.'],
+  image_too_big: ['err', 'That picture is too large. 3 MB is the limit.'],
+  image_not_image: ['err', 'That file is not a WebP, PNG, JPEG or GIF image — whatever it is called.'],
+  image_too_small: ['err', 'That picture is too small to use on a product card.'],
+  image_too_large: ['err', 'That picture is enormous. Resize it to 4096 pixels or less on each side.'],
+  image_odd_shape: ['err', 'That picture is a very long strip. Product shots need to be roughly square.'],
+  image_no_store: ['err', 'No image store is attached, so uploads are off. Type a path under public/ instead.'],
+  image_failed: ['err', 'The image could not be stored. Nothing was saved — try again.'],
   admin_created: ['ok', 'Admin created. Remove ADMIN_SETUP_KEY from the environment now, then log in.'],
   offer_missing: ['err', 'That offer no longer exists.'],
   offer_needs_text: ['err', 'Arabic title and body are required.'],
@@ -148,8 +176,12 @@ export function waLink(phone) {
   return `https://wa.me/2${String(phone || '').replace(/^0+/, '')}`;
 }
 
-/** Public URL for a product image row value like "assets/wax-red.webp". */
-export function imgSrc(image) {
-  const s = String(image || '');
-  return s.startsWith('/') ? s : `/${s}`;
-}
+/*
+ * imgSrc() used to live here: it turned "assets/wax-red.webp" into
+ * "/assets/wax-red.webp" for the admin thumbnail. It is gone, not moved,
+ * because products.image now holds two shapes — a file in public/ and an
+ * uploaded image on an absolute Vercel Blob URL — and a local copy of that
+ * knowledge is how the admin ended up asking this site for `/https://...`.
+ * The one implementation is imageUrl() in lib/product-image.js, and the
+ * storefront and the panel both call it.
+ */

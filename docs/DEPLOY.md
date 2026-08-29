@@ -44,6 +44,33 @@ Copy `.env.example` and fill it in. Every variable must exist in **Production**,
 | `ORDER_NOTIFY_TO` | Where the team's new-order alert goes. Use a shared company inbox, not a personal one. |
 | `SESSION_SECRET` | Signs the admin login cookie. Generate with `node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"`. Changing it logs every admin out. |
 | `ADMIN_SETUP_KEY` | Used **once** to create the first admin login, then delete the variable. |
+| `BLOB_READ_WRITE_TOKEN` | Set for you when a Blob store is connected. Optional — see below. |
+
+### Product image uploads
+
+Adding a product in `/admin/products` includes uploading its photograph, and
+that needs somewhere to put the file. In Vercel → **Storage** → **Create** →
+**Blob**, connect the store to this project. Vercel then sets
+`BLOB_READ_WRITE_TOKEN` in all three environments and the next deploy picks it
+up. Nothing else has to be configured.
+
+Without the token the panel still works: the file input is replaced by a note,
+and the image field takes the path of a file committed under `public/` — which
+is what every product seeded so far uses (`assets/catalog/wax-135-argan.webp`).
+So a fresh clone, a local `npm run dev` and a build on a project with no store
+attached all behave exactly as they did before uploads existed.
+
+Uploaded images are served from `https://<store>.public.blob.vercel-storage.com`,
+which `next.config.mjs` allows in the `img-src` of the Content-Security-Policy.
+If images render locally and are blank in production, that header is the first
+thing to look at.
+
+Files are validated on the server before they are stored: the real format is
+read out of the file signature rather than taken from the name or the
+`Content-Type`, so a renamed HTML file is refused; the size cap is 3 MB, the
+picture has to be between 120 and 4096 pixels on each side and roughly square,
+and the stored filename is generated here from the SKU rather than taken from
+the upload. SVG is not accepted — it can carry script.
 
 `SESSION_SECRET` and `ADMIN_SETUP_KEY` are secrets: never commit them, and never
 reuse the values between Preview and Production.

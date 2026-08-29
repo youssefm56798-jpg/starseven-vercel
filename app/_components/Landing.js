@@ -9,6 +9,7 @@ import { rankProducts } from '../../lib/hairtypes.js';
 import { HAIR_STYLES, rankForStyle } from '../../lib/hairstyles.js';
 import { currencyLabel, whole, discountPercent } from '../../lib/money.js';
 import { runDir } from '../hair-types/lib.js';
+import { imageUrl } from '../../lib/product-image.js';
 
 /**
  * The landing page.
@@ -156,7 +157,7 @@ function Card({ p, lang, d, L, onAdd }) {
     <div className="card" style={{ '--c': p.color }}>
       <Link className="card-hit" href={L(`/product/${p.slug}`)}>
         {t.chip && <span className="chip">{t.chip}</span>}
-        <img src={`/${p.img}`} alt={t.name} loading="lazy" width="300" height="300" />
+        <img src={imageUrl(p.img)} alt={t.name} loading="lazy" width="300" height="300" />
         <h3>{t.name}</h3>
         <div className="sub">{t.sub}</div>
       </Link>
@@ -234,7 +235,7 @@ function Drawer({ open, close, lines, lang, d, L, shipping, freeOver, onQty }) {
               {lines.map(l => (
                 <div className="citem" key={l.sku}>
                   <Link href={L(`/product/${l.slug}`)} onClick={close}>
-                    <img src={`/${l.img}`} alt={l[lang].name} />
+                    <img src={imageUrl(l.img)} alt={l[lang].name} />
                   </Link>
                   <div>
                     <h4><Link href={L(`/product/${l.slug}`)} onClick={close}>{l[lang].name}</Link></h4>
@@ -718,7 +719,7 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
                 <div className="hres-pick">
                   <span className="badge">{d.hair_pick}</span>
                   <Link href={L(`/product/${best.slug}`)}>
-                    <img src={`/${best.img}`} alt={best[lang].name} loading="lazy" width="200" height="200" />
+                    <img src={imageUrl(best.img)} alt={best[lang].name} loading="lazy" width="200" height="200" />
                   </Link>
                   <h4>{best[lang].name}</h4>
                   <div className="sub">{best[lang].sub}</div>

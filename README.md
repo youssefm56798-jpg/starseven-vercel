@@ -98,7 +98,19 @@ Read in this order:
   `ON CONFLICT DO NOTHING` so a redeploy can never revert a price edited in the
   admin. If you add a statement, keep that property, and keep apostrophes out
   of SQL comments: the splitter tracks quote state and reads one as an
-  unterminated string.
+  unterminated string. A statement that matches on a *shape* rather than on a
+  SKU must also say `origin = 'seed'`, or it will reach the products the owner
+  added in the admin — `tests/product-schema.test.mjs` enforces that.
+
+- **Deleting a product archives it.** `products.archived_at` is set, `active`
+  goes false, and the row stays. `order_items.product_id` has no foreign key,
+  so a real delete leaves old order lines pointing at nothing and the restock
+  in `lib/order-status.js` silently credits a cancelled order to no shelf; and
+  a deleted seeded SKU stops conflicting with `db/seed.sql`, so the next deploy
+  inserts it again and the pricing statements publish it. The full reasoning is
+  at the top of `lib/product-admin.js`, which is the only file allowed to write
+  the products table. The one real `DELETE` is for a product that was added in
+  the admin, has never been ordered, and is already archived.
 
 - **Some tests read source files as text rather than executing them.** That is
   on purpose. They guard against omissions — a route that forgets the CSRF
@@ -145,8 +157,9 @@ taken the stock. If you add a verification script, make it overlap the requests.
 | `npm run verify:access` | Order links: migration, tampering, and `/order/find` timing |
 | `npm run verify:auth` | Admin two-factor and session revocation |
 | `npm run verify:indexes` | Every index, `EXPLAIN ANALYZE`d on 200k seeded orders |
+| `npm run verify:products` | Adding, editing and archiving a product, and what a redeploy does to one |
 
-The three `verify:` scripts are not tests and are not run by `npm test`. Each
+The `verify:` scripts are not tests and are not run by `npm test`. Each
 one creates its own Neon database, applies the real schema to it, works only in
 there and drops it in a `finally` — so they are safe to run with the production
 connection string in the environment, and they cover the parts of the code that

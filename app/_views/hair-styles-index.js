@@ -9,6 +9,7 @@ import {
   ld, styleLabel, finishCounts, styleGap, styleIndexLd, styleBreadcrumbLd,
 } from '../hair-styles/lib.js';
 import '../hair-styles/hairstyles.css';
+import { imageUrl } from '../../lib/product-image.js';
 
 /**
  * The hair-style index, rendered once and mounted at both addresses.
@@ -202,7 +203,7 @@ export default async function HairStylesIndexView({ lang }) {
                   {best ? (
                     <div className="hs-pick">
                       <Link className="hs-pick-main" href={L(`/product/${best.slug}`)}>
-                        <img src={`/${best.image}`} alt={ar ? best.name_ar : best.name_en}
+                        <img src={imageUrl(best.image)} alt={ar ? best.name_ar : best.name_en}
                           width="120" height="120" loading="lazy" />
                         <span>
                           <b className="hs-pick-lbl">

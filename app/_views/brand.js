@@ -5,6 +5,7 @@ import { site } from '../../lib/config.js';
 import { currencyLabel, whole } from '../../lib/money.js';
 import { productFaq, faqJsonLd } from '../../lib/faq.js';
 import { Dir, Nav, Footer, Crumb } from '../_components/Chrome.js';
+import { imageUrl } from '../../lib/product-image.js';
 
 /**
  * The brand page, rendered once and mounted at both addresses.
@@ -182,7 +183,7 @@ export default async function BrandView({ lang }) {
               {products.map(p => (
                 <li key={p.sku} style={{ '--c': p.color }}>
                   <Link href={L(`/product/${p.slug}`)}>
-                    <img src={`/${p.image}`} alt={ar ? p.name_ar : p.name_en}
+                    <img src={imageUrl(p.image)} alt={ar ? p.name_ar : p.name_en}
                       width="88" height="88" loading="lazy" />
                     <span>
                       <b>{ar ? p.name_ar : p.name_en}</b>

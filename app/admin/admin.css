@@ -153,6 +153,32 @@
 .s7admin .prod-grid { display: grid; grid-template-columns: 110px 1fr; gap: 22px; align-items: start; }
 .s7admin .prod-grid img { width: 110px; border-radius: 12px; background: #F5F2EA; }
 
+/* ---------------------------------------------------- the product editor
+   The rule above sets width:100% on every input, which is right for the
+   twenty text fields and wrong for the three controls the product form
+   added: a full-width checkbox is a hit target the size of the panel, a
+   full-width colour swatch is a solid bar, and a file input stretched to
+   the column hides the filename it is meant to show. */
+.s7admin input[type="checkbox"] { width: auto; margin-inline-end: 8px; }
+.s7admin label.check {
+  display: inline-flex; align-items: center; margin: 0;
+  text-transform: none; letter-spacing: 0; font-size: 13px; color: var(--ink);
+}
+.s7admin input[type="color"] { width: 70px; height: 44px; padding: 4px; cursor: pointer; }
+.s7admin input[type="file"] { padding: 9px; background: var(--paper2); cursor: pointer; }
+
+/* One select per priority slot. Auto-fit rather than a fixed count so the
+   six of them are one row on a laptop and two on a phone, without a
+   breakpoint of their own. */
+.s7admin .hair-slots {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(148px, 1fr)); gap: 8px;
+}
+
+.s7admin details > summary {
+  cursor: pointer; font-weight: 900; font-size: 14px; padding: 4px 0;
+}
+.s7admin details[open] > summary { margin-bottom: 16px; }
+
 /* ------------------------------------------------------------ log in */
 
 .s7login {

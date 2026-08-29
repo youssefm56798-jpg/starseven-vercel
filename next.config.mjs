@@ -26,7 +26,17 @@ const csp = [
   // while letting the dev server run.
   `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === 'production' ? '' : " 'unsafe-eval'"}`,
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data:",
+  // Product photographs uploaded from the admin panel live on Vercel Blob,
+  // which serves them from one subdomain per store. Named as a wildcard
+  // subdomain of that one host rather than pinned to this project's store:
+  // the store id is only derivable by parsing an undocumented part of
+  // BLOB_READ_WRITE_TOKEN, and a CSP that silently stops rendering the shop's
+  // own product images the day Vercel changes that token format is a worse
+  // failure than the one being avoided. What the wildcard admits is images -
+  // not scripts, not frames, not styles - from a host Vercel controls, and it
+  // only matters at all to somebody who can already inject HTML into these
+  // pages. The rest of the policy is what stops that.
+  "img-src 'self' data: https://*.public.blob.vercel-storage.com",
   "font-src 'self' data:",
   "connect-src 'self'",
   "form-action 'self'",
@@ -38,6 +48,23 @@ const csp = [
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  experimental: {
+    serverActions: {
+      /*
+       * A product photograph is posted to a Server Action, in the same form as
+       * the twenty text fields beside it. The default ceiling on that body is
+       * one megabyte, which a phone camera clears without trying, and the
+       * refusal happens in the framework before any of our code runs - so the
+       * owner gets a generic error rather than the sentence explaining that
+       * three megabytes is the limit.
+       *
+       * Four here against a three-megabyte cap in lib/image-file.js, so the
+       * message the owner reads is always ours. The extra megabyte is the text
+       * fields and the multipart overhead travelling with the file.
+       */
+      bodySizeLimit: '4mb',
+    },
+  },
   async headers() {
     // Applied at the edge to every response. frame-ancestors 'self' is kept in
     // step with X-Frame-Options SAMEORIGIN on purpose - the two say the same

@@ -746,3 +746,51 @@ CREATE INDEX IF NOT EXISTS idx_recovery_admin ON admin_recovery_codes (admin_id,
 --  of the row it sits on.
 -- ---------------------------------------------------------------------------
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS edit_seq INT NOT NULL DEFAULT 0;
+
+-- ---------------------------------------------------------------------------
+--  Products the owner adds, and products the owner takes away
+--
+--  Two columns, and both of them exist because db/seed.sql runs again on every
+--  single deploy.
+--
+--  `origin` records who put the row there. Every row in the table today came
+--  from the seed, so the default is the truthful answer for all of them, and
+--  the admin panel writes the value admin on anything it creates. It is not
+--  bookkeeping. Three statements in that seed are guarded on a SHAPE rather
+--  than on a SKU - price is zero and the row is hidden - and that shape is
+--  character for character what a half-written new product looks like. On the
+--  next deploy they would price it at 45 EGP, stock it at 200 and publish it:
+--  a draft nobody had finished would go on sale by itself. Those three test
+--  origin = seed as well now, which is what they always meant. No quotes in
+--  this comment on purpose: scripts/sql-split.mjs counts them to find the end
+--  of a literal, and tests/order-edit.test.mjs pins the whole tail of this
+--  file to having none.
+--
+--  `archived_at` is how a product is taken off the shop. There is no hard
+--  delete for a product that has ever been ordered, and the reasoning is in
+--  lib/product-admin.js: order_items.product_id carries no foreign key, so
+--  deleting a product does not take its order lines with it - it leaves them
+--  pointing at nothing, and lib/order-status.js credits stock back on a
+--  cancellation by joining that exact column. A delete therefore turns every
+--  later cancellation of every past order containing that product into a
+--  silent partial restock. The row stays instead, `active` goes false so no
+--  storefront query can reach it, and this column records when - so the panel
+--  can file it away rather than leaving the live catalogue and the retired one
+--  in one list of eighty.
+--
+--  Archiving is also the only removal a deploy cannot undo. A hard-deleted SKU
+--  stops conflicting with the seed ON CONFLICT (sku) DO NOTHING, so the next
+--  deploy inserts it again and the pricing statements then publish it: the
+--  product the owner deleted is back, live, at a price nobody chose. A row
+--  that is still there conflicts, and nothing happens. Deleting is not even
+--  durable for the rows most likely to be deleted.
+-- ---------------------------------------------------------------------------
+ALTER TABLE products ADD COLUMN IF NOT EXISTS origin      TEXT NOT NULL DEFAULT 'seed';
+ALTER TABLE products ADD COLUMN IF NOT EXISTS archived_at TIMESTAMPTZ;
+
+-- The same dance products_kind_check does, for the same reason: Postgres has
+-- no ALTER CONSTRAINT for a CHECK, so it is dropped and re-added, and IF
+-- EXISTS is what makes that safe to re-run on every deploy.
+ALTER TABLE products DROP CONSTRAINT IF EXISTS products_origin_check;
+ALTER TABLE products ADD CONSTRAINT products_origin_check
+  CHECK (origin IN ('seed','admin'));
