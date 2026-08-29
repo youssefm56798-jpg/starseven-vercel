@@ -479,7 +479,15 @@ CREATE TABLE IF NOT EXISTS settings (
 );
 
 -- The call queue reads new orders oldest-first; the cash view groups by day.
-CREATE INDEX IF NOT EXISTS idx_orders_status_created ON orders (status, created_at DESC);
+-- idx_orders_status_created was created here and is being taken away again: it
+-- was defined as (status, created_at DESC), which is character for character
+-- the definition of idx_orders_status further up this file. Postgres builds
+-- both without complaint, because a duplicate index is legal — it just makes
+-- every INSERT and every status move maintain two identical trees and serves
+-- no query the first one does not. It reached production before anyone
+-- noticed, so removing the CREATE is not enough on its own; the DROP is what
+-- actually clears it, and it is safe to re-run like everything else here.
+DROP INDEX IF EXISTS idx_orders_status_created;
 CREATE INDEX IF NOT EXISTS idx_orders_phone ON orders (phone);
 
 -- ---------------------------------------------------------------------------

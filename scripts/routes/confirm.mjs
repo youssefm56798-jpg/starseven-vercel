@@ -150,33 +150,30 @@ export default async function confirm({ db, api, ip, check, checkThat, section, 
   const revivedRow = await statusOf(leaver.email);
 
   /**
-   * This is a finding, and the assertions below record what actually happens
-   * rather than what should.
+   * These assertions were written the other way round, recording a finding
+   * rather than a guarantee: /api/confirm re-activated anything that was not
+   * already active, and because the unsubscribe link in the welcome mail
+   * carries the SAME token as the confirm link in the opt-in mail, the original
+   * confirmation email stayed a live re-subscribe button for as long as it sat
+   * in someone's mailbox. Unsubscribe, then open the older message, and you
+   * were back on the list with a fresh welcome — and a mailbox that prefetches
+   * links did it with nobody clicking anything.
    *
-   * /api/confirm re-activates anything that is not already active, and the
-   * unsubscribe link in the welcome mail carries the SAME token as the confirm
-   * link in the opt-in mail. So the original confirmation email stays a live
-   * re-subscribe button for as long as it exists in someone's mailbox: click
-   * unsubscribe, then click confirm in the older message, and you are back on
-   * the list and sent a fresh welcome. A mailbox that prefetches links does it
-   * without anyone clicking anything.
+   * The route now claims the row with a guarded UPDATE that matches only
+   * 'pending' and 'bounced', which is the same rule /api/order already stated
+   * for consent: someone who opted out stays opted out. So the link still
+   * resolves, still answers 200, and still knows who they are — it simply does
+   * not put them back.
    *
-   * /api/order already knows the rule — its consent upsert says "Someone who
-   * opted out stays opted out; a checkout tick is not consent to undo that" and
-   * enforces it in SQL. This route does not apply the same rule, and it is the
-   * one with a link out in the world.
-   *
-   * The fix is small: treat 'unsubscribed' the way 'active' is treated, or
-   * issue the unsubscribe link a token of its own.
+   * Kept here, flipped, rather than deleted. A regression would be silent
+   * everywhere else: the page looks identical, the status quietly changes, and
+   * the person it happens to is by definition someone who asked not to hear
+   * from you.
    */
-  check('the old confirm link puts them back on the list', revivedRow?.status, 'active');
-  check('and it answered as though this were a normal confirmation', revived.status, 200);
-  check('and mailed them again after they had opted out',
-    (await mailsTo(leaver.email)).map(m => m.kind), ['welcome', 'welcome']);
-  note('FINDING: /api/confirm re-activates an unsubscribed address, and the confirm');
-  note('        and unsubscribe links share one token — so the old opt-in email is a');
-  note('        permanent re-subscribe button. lib/order-status is not involved; the');
-  note('        rule /api/order enforces on consent is simply not applied here.');
+  check('an unsubscribed address stays unsubscribed', revivedRow?.status, 'unsubscribed');
+  check('the link still resolves rather than 404ing', revived.status, 200);
+  check('and no second welcome mail goes out',
+    (await mailsTo(leaver.email)).map(m => m.kind), ['welcome']);
 
   /* --------------------------------------------------------------- limits */
 
