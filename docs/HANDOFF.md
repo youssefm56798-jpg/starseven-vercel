@@ -36,8 +36,16 @@ carries a link (`/order/<ref>?t=<token>`) showing the order, its status, and a
 cancellation/refund request. The token is 32 random bytes stored only as a
 SHA-256 — see `lib/order-access.js`.
 
-**Admin** at `/admin`: prices, stock, active, featured, orders, coupons,
-subscribers, articles.
+**Admin** at `/admin`: dashboard, orders, subscribers, offers (the coupon
+screen), products (price, stock, active, featured) and security. Six tabs, and
+that is the whole back office — `app/admin/(panel)/tabs.js` is the list.
+
+**There is no articles screen, and there never was.** The `articles` table is
+seeded from `db/seed.sql` and re-applied on every deploy, so the blog is edited
+by changing that file and pushing. Ten articles, all published. If an editor is
+ever built, `articles` has to join the backup set at the same time — see
+[`docs/RECOVERY.md`](RECOVERY.md), which currently leaves it out precisely
+because the seed is the only thing that writes it.
 
 ---
 
@@ -97,6 +105,15 @@ re-runnable and non-destructive — the product seeds are `ON CONFLICT DO
 NOTHING` and the UPDATEs are guarded on their old value, so a redeploy can
 never revert a price edited in the admin. Keep that property.
 
+**Which means the order history is one careless statement away, on every
+deploy.** `db/schema.sql` is applied to production before the site is even
+built, and rolling the deploy back does not roll the data back — Vercel
+promotes a build it already has, so `setup-db.mjs` never re-runs and the damage
+stays. `npm run backup` before anything that touches `db/`, and
+[`docs/RECOVERY.md`](RECOVERY.md) for the rest. Note that nothing schedules a
+backup: it happens when a human runs it, and that gap is written down at the end
+of that document rather than left to be found.
+
 **No apostrophes in SQL comments.** `scripts/sql-split.mjs` tracks quote state
 to split statements, and reads one as an unterminated string literal. There is
 a test for it.
@@ -112,10 +129,10 @@ behind a green build:
 | `tests/fonts.test.mjs` | The port never loaded Anton or Cairo; the whole site was in a system fallback |
 | `tests/sql-split.test.mjs` | A migration that ran, reported success, and changed nothing |
 | `tests/order-access.test.mjs` | The order token is the only credential there is |
-
 | `tests/sql-split.test.mjs` | Every correction to the eight original products has to be its own guarded UPDATE, because their seed is `DO NOTHING` and editing the literal changes nothing live |
+| `tests/backup-format.test.mjs` | A truncated dump has to be refusable. A backup that stops half way opens, and the first rows look right |
 
-`npm test` — 299 tests, no database needed.
+`npm test` — 1,069 tests, no database needed.
 
 ---
 
@@ -124,6 +141,7 @@ behind a green build:
 | Doc | What is in it |
 |---|---|
 | `README.md` | Setup, layout, orientation for a new engineer |
+| `docs/RECOVERY.md` | **Read before you need it.** Backups, restores, Neon point-in-time recovery, and what to do at 2am for each of the four ways this goes wrong |
 | `docs/SECURITY.md` | Where each control lives; the order-link design and its costs |
 | `docs/product-facts.md` | **Real ingredient lists read off the packaging**, the factory address, and every place the site contradicts them |
 | `docs/DEPLOY.md` | Vercel and Neon setup |

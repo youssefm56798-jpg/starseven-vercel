@@ -2,3 +2,19 @@ node_modules
 .next
 .vercel
 .env*
+
+# Database dumps.
+#
+# A dump of this database is the most sensitive artifact this project produces:
+# customer names, addresses, phone numbers, the mailing list, and the admin
+# password hashes. It must never reach a commit, and a commit is not a mistake
+# that deleting the file afterwards undoes.
+#
+# So it is said twice. `backups/*` covers the default output directory, and
+# backups/.gitignore repeats it from the inside, so that neither line is the
+# only thing in the way. The two extension rules catch a dump written somewhere
+# else with `npm run backup -- --out .`.
+backups/*
+!backups/.gitignore
+*.ndjson
+*.pg_dump.sql

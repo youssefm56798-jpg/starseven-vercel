@@ -1,0 +1,8 @@
+# Everything that lands here is a database dump: customer names, addresses,
+# phone numbers, admin password hashes. Nothing in this directory is ever
+# committed, and this file is the second of the two rules that say so - the
+# other is the backups/ line in the repository root .gitignore. Two rules and
+# not one, because a dump reaching a public commit is not a mistake that can be
+# undone by deleting it afterwards.
+*
+!.gitignore

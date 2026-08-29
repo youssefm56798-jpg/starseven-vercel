@@ -8,6 +8,8 @@
     "build": "next build",
     "start": "next start",
     "db:setup": "node scripts/setup-db.mjs",
+    "backup": "node scripts/backup-db.mjs",
+    "restore": "node scripts/restore-db.mjs",
     "test": "node --test \"tests/**/*.test.mjs\"",
     "verify:orders": "node scripts/verify-order-status.mjs",
     "verify:edit": "node scripts/verify-order-edit.mjs",
@@ -16,6 +18,7 @@
     "verify:access": "node scripts/verify-order-access.mjs",
     "verify:indexes": "node scripts/verify-indexes.mjs",
     "verify:auth": "node scripts/verify-admin-auth.mjs",
+    "verify:backup": "node scripts/verify-backup.mjs",
     "vercel-build": "node scripts/setup-db.mjs && next build"
   },
   "dependencies": {
