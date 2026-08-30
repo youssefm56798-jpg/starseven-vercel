@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { csrfOk, csrfToken } from '../../../../../lib/auth.js';
 import { sql } from '../../../../../lib/db.js';
-import { requireAdmin } from '../../../_lib/guard.js';
+import { requirePermission } from '../../../_lib/guard.js';
 import { dt, Flash, money, waLink } from '../../../_lib/ui.js';
 import { STATUSES, nextFrom, eventsFor, logEvent } from '../../../../../lib/order-status.js';
 import { transitionAndNotify, editAndNotify } from '../../../../../lib/order-notify.js';
@@ -24,7 +24,7 @@ function backTo(id, msg) {
 
 async function saveStatus(formData) {
   'use server';
-  const admin = await requireAdmin();
+  const admin = await requirePermission('orders:write');
 
   const id = Number(formData.get('id'));
   const status = String(formData.get('status') || '');
@@ -41,7 +41,7 @@ async function saveStatus(formData) {
 
 async function addNote(formData) {
   'use server';
-  const admin = await requireAdmin();
+  const admin = await requirePermission('orders:write');
 
   const id = Number(formData.get('id'));
   const note = String(formData.get('note') || '').trim().slice(0, 500);
@@ -71,9 +71,21 @@ async function addNote(formData) {
  * lib/order-status.js and the second is a promise already made to the customer,
  * which a later edit here must not be able to move.
  */
+/**
+ * The statuses a waybill may still be written on.
+ *
+ * Terminal orders are excluded. Not because editing one is likely, but because
+ * this action had no status test at all: any signed-in admin could POST an
+ * arbitrary id and rewrite the courier and tracking number of a delivered or
+ * cancelled order, and nothing recorded that it happened. Every other write on
+ * this page either tests the live row (saveStatus, saveItems) or leaves an
+ * order_events row behind; this one did neither.
+ */
+const DISPATCHABLE = ['new', 'confirmed', 'shipped'];
+
 async function saveDispatch(formData) {
   'use server';
-  await requireAdmin();
+  const me = await requirePermission('orders:write');
 
   const id = Number(formData.get('id'));
   const courier = String(formData.get('courier') || '').replace(/\s+/g, ' ').trim().slice(0, 60);
@@ -82,12 +94,24 @@ async function saveDispatch(formData) {
   if (!(await csrfOk(formData.get('_csrf')))) redirect(backTo(id, 'csrf'));
   if (!Number.isInteger(id) || id <= 0) redirect(backTo(id, 'bad_input'));
 
+  // The status is tested on the live row inside the UPDATE, not read first and
+  // trusted afterwards - the same shape the cancel race taught this codebase.
   const rows = await sql`
     UPDATE orders
        SET courier = ${courier}, tracking_ref = ${tracking}
      WHERE id = ${id}
+       AND status = ANY(${DISPATCHABLE}::text[])
      RETURNING id`;
   if (!rows.length) redirect(backTo(id, 'bad_input'));
+
+  // Who changed the waybill, and to what. A dispatch detail that changes with
+  // no trace is exactly what somebody reading the timeline later needs to see.
+  await logEvent({
+    orderId: id,
+    kind: 'note',
+    actor: me.name || 'admin',
+    note: `Dispatch updated - courier: ${courier || '(none)'}, tracking: ${tracking || '(none)'}`,
+  });
 
   redirect(backTo(id, 'dispatch_saved'));
 }
@@ -138,7 +162,7 @@ const editFlash = res =>
  */
 async function saveItems(formData) {
   'use server';
-  const admin = await requireAdmin();
+  const admin = await requirePermission('orders:write');
 
   const id = Number(formData.get('id'));
 
@@ -186,7 +210,7 @@ async function saveItems(formData) {
  */
 async function saveContact(formData) {
   'use server';
-  const admin = await requireAdmin();
+  const admin = await requirePermission('orders:write');
 
   const id = Number(formData.get('id'));
 
@@ -233,7 +257,7 @@ const EVENT_LABEL = {
 };
 
 export default async function OrderDetail({ params, searchParams }) {
-  await requireAdmin();
+  await requirePermission('orders:read');
 
   const { id: raw } = await params;
   const sp = await searchParams;

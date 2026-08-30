@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { csrfOk, csrfToken } from '../../../../lib/auth.js';
 import { sql } from '../../../../lib/db.js';
-import { requireAdmin } from '../../_lib/guard.js';
+import { requirePermission } from '../../_lib/guard.js';
 import { dt, Flash, money, waLink } from '../../_lib/ui.js';
 import { STATUSES, nextFrom } from '../../../../lib/order-status.js';
 import { transitionAndNotify } from '../../../../lib/order-notify.js';
@@ -24,7 +24,7 @@ function backTo(status, q, msg) {
 
 async function saveStatus(formData) {
   'use server';
-  const admin = await requireAdmin();
+  const admin = await requirePermission('orders:write');
 
   const status = String(formData.get('status') || '');
   const fStatus = String(formData.get('f_status') || '');
@@ -59,7 +59,7 @@ async function saveStatus(formData) {
 }
 
 export default async function OrdersPage({ searchParams }) {
-  await requireAdmin();
+  await requirePermission('orders:read');
   const sp = await searchParams;
   const token = await csrfToken();
 

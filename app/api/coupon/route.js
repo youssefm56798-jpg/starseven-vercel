@@ -29,8 +29,9 @@ export async function POST(req) {
   const lang = langOf(body.lang);
   const ar = lang === 'ar';
 
-  // Shares the cheap bucket with the quiz: this is a read-only lookup.
-  if (!(await rateOk('quiz', clientIp(req), ...limits.quiz))) return tooMany(lang);
+  // Its own bucket. This used to share the quiz's sixty-an-hour, which is a
+  // generous allowance for guessing at a namespace of short human words.
+  if (!(await rateOk('coupon', clientIp(req), ...limits.coupon))) return tooMany(lang);
 
   const code = str(body.code, 64).toUpperCase();
   if (!code) {
@@ -59,12 +60,24 @@ export async function POST(req) {
     );
   }
 
-  // Tell the shopper the code is spent here rather than letting them find out at
-  // checkout. The order route is what actually enforces the cap under
-  // concurrency; this is only the honest preview.
-  if (offer.max_uses != null && Number(offer.used_count) >= Number(offer.max_uses)) {
+  /*
+   * A spent code answers exactly as an unknown one does.
+   *
+   * The friendlier message named which of the two it was, and that told anyone
+   * guessing that the word they tried is a real code - which is the expensive
+   * half of discovering one. To the shopper the two are the same fact anyway:
+   * this code will not work, stop typing it. The cap itself is enforced under
+   * concurrency by the order route; this was only ever a preview of it.
+   *
+   * What is deliberately NOT collapsed is the minimum-total message below. It
+   * confirms a code exists too, but it is the one reply a customer holding a
+   * genuine code needs in order to act on it, and the bucket above is what
+   * makes reaching it by guesswork impractical.
+   */
+  const spent = offer.max_uses != null && Number(offer.used_count) >= Number(offer.max_uses);
+  if (spent) {
     return fail(
-      ar ? 'كود الخصم ده خلص.' : 'That discount code has been fully used.',
+      ar ? 'كود الخصم مش صحيح أو انتهى.' : 'That discount code is not valid.',
       422, { field: 'coupon' },
     );
   }

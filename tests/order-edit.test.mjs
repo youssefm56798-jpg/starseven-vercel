@@ -430,10 +430,17 @@ test('an edit event never reaches the customer timeline', () => {
 
 test('every server action on the order screen checks the admin and the token', () => {
   /*
-   * Both halves, on every one of them. requireAdmin() answers who this is;
-   * csrfOk() answers whether they meant to do it — a Server Action is a POST
-   * to a URL like any other, and without the token any page on the internet
-   * can make an admin browser edit an order.
+   * Both halves, on every one of them. The guard answers who this is; csrfOk()
+   * answers whether they meant to do it — a Server Action is a POST to a URL
+   * like any other, and without the token any page on the internet can make an
+   * admin browser edit an order.
+   *
+   * The guard has to NAME its permission. These six actions asked only
+   * requireAdmin() — is there a session — while every other screen in the panel
+   * says which power it needs. That was equivalent only because both existing
+   * roles happen to hold orders:write, and it would have become a silent grant
+   * the day a read-only third role was added. Asserting the permission here is
+   * what stops it drifting back.
    *
    * Read out of the source rather than listed by hand, so an action added
    * later without either check fails here rather than in production.
@@ -442,7 +449,11 @@ test('every server action on the order screen checks the admin and the token', (
   assert.ok(actions.length >= 5, `expected every action to be found, saw ${actions.length}`);
   for (const fn of actions) {
     const name = (/async function (\w+)/.exec(fn) || [])[1];
-    assert.match(fn, /requireAdmin\(\)/, `${name} does not check the session`);
+    assert.match(
+      fn,
+      /requirePermission\('orders:write'\)/,
+      `${name} must name the permission it needs, not just ask for any session`,
+    );
     assert.match(fn, /csrfOk\(formData\.get\('_csrf'\)\)/, `${name} does not check the CSRF token`);
     // And the token check must come before anything is written.
     const guard = fn.indexOf('csrfOk');

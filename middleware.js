@@ -45,10 +45,59 @@ const PASS_THROUGH = /^\/(?:api|admin|_next|assets|js|favicon|robots\.txt|sitema
 /** Matches the English tree as a path segment, so /energy is not mistaken for it. */
 const IS_ENGLISH = /^\/en(?:\/|$)/i;
 
+/**
+ * The cookie name is repeated from lib/auth.js rather than imported. This file
+ * runs on the edge runtime, and importing lib/auth.js would drag jose and the
+ * database client in with it. tests/csrf-cookie.test.mjs asserts the two
+ * spellings still agree, so the duplication cannot drift unnoticed.
+ */
+const CSRF_COOKIE = 's7_csrf';
+
+/**
+ * Give an anonymous visitor to /admin a CSRF seed of their own.
+ *
+ * Without this the token on /admin/login, /admin/forgot and /admin/reset is
+ * derived from a constant, which makes it the same value for everyone and so
+ * no protection at all. A page render cannot set a cookie in the App Router -
+ * only a Server Action or a route handler can - so the middleware is the one
+ * place that can mint it before the form is drawn.
+ *
+ * The value is written onto the REQUEST headers as well as the response, so
+ * this very render sees it. Setting it only on the response would leave the
+ * first page load still deriving its token from 'anon'.
+ */
+function withCsrfSeed(request) {
+  if (request.cookies.get(CSRF_COOKIE)) return NextResponse.next();
+
+  const bytes = crypto.getRandomValues(new Uint8Array(32));
+  const value = btoa(String.fromCharCode(...bytes))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+
+  const headers = new Headers(request.headers);
+  const had = headers.get('cookie');
+  headers.set('cookie', had ? `${had}; ${CSRF_COOKIE}=${value}` : `${CSRF_COOKIE}=${value}`);
+
+  const res = NextResponse.next({ request: { headers } });
+  res.cookies.set(CSRF_COOKIE, value, {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    path: '/admin',
+    maxAge: 60 * 60 * 8,
+  });
+  return res;
+}
+
 export function middleware(request) {
   const { pathname, searchParams } = request.nextUrl;
 
-  if (PASS_THROUGH.test(pathname)) return NextResponse.next();
+  if (PASS_THROUGH.test(pathname)) {
+    return pathname === '/admin' || pathname.startsWith('/admin/')
+      ? withCsrfSeed(request)
+      : NextResponse.next();
+  }
 
   /* ------------------------------------------------- legacy ?kind= filter */
   // Wax and gel are paths now, not a filter. This handles both /shop?kind=wax
