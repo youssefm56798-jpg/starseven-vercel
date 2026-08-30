@@ -143,15 +143,15 @@ export default async function HairStylesIndexView({ lang }) {
           {counts.matte === 0 && (
           <aside className="hs-honest">
             <h3>{ar ? 'قبل ما تبدأ' : 'Before you start'}</h3>
+            {/* One short paragraph, not the three-sentence essay this used to
+                be. The claim and its consequence are the only two facts here
+                that change what a reader does next, and a block long enough to
+                look like an article gets skipped by the person it is meant to
+                warn - which is the one outcome an honesty notice cannot afford. */}
             <p>
               {ar
-                ? 'مفيش حاجة عندنا مطفية. ولا واحدة. كل الواكس في التشكيلة دي شمع وفازلين، ومفيش فيها سيليكا ولا نشا ولا كلاي — يعني مفيش مكوّن أصلاً يقدر يعمل لمعة مطفية. وده كلام على كل حاجة بنعملها، مش على منتج لوحده.'
-                : 'Nothing we make is matte. Not one thing. Every wax in this range is wax and petrolatum, with no silica, no starch and no clay in any of them — there is no ingredient present that could produce a matte finish. That is true of every jar we make.'}
-            </p>
-            <p>
-              {ar
-                ? 'وده معناه إن استايل واحد من الستة اللي تحت مش هنعرف نوصلك له، واستايل تاني هنوصلك لنص منه. الاتنين مكتوب عليهم كده فوق في مكانهم.'
-                : 'Which means one of the six styles below is one we cannot get you, and a second one we can only half get you. Both say so on the style itself.'}
+                ? 'مفيش حاجة عندنا مطفية — كلها شمع وفازلين، من غير كلاي ولا سيليكا. يعني من الستة اللي تحت، واحد مش هنعرف نوصلك له وواحد هنوصلك لنصه. الاتنين مكتوب عليهم.'
+                : 'Nothing we make is matte — it is all wax and petrolatum, with no clay or silica. So of the six styles below, one we cannot get you and one only halfway. Both are marked.'}
             </p>
           </aside>
           )}

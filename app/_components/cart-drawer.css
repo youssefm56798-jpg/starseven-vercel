@@ -1,0 +1,131 @@
+/*
+ * The site-wide cart drawer.
+ *
+ * Deliberately its own file with its own `cd-` prefix rather than a reuse of
+ * the landing page's `.s7home .drawer` rules. Those are scoped to .s7home and
+ * live in landing.css, which only the home view imports — so they are simply
+ * not present on /shop, a product page or an article, which is everywhere this
+ * drawer now has to open. Lifting them out of that scope would have changed
+ * the home page's cart at the same time; a separate namespace changes nothing
+ * that already works.
+ *
+ * Same approach as quickview.css: the component imports its own stylesheet, so
+ * a page that never renders the drawer never pays for its rules.
+ */
+
+.cd-trigger {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  border-radius: 99px;
+}
+.cd-trigger svg { width: 24px; height: 24px; display: block; }
+.cd-trigger:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
+
+.cd-scrim {
+  position: fixed; inset: 0;
+  background: rgba(18, 16, 11, .55);
+  z-index: 400;
+  -webkit-backdrop-filter: blur(2px);
+          backdrop-filter: blur(2px);
+}
+
+.cd-panel {
+  position: fixed; top: 0; bottom: 0;
+  inset-inline-end: 0;
+  width: min(430px, 100%);
+  z-index: 401;
+  background: var(--paper, #FFFDF8);
+  display: flex; flex-direction: column;
+  box-shadow: 0 0 60px rgba(18, 16, 11, .4);
+}
+
+.cd-head {
+  display: flex; align-items: center; gap: 12px;
+  padding: 18px 22px;
+  border-bottom: 1.5px solid var(--ink, #12100B);
+  flex: none;
+}
+.cd-head h3 { font-size: 18px; font-weight: 900; flex: 1; margin: 0; }
+.cd-x {
+  background: none; border: none; font-size: 26px; line-height: 1;
+  color: var(--grey, #6E6A60); padding: 0 4px; cursor: pointer;
+}
+.cd-x:hover { color: var(--ink, #12100B); }
+
+.cd-body { flex: 1; overflow-y: auto; padding: 20px 22px; }
+.cd-foot {
+  flex: none; border-top: 1.5px solid var(--line, rgba(18,16,11,.13));
+  padding: 18px 22px; background: #fff;
+}
+
+.cd-item {
+  display: grid; grid-template-columns: 64px 1fr auto;
+  gap: 13px; align-items: center;
+  padding: 13px 0; border-bottom: 1px solid var(--line, rgba(18,16,11,.13));
+}
+.cd-item:last-child { border-bottom: none; }
+.cd-item img {
+  width: 64px; height: 64px; object-fit: contain;
+  background: var(--paper-2, #F5F2EA); border-radius: 10px; padding: 5px;
+}
+.cd-item h4 { font-size: 14px; font-weight: 900; line-height: 1.35; margin: 0; }
+.cd-item .cd-pr { color: var(--grey, #6E6A60); font-size: 12.5px; font-weight: 700; }
+
+.cd-qty {
+  display: flex; align-items: center; gap: 2px;
+  border: 1.5px solid var(--line, rgba(18,16,11,.13));
+  border-radius: 99px; padding: 2px;
+}
+.cd-qty button {
+  width: 26px; height: 26px; border: none; background: none;
+  border-radius: 99px; font-size: 16px; cursor: pointer;
+  font-family: inherit; color: inherit;
+}
+.cd-qty button:hover { background: var(--paper-2, #F5F2EA); }
+.cd-qty span { min-width: 24px; text-align: center; font-weight: 900; font-size: 13.5px; }
+
+.cd-row {
+  display: flex; justify-content: space-between; gap: 10px;
+  font-size: 14px; font-weight: 700; color: var(--grey, #6E6A60);
+  padding: 3px 0;
+}
+.cd-row.cd-tot {
+  font-size: 19px; font-weight: 900; color: var(--ink, #12100B);
+  margin: 12px 0 16px; padding-top: 12px;
+  border-top: 1.5px solid var(--line, rgba(18,16,11,.13));
+}
+.cd-row .cd-free { color: var(--green, #5E9C2B); font-weight: 900; }
+
+.cd-empty { text-align: center; padding: 50px 10px; color: var(--grey, #6E6A60); font-weight: 700; }
+.cd-empty span {
+  display: block; font-size: 44px; color: var(--line, rgba(18,16,11,.13));
+  margin-bottom: 12px; font-family: var(--font-anton), sans-serif;
+}
+.cd-empty b { display: block; color: var(--ink, #12100B); font-size: 17px; margin-bottom: 6px; }
+
+.cd-cod { text-align: center; color: var(--grey, #6E6A60); font-size: 12px; font-weight: 700; margin-top: 11px; }
+
+/* The panel slides in from the inline end, which is the left in Arabic and the
+   right in English — `inset-inline-end` and a direction-aware transform keep one
+   rule correct in both. Suppressed entirely when the visitor asks for less
+   motion, where an instant drawer is the accessible answer rather than a slower one. */
+@media (prefers-reduced-motion: no-preference) {
+  .cd-scrim { animation: cd-fade .18s ease-out; }
+  .cd-panel { animation: cd-slide .24s cubic-bezier(.22, .61, .36, 1); }
+}
+@keyframes cd-fade { from { opacity: 0 } to { opacity: 1 } }
+@keyframes cd-slide { from { transform: translateX(100%) } to { transform: translateX(0) } }
+[dir="rtl"] .cd-panel { animation-name: cd-slide-rtl; }
+@keyframes cd-slide-rtl { from { transform: translateX(-100%) } to { transform: translateX(0) } }
+
+@media (max-width: 720px) {
+  .cd-panel { width: 100%; }
+}

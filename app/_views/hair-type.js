@@ -183,7 +183,7 @@ export default async function HairTypeView({ slug, lang }) {
               <h2>{ar ? 'أسئلة بتتسأل كتير' : 'Common questions'}</h2>
               <div className="ht-faq">
                 {faq.map((f, i) => (
-                  <details key={i} open={i === 0}>
+                  <details key={i} name="faq" open={i === 0}>
                     <summary>{f.q}</summary>
                     <div>{f.a}</div>
                   </details>

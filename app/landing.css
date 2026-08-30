@@ -11,6 +11,11 @@
 }
 .s7home *{margin:0;padding:0;box-sizing:border-box}
 .s7home{scroll-behavior:auto}
+/* Anything a click scrolls to has to clear the sticky nav, which is 66px and
+   sits at top:0 - without this an anchored landing puts the section's heading
+   underneath it. Applies to the tall-panel fallback and to the hold filters,
+   both of which align to the top. */
+#hair-answer,#shop{scroll-margin-top:82px}
 .s7home{background:var(--paper);color:var(--ink);font-family:var(--font-cairo),sans-serif;font-size:16px;line-height:1.7;overflow-x:hidden;-webkit-font-smoothing:antialiased}
 .s7home .en-display{font-family:var(--font-anton),var(--font-cairo),sans-serif;font-weight:400;letter-spacing:.01em}
 /* The Arabic display tier: the hero and the section headings, and nothing else.

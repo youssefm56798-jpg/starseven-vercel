@@ -4,7 +4,7 @@ import { site } from '../../lib/config.js';
 import { localePath } from '../../lib/urls.js';
 import { sql, hasDb } from '../../lib/db.js';
 import { liveCategories } from '../shop/lib.js';
-import CartBadge from './CartBadge.js';
+import CartDrawer from './CartDrawer.js';
 
 /**
  * Storefront nav and footer, shared by every server-rendered page.
@@ -66,13 +66,34 @@ export const shopCategories = cache(async () => {
   }
 });
 
+/**
+ * The minimum a cart line needs to render: a name in both languages, a price, a
+ * picture and somewhere to click through to.
+ *
+ * cache()d for the same reason shopCategories is - the nav renders on every
+ * page, and this must not become one database round-trip per navigation. A
+ * failure returns an empty catalogue rather than throwing: the drawer then
+ * shows an empty basket, which is wrong but harmless, where a throw would take
+ * the whole page down with it.
+ */
+export const cartCatalogue = cache(async () => {
+  if (!hasDb()) return [];
+  try {
+    return await sql`
+      SELECT sku, slug, price, image AS img, name_ar, name_en
+        FROM products WHERE active = true`;
+  } catch {
+    return [];
+  }
+});
+
 export async function Nav({ lang = 'ar', path = '' }) {
   const ar = lang === 'ar';
   // Every href goes through localePath so the nav can never disagree with the
   // canonical and hreflang tags about what a page's URL is.
   const L = p => localePath(p, lang);
   const other = ar ? 'en' : 'ar';
-  const cats = await shopCategories();
+  const [cats, catalogue] = await Promise.all([shopCategories(), cartCatalogue()]);
 
   return (
     <nav className="s7nav">
@@ -152,14 +173,18 @@ export async function Nav({ lang = 'ar', path = '' }) {
           <Link className="lang-btn" href={localePath('/' + path, other)} hrefLang={other}>
             {ar ? 'EN' : 'عربي'}
           </Link>
-          <Link className="cart-link" href={L('/checkout')} aria-label={ar ? 'السلة' : 'Cart'}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9">
-              <path d="M3 4h2.2l2 11.2a2 2 0 0 0 2 1.6h7.9a2 2 0 0 0 2-1.55L20.7 8H6.2"
-                strokeLinecap="round" strokeLinejoin="round" />
-              <circle cx="10" cy="20" r="1.4" /><circle cx="17.5" cy="20" r="1.4" />
-            </svg>
-            <CartBadge />
-          </Link>
+          {/* Was a link straight to /checkout. The basket is reviewed in place
+              now, so nobody has to commit to the form to find out what they are
+              committing to. */}
+          <CartDrawer
+            catalogue={catalogue.map(p => ({
+              sku: p.sku, slug: p.slug, price: Number(p.price), img: p.img,
+              ar: { name: p.name_ar }, en: { name: p.name_en },
+            }))}
+            lang={lang}
+            shipping={site.shipping}
+            freeOver={site.freeOver}
+          />
         </div>
       </div>
     </nav>

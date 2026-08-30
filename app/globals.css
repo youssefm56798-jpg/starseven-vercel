@@ -181,8 +181,14 @@ button{font:inherit;cursor:pointer}
    weight as the finder's way out to the guides and never competes with the buy
    button. Only the colour moves on hover, so nothing under it shifts. */
 .pdp-back{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:800;
-  color:var(--grey);text-decoration:none;margin-bottom:10px;transition:color .2s}
+  color:var(--grey);text-decoration:none;margin-bottom:10px;transition:color .2s;
+  border-radius:8px}
 .pdp-back:hover{color:var(--ink)}
+/* Without a focus style of its own the browser draws its default ring, and on
+   a square-cornered inline-flex box with no padding that lands as a hard
+   rectangle clipping the text and the arrow - which reads as a rendering
+   glitch rather than as focus. Offsetting a rounded ring puts it clear of both. */
+.pdp-back:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
 /* The arrow points the way the page reads rather than the way the sentence was
    written, so it is content on a pseudo-element that the direction swaps —
    which also puts it on the correct side without a second rule. */

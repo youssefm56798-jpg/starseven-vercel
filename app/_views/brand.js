@@ -209,7 +209,7 @@ export default async function BrandView({ lang }) {
           <h2>{ar ? 'أسئلة قبل أول أوردر' : 'Before your first order'}</h2>
           <div className="ht-faq">
             {faq.map((f, i) => (
-              <details key={i} open={i === 0}>
+              <details key={i} name="faq" open={i === 0}>
                 <summary>{f.q}</summary>
                 <div>{f.a}</div>
               </details>

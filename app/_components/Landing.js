@@ -3,8 +3,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { localePath } from '../../lib/urls.js';
 import Link from 'next/link';
-import { addToCart, readCart, setQty as writeQty } from '../../lib/cart.js';
-import { cartTotals } from '../../lib/pricing.js';
+import { addToCart, readCart } from '../../lib/cart.js';
+import { openCart } from './CartDrawer.js';
 import { rankProducts } from '../../lib/hairtypes.js';
 import { HAIR_STYLES, rankForStyle } from '../../lib/hairstyles.js';
 import { currencyLabel, whole, discountPercent } from '../../lib/money.js';
@@ -187,88 +187,6 @@ function Card({ p, lang, d, L, onAdd }) {
     </div>
   );
 }
-
-function Drawer({ open, close, lines, lang, d, L, shipping, freeOver, onQty }) {
-  const subtotal = lines.reduce((n, l) => n + l.price * l.qty, 0);
-  const t = cartTotals(subtotal, 0, shipping, freeOver);
-  const money = v => `${Math.round(v * 100) / 100} ${d.egp}`;
-
-  useEffect(() => {
-    if (!open) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    const esc = e => { if (e.key === 'Escape') close(); };
-    window.addEventListener('keydown', esc);
-    return () => {
-      document.body.style.overflow = prev;
-      window.removeEventListener('keydown', esc);
-    };
-  }, [open, close]);
-
-  if (!open) return null;
-
-  return (
-    <>
-      <div className="scrim" onClick={close} />
-      <aside className="drawer" role="dialog" aria-modal="true" aria-label={d.cart_t}>
-        <div className="drawer-head">
-          <h3>{d.cart_t}</h3>
-          <button className="x" onClick={close} aria-label={d.cart_close}>×</button>
-        </div>
-
-        {lines.length === 0 ? (
-          <div className="drawer-body">
-            <div className="cart-empty">
-              <span>★</span>
-              <b style={{ display: 'block', color: 'var(--ink)', fontSize: 17, marginBottom: 6 }}>
-                {d.cart_empty}
-              </b>
-              {d.cart_empty_p}
-              <div style={{ marginTop: 20 }}>
-                <a className="btn btn-red" href="#shop" onClick={close}>{d.cart_shop}</a>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <>
-            <div className="drawer-body">
-              {lines.map(l => (
-                <div className="citem" key={l.sku}>
-                  <Link href={L(`/product/${l.slug}`)} onClick={close}>
-                    <img src={imageUrl(l.img)} alt={l[lang].name} />
-                  </Link>
-                  <div>
-                    <h4><Link href={L(`/product/${l.slug}`)} onClick={close}>{l[lang].name}</Link></h4>
-                    <div className="pr">{l.price} {d.egp}</div>
-                  </div>
-                  <div className="qty">
-                    <button onClick={() => onQty(l.sku, l.qty - 1)} aria-label="-">−</button>
-                    <span>{l.qty}</span>
-                    <button onClick={() => onQty(l.sku, l.qty + 1)} aria-label="+">+</button>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="drawer-foot">
-              <div className="crow"><span>{d.cart_sub}</span><span>{money(t.subtotal)}</span></div>
-              <div className="crow">
-                <span>{d.cart_ship}</span>
-                <span className={t.shipping === 0 ? 'free' : ''}>
-                  {t.shipping === 0 ? d.cart_free : money(t.shipping)}
-                </span>
-              </div>
-              <div className="crow tot"><span>{d.cart_tot}</span><span>{money(t.total)}</span></div>
-              <Link className="btn btn-red btn-full" href={L(`/checkout`)}>{d.cart_checkout}</Link>
-              <div className="cart-cod">{d.cod}</div>
-            </div>
-          </>
-        )}
-      </aside>
-    </>
-  );
-}
-
 export default function Landing({ lang, products, hairTypes, shipping, freeOver }) {
   const d = T[lang] || T.ar;
   const ar = lang === 'ar';
@@ -277,7 +195,6 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
   const [filter, setFilter] = useState('all');
   const [hair, setHair] = useState('wavy');
   const [cart, setCart] = useState([]);
-  const [drawer, setDrawer] = useState(false);
 
   useEffect(() => {
     const sync = () => setCart(readCart());
@@ -292,6 +209,9 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
   //   .hero-idle the hero has scrolled away: pause its rings, orbits and stamp
   //   .in-view   the order panel is on screen: let its sheen run
   const root = useRef(null);
+  /* Set by pickHair, read by the effect below: only a deliberate pick scrolls,
+     so the first render does not yank a visitor who has not touched anything. */
+  const wantScroll = useRef(false);
   useEffect(() => {
     const el = root.current;
     if (!el) return;
@@ -323,18 +243,12 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
     };
   }, []);
 
-  const add = useCallback(sku => { addToCart(sku); setDrawer(true); }, []);
-  const qty = useCallback((sku, n) => { writeQty(sku, n); }, []);
-  const closeDrawer = useCallback(() => setDrawer(false), []);
+  /* The drawer this used to open lived here and was styled `.s7home .drawer`,
+     so it existed on the home page and nowhere else. The nav owns one now that
+     works on every page, and two of them on this page would be one too many —
+     so this hands off to that one rather than keeping a second copy alive. */
+  const add = useCallback(sku => { addToCart(sku); openCart(); }, []);
 
-  // Cart rows joined to the catalogue. These prices are for display only — the
-  // order route recomputes every figure from the database before it writes.
-  const lines = cart
-    .map(c => {
-      const p = products.find(x => x.sku === c.sku);
-      return p ? { ...p, qty: c.qty } : null;
-    })
-    .filter(Boolean);
 
   // A filter is one of four things: 'all', a product kind ('wax'), a hold band
   // across every format ('hold:N'), or a kind and a band together ('wax:3').
@@ -413,19 +327,14 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
     // phone picking a type changed something entirely off-screen and the finder
     // read as doing nothing. pickHold already worked this way; this did not.
     //
-    // In a rAF because the panel is keyed on the tile and React has to swap it
-    // first - scrolling in the same tick measures the outgoing panel. Honour
-    // prefers-reduced-motion by jumping rather than sliding, and never by
-    // failing to move.
-    if (typeof window !== 'undefined') {
-      const smooth = !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-      window.requestAnimationFrame(() => {
-        document.getElementById('hair-answer')?.scrollIntoView({
-          behavior: smooth ? 'smooth' : 'auto',
-          block: 'start',
-        });
-      });
-    }
+    // The scroll itself happens in the effect below, after React has committed
+    // the new panel. A requestAnimationFrame here was not enough: the panel is
+    // keyed on the tile, so React unmounts the old node and mounts a new one,
+    // and the rAF callback resolved #hair-answer to the OUTGOING element and
+    // scrolled it a moment before it was removed - which is why picking a type
+    // moved the page not at all. Measured: the handler ran and the panel
+    // swapped, and the scroll position never changed.
+    wantScroll.current = true;
 
     fetch('/api/quiz', {
       method: 'POST',
@@ -433,6 +342,29 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
       body: JSON.stringify({ hair_type: slug, lang }),
     }).catch(() => {});
   }
+
+  /*
+   * Take the visitor to the answer, once the answer actually exists in the DOM.
+   *
+   * Centred rather than top-aligned: `start` puts the panel's own top at the
+   * viewport's top, and the nav is sticky at top:0 with a 66px body - so the
+   * heading this scroll exists to deliver landed underneath it. A panel taller
+   * than the viewport cannot be centred without pushing that heading off the
+   * top edge instead, so that case keeps `start` and leans on the
+   * scroll-margin-top in landing.css to clear the nav.
+   *
+   * prefers-reduced-motion is honoured by jumping rather than sliding, never by
+   * failing to move.
+   */
+  useEffect(() => {
+    if (!wantScroll.current) return;
+    wantScroll.current = false;
+    const el = document.getElementById('hair-answer');
+    if (!el) return;
+    const smooth = !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    const fits = el.getBoundingClientRect().height < window.innerHeight - 90;
+    el.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: fits ? 'center' : 'start' });
+  }, [hair]);
 
   function pickHold(f) {
     setFilter(f);
@@ -894,17 +826,6 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
         </div>
       </section>
 
-      <Drawer
-        open={drawer}
-        close={closeDrawer}
-        lines={lines}
-        lang={lang}
-        d={d}
-        L={L}
-        shipping={shipping}
-        freeOver={freeOver}
-        onQty={qty}
-      />
     </div>
   );
 }
