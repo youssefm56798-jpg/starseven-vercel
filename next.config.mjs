@@ -83,6 +83,36 @@ const nextConfig = {
         { key: 'X-Content-Type-Options', value: 'nosniff' },
         { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
         { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+        /*
+         * Powerful browser features this site does not use, switched off rather
+         * than left available.
+         *
+         * A shop that takes cash at the door has no business asking for a
+         * camera, a microphone, a location or a payment sheet, and none of the
+         * code does. Declaring that is not protection against our own pages -
+         * it is what stops an injected script, or anything that ever gets to
+         * run in this origin, from reaching for a permission prompt the visitor
+         * would reasonably associate with the shop. payment=() is the pointed
+         * one: this site never takes card details, so a payment sheet appearing
+         * on it is by definition not ours.
+         */
+        {
+          key: 'Permissions-Policy',
+          value: 'camera=(), microphone=(), geolocation=(), payment=(), usb=()',
+        },
+        /*
+         * Sever the link between this page and anything it opens, and anything
+         * that opens it.
+         *
+         * The storefront links out to wa.me on almost every screen. Without
+         * this, each of those tabs gets a live window.opener back into the page
+         * that opened it, which is the tabnabbing shape: the opened page
+         * rewrites the shop tab to a copy of itself while the customer is
+         * looking at WhatsApp. Nothing here opens a popup it needs to talk to -
+         * there is no OAuth flow and no payment window - so same-origin costs
+         * nothing and closes that.
+         */
+        { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
       ],
     }, {
       /*
@@ -107,6 +137,46 @@ const nextConfig = {
       source: '/api/:path*',
       headers: [
         { key: 'Content-Security-Policy', value: "default-src 'none'; frame-ancestors 'none'" },
+        { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains' },
+        { key: 'X-Content-Type-Options', value: 'nosniff' },
+        { key: 'X-Frame-Options', value: 'DENY' },
+        { key: 'Referrer-Policy', value: 'no-referrer' },
+      ],
+    }, {
+      /*
+       * The two /api routes that are not JSON.
+       *
+       * /api/confirm and /api/unsubscribe are opened by a person, from a link in
+       * an email, and answer with a branded HTML page (app/api/_lib/shared.js
+       * brandPage). The rule above was written for JSON and says default-src
+       * 'none', which is right for JSON and wrong for a document: it refused the
+       * page's own inline <style> and its favicon, so every subscriber who
+       * confirmed or unsubscribed got the unstyled fallback. Verified on
+       * production before this rule existed - the response carried
+       * `default-src 'none'` and a <style> block that the browser then dropped.
+       *
+       * So they get a policy shaped for what they are. It is still tighter than
+       * the storefront's: no script-src at all, so default-src 'none' governs
+       * script and NOTHING can execute on these pages - which is easy to promise
+       * because they are static markup with no behaviour. style-src allows only
+       * inline, not 'self', because the page carries no stylesheet file either.
+       *
+       * Must sit after the /api rule, for the same reason that one sits after
+       * the catch-all: later matches replace earlier ones.
+       */
+      source: '/api/:path(confirm|unsubscribe)',
+      headers: [
+        {
+          key: 'Content-Security-Policy',
+          value: [
+            "default-src 'none'",
+            "style-src 'unsafe-inline'",
+            "img-src 'self' data:",
+            "base-uri 'none'",
+            "form-action 'none'",
+            "frame-ancestors 'none'",
+          ].join('; '),
+        },
         { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains' },
         { key: 'X-Content-Type-Options', value: 'nosniff' },
         { key: 'X-Frame-Options', value: 'DENY' },

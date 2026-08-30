@@ -57,6 +57,11 @@ export const tooBig = () => fail('Request too large.', 413);
  */
 export function brandPage({ lang = 'ar', title, body, status = 200, accent = false }) {
   const rtl = lang === 'ar';
+  // Derived, not printed from the argument. This is the only text/html response
+  // in the app, and `lang` sits inside a quoted attribute in it. Both callers
+  // normalise to the two literals before calling, so nothing can reach it today
+  // - but that is a property of those two files, not of this one.
+  const tag = rtl ? 'ar' : 'en';
   const back = rtl ? 'ارجع للموقع' : 'Back to the site';
 
   // The offset shadow has to fall away from the text, so it flips with direction.
@@ -66,20 +71,41 @@ export function brandPage({ lang = 'ar', title, body, status = 200, accent = fal
     : 'border:2px solid #12100B;color:#12100B;';
 
   const html = `<!DOCTYPE html>
-<html lang="${lang}" dir="${rtl ? 'rtl' : 'ltr'}">
+<html lang="${tag}" dir="${rtl ? 'rtl' : 'ltr'}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex">
 <title>${esc(title)} — ${esc(site.name)}</title>
 <link rel="icon" type="image/png" href="/assets/favicon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;900&display=swap" rel="stylesheet">
+<!--
+  No webfont link here, deliberately.
+
+  This page used to pull Cairo straight from fonts.googleapis.com. Three things
+  were wrong with that, and they compounded:
+
+  The rest of the site does not do it. lib/fonts.js loads Cairo through
+  next/font/google, which downloads the files at BUILD time and serves them from
+  this origin - which is why the site CSP allows no Google host at all. This one
+  hand-written link was the only request to Google in the entire app.
+
+  It was blocked anyway. The /api header rule sends default-src 'none', so the
+  stylesheet, the preconnects and the inline <style> below were all refused, and
+  every subscriber who clicked confirm or unsubscribe got an unstyled page. That
+  is what led here.
+
+  And of all the pages to call Google from, this is the worst one: the unsubscribe
+  link. Someone telling us to stop contacting them should not have their IP handed
+  to a third party by the click that does it.
+
+  The stack below starts at system-ui, which resolves to a real Arabic face on
+  every platform this site is read on.
+-->
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
   body{min-height:100vh;display:grid;place-items:center;background:#FFFDF8;color:#12100B;
-       font-family:'Cairo',system-ui,-apple-system,'Segoe UI',sans-serif;padding:24px;line-height:1.7}
+       font-family:system-ui,-apple-system,'Segoe UI',Tahoma,'Noto Sans Arabic',sans-serif;
+       padding:24px;line-height:1.7}
   .card{max-width:520px;width:100%;text-align:center;background:#fff;
         border:2px solid #12100B;border-radius:22px;padding:clamp(28px,6vw,56px);${shadow}}
   .star{font-size:52px;color:#D7291D;line-height:1}

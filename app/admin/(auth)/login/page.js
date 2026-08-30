@@ -16,8 +16,22 @@ export const metadata = { title: 'Log in — Star Seven admin', robots: { index:
  * unknown we still spend one bcrypt comparison against it, so a wrong email and
  * a wrong password take the same time — otherwise the response time alone would
  * tell an attacker which addresses are real.
+ *
+ * It only equalises the time if the COST MATCHES, and for a while it did not.
+ * This constant sat at cost 10 while every stored password was written at 12,
+ * and bcrypt's cost is exponential: 72ms against 284ms, measured with this
+ * project's own bcryptjs. A 211ms gap needs no averaging — one POST per
+ * candidate address reads it off the clock, and it quietly undid the uniform
+ * wording, the shared redirect and the single-statement lookups that the rest
+ * of the login and forgot flows are built around.
+ *
+ * So the cost now comes from lib/credentials.js, the same constant the four
+ * places that WRITE a hash use, and tests/login-timing.test.mjs fails if this
+ * literal ever stops matching it. Regenerate with:
+ *
+ *   node -e "console.log(require('bcryptjs').hashSync(require('crypto').randomUUID(), 12))"
  */
-const DUMMY_HASH = '$2a$10$v/V3SjUk6Fpq0hU0pEhH4Oh9iVz6YYK/WSxHskfMOURNmyPRKp4vC';
+const DUMMY_HASH = '$2a$12$ry1Av5lG3NAHG6mlsJP78.DSqKSftvuU2h7rBD2dHb20VSpRwkkNq';
 
 async function doLogin(formData) {
   'use server';

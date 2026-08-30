@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import { redirect } from 'next/navigation';
 import { csrfOk, csrfToken } from '../../../../lib/auth.js';
 import { sql } from '../../../../lib/db.js';
+import { BCRYPT_COST } from '../../../../lib/credentials.js';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'First-time setup — Star Seven admin', robots: { index: false, follow: false } };
@@ -13,14 +14,30 @@ const SETUP_ERRORS = {
   csrf: 'Session expired — reload the page and try again.',
 };
 
-/** Length-independent compare, so the key cannot be guessed a character at a time. */
+/**
+ * Constant-time compare of the setup key, on digests rather than on the strings.
+ *
+ * The previous version was labelled "length-independent" and was not: it
+ * early-returned when the lengths differed, so the loop only ran for a guess of
+ * the right length. That is a length oracle. It was never measurable in
+ * practice - a few dozen integer operations behind a network round trip and a
+ * React render - which is why it is being fixed as correctness rather than
+ * reported as a vulnerability, but a comment that claims a property the code
+ * does not have is worse than no comment.
+ *
+ * Hashing both sides first makes it true rather than nearly true: two SHA-256
+ * digests are always 32 bytes, so there is no length branch left to leak and
+ * timingSafeEqual can do the comparison it is designed for.
+ *
+ * An unset or short key still means setup is CLOSED, not open to everyone. That
+ * check stays outside the compare on purpose: it is a statement about the
+ * server's own configuration and reveals nothing about the guess.
+ */
 function keyOk(given) {
   const want = process.env.ADMIN_SETUP_KEY || '';
-  // No key configured means setup is closed, not open to everyone.
-  if (want.length < 8 || typeof given !== 'string' || given.length !== want.length) return false;
-  let diff = 0;
-  for (let i = 0; i < want.length; i++) diff |= want.charCodeAt(i) ^ given.charCodeAt(i);
-  return diff === 0;
+  if (want.length < 8 || typeof given !== 'string') return false;
+  const digest = v => createHash('sha256').update(String(v), 'utf8').digest();
+  return timingSafeEqual(digest(want), digest(given));
 }
 
 async function adminExists() {
@@ -45,7 +62,7 @@ async function createFirstAdmin(formData) {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) redirect(`${back}&e=bad_email`);
   if (pass.length < 10) redirect(`${back}&e=short_pass`);
 
-  const hash = await bcrypt.hash(pass, 12);
+  const hash = await bcrypt.hash(pass, BCRYPT_COST);
 
   // The WHERE NOT EXISTS is the real guard: two people opening this page at the
   // same moment cannot both create an admin.
