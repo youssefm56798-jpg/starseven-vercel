@@ -721,7 +721,12 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
                       the whole finder turns on, set in Anton and bleeding off
                       the corner the way the hair tiles carry the Walker code. */}
                   <span className="lnum" dir="ltr" aria-hidden="true">{s.hold}</span>
-                  <span className="lmark" aria-hidden="true" />
+                  {/* The render, not the line drawing. The 36px mask this
+                      replaces was a glyph of a head that did not resemble the
+                      cut it stood for, which on a strip whose whole job is
+                      "pick the look" is the one thing it could not afford. */}
+                  <img className="lmark" src={`/${s.photo}`} alt="" loading="lazy"
+                    width="760" height="760" />
                   <span className="ltxt">
                     <b>{c.name}</b>
                     <span className="llabel" dir={runDir(label)}>{label}</span>

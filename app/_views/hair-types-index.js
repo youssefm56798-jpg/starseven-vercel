@@ -135,36 +135,6 @@ export default async function HairTypesIndexView({ lang }) {
               : 'The format matters as much as the formula. Gel has the highest hold and a wet finish: it holds a defined shape, but it dries hard and there is no restyling afterwards. Wax has medium-high hold and a natural finish: texture without the glued-down look. That is why one product suits one man and ruins the next — it is not a matter of taste.'}
           </p>
 
-          <aside className="ht-honest">
-            <h3>{ar ? 'وحاجة لازم نقولها بصراحة' : 'And one honest caveat'}</h3>
-            <p>
-              {ar ? (
-                <>
-                  الجدول المشهور لأنواع الشعر — نظام أندريه ووكر، من{' '}
-                  <span dir="ltr">1A</span> لحد <span dir="ltr">4C</span> — بيوصف شكل الكيرلة وبس.
-                  مش بيقول أي حاجة عن مسامية الشعرة ولا كثافتها ولا سمكها، وهي دي الحاجات اللي
-                  بتحدد فعلاً وزن المنتج اللي ينفع. والجدول نفسه مش متسق: بعض الدرجات بتوصف سُمك
-                  الشعرة وبعضها بيوصف ضيق الكيرلة. وفيه بحث لـ د. تينا لاسيسي بيقول إنه بيفصّل أوي
-                  في اختلافات بسيطة في الشعر الأوروبي وبيكبّس النوعين 3 و4 مع بعض.
-                </>
-              ) : (
-                <>
-                  The well-known chart — the Andre Walker system, <span dir="ltr">1A</span> through{' '}
-                  <span dir="ltr">4C</span> — describes curl shape and nothing else. It says nothing
-                  about porosity, density or strand diameter, and those are the attributes that
-                  actually decide which product weight works. It is also internally inconsistent:
-                  some subtypes describe strand thickness, others describe curl tightness. Research
-                  by Dr Tina Lasisi finds it over-resolves the narrow variation in European hair
-                  while compressing types 3 and 4 together.
-                </>
-              )}
-            </p>
-            <p>
-              {ar
-                ? 'عشان كده إحنا بنسأل سؤال واحد بستة اختيارات، مش اتناشر: أربع أشكال كيرلة (مفرود، متموج، كيرلي، خشن) واتنين كثافة (خفيف، كثيف) — لأن الكثافة هي اللي بتحدد وزن المنتج، وإنت تقدر تقول "شعري خفيف" بثقة أكتر بكتير ما تقدر تقول "أنا 2B". اعتبر ده اختصار عملي عشان تختار منتج تصفيف، مش تشخيص لشعرك.'
-                : 'So we ask one six-way question instead of a twelve-way one: four curl families (straight, wavy, curly, coily) and two density states (fine, thick) — because density is what decides product weight, and a customer can say "my hair is thin" far more reliably than "I am a 2B". Treat it as a practical shortcut for picking a styling product, not as a diagnosis.'}
-            </p>
-          </aside>
         </section>
 
         {/* --------------------------------------------------- the six tiles */}

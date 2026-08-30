@@ -102,28 +102,64 @@
 /*
  * The render at the top of a style card.
  *
- * Full card width and a fixed 4:3 box so six cards in a grid line their
- * headings up regardless of how tall each render sits in its frame. The 46px
- * masked glyph this sits above was too small to tell one cut from another,
- * which is the single job a style tile has.
+ * The renders are cut out, so there is no photographic background to butt
+ * against the card's own - the head simply stands on the card. An earlier pass
+ * kept the studio grey and cropped a square render into a 4:3 box, which put a
+ * visible seam across every card and sliced the top off every head. Both of
+ * those were the picture fighting the frame; a cutout removes the fight.
+ *
+ * The bust is bottom-aligned and bleeds off the lower edge of its own box into
+ * the card, so the crop reads as deliberate rather than as a photograph that
+ * ran out. The accent sits behind it as a soft ground the head stands on.
  */
 .hs-shot {
+  position: relative;
   margin: calc(-1 * var(--pad)) calc(-1 * var(--pad)) 0;
-  aspect-ratio: 4 / 3;
+  padding-top: 14px;
+  aspect-ratio: 5 / 4;
   overflow: hidden;
-  border-bottom: 1.5px solid var(--ink);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  /* Restrained on purpose. A 26% accent wash behind the head turned every card
+     into a pastel field, which is the exact look the hair-type tiles were
+     rebuilt to get away from. The accent is a shadow the head stands in now,
+     not a colour the card is painted; the ground stays paper. */
   background:
-    radial-gradient(ellipse 70% 80% at 50% 15%, color-mix(in srgb, var(--c) 20%, transparent), transparent 70%),
+    radial-gradient(ellipse 54% 46% at 50% 99%, color-mix(in srgb, var(--c) 13%, transparent), transparent 70%),
+    radial-gradient(ellipse 70% 60% at 50% 100%, color-mix(in srgb, var(--ink) 6%, transparent), transparent 72%),
     var(--paper);
 }
 .hs-shot img {
-  width: 100%; height: 100%;
-  object-fit: cover;
-  object-position: 50% 22%;
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  object-position: 50% 100%;
   display: block;
-  transition: transform .35s ease;
+  transition: transform .4s cubic-bezier(.22,.61,.36,1);
 }
-.hs-card:hover .hs-shot img { transform: scale(1.04); }
+.hs-card:hover .hs-shot img { transform: translateY(-4px) scale(1.02); }
+
+/* The hold figure moves behind the head rather than sitting on top of it. It
+   used to overlap the render at the card's top corner and read as a watermark
+   somebody forgot to delete; occluded by the bust it reads as a ground the
+   subject stands in front of, which is the whole reason for setting it so large. */
+.hs-shot .hs-hold {
+  position: absolute;
+  z-index: 0;
+  top: 2px;
+  inset-inline-end: 14px;
+  line-height: .78;
+  font-family: var(--font-anton), var(--font-cairo), sans-serif;
+  font-size: clamp(78px, 17vw, 132px);
+  color: color-mix(in srgb, var(--c) 20%, transparent);
+  pointer-events: none;
+  user-select: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .hs-shot img { transition: none; }
   .hs-card:hover .hs-shot img { transform: none; }

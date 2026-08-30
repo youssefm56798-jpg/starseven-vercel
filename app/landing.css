@@ -511,11 +511,18 @@
   color:color-mix(in srgb,var(--ink) 13%,transparent);
   pointer-events:none;user-select:none}
 
-.s7home .ltile .lmark{display:block;width:36px;height:36px;margin-bottom:12px;
-  background-color:currentColor;opacity:.55;
-  -webkit-mask:var(--m) center/contain no-repeat;mask:var(--m) center/contain no-repeat;
-  transition:opacity .18s}
-.s7home a.ltile:hover .lmark{opacity:1}
+/* Was a 36px currentColor mask of a drawing. It is the render now, so it wants
+   room and its own colour rather than a tint - and a ground to stand on, since
+   the file is a cutout with no background of its own. */
+.s7home .ltile .lmark{display:block;width:100%;height:118px;margin-bottom:12px;
+  object-fit:contain;object-position:50% 100%;
+  background:radial-gradient(ellipse 52% 42% at 50% 100%,
+    color-mix(in srgb,var(--c) 13%,transparent),transparent 70%);
+  transition:transform .3s cubic-bezier(.22,.61,.36,1)}
+.s7home a.ltile:hover .lmark{transform:translateY(-3px) scale(1.03)}
+@media(prefers-reduced-motion:reduce){
+  .s7home .ltile .lmark{transition:none}
+  .s7home a.ltile:hover .lmark{transform:none}}
 
 .s7home .ltile .ltxt{position:relative;display:block;min-width:0;padding-inline-end:40px}
 .s7home .ltile b{display:block;font-size:15px;font-weight:900;line-height:1.3}
@@ -549,6 +556,6 @@
   .s7home .looks{padding:64px 0}
   .s7home .look-grid{grid-template-columns:1fr;gap:9px}
   .s7home a.ltile{padding:14px 15px}
-  .s7home .ltile .lmark{width:32px;height:32px;margin-bottom:10px}
+  .s7home .ltile .lmark{height:96px;margin-bottom:10px}
   .s7home .ltile .lnum{font-size:52px;top:-10px}
 }

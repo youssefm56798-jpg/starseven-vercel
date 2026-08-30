@@ -173,17 +173,15 @@ export default async function HairStylesIndexView({ lang }) {
               return (
                 <article className="hs-card" key={s.slug}
                   style={{ '--c': s.color, '--m': `url(/${s.icon})` }}>
-                  {/* dir="ltr": a bare digit is a Latin run and reorders inside
-                      an Arabic line without it. */}
-                  <span className="hs-hold" dir="ltr" aria-hidden="true">{s.hold}</span>
-
                   {/* The render, given room to be looked at. The 46px masked
                       drawing this replaces was too small to tell one cut from
-                      another - which is the single job a style tile has. The
-                      mask stays in the markup below for the small marks, where
-                      a tinted glyph still reads better than a photograph. */}
+                      another - which is the single job a style tile has.
+                      The hold figure lives inside this block so the head can
+                      stand in front of it; dir="ltr" because a bare digit is a
+                      Latin run and reorders inside an Arabic line without it. */}
                   <div className="hs-shot">
-                    <img src={`/${s.photo}`} alt="" loading="lazy" width="720" height="720" />
+                    <span className="hs-hold" dir="ltr" aria-hidden="true">{s.hold}</span>
+                    <img src={`/${s.photo}`} alt="" loading="lazy" width="760" height="760" />
                   </div>
 
                   <div className="hs-card-head">
