@@ -21,95 +21,18 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
+import { ROOT, walk, serverActions } from './_lib/server-actions.mjs';
 
-const ROOT = new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1');
-
-/** Every .js file under app/. */
-function walk(dir, out = []) {
-  for (const entry of readdirSync(dir)) {
-    const full = join(dir, entry);
-    if (statSync(full).isDirectory()) walk(full, out);
-    else if (entry.endsWith('.js')) out.push(full);
-  }
-  return out;
-}
-
-/**
- * The body of a function, given the index just after the `(` of its parameter
- * list.
- *
- * The parameter list is skipped first, by counting parentheses. Three of the
- * actions in this codebase take a destructured object — `sendOfferBatch({
- * offerId, csrf })` — and reaching for the first `{` after the name lands on
- * that instead of on the body. The scan then reported those three as having no
- * CSRF check while they were the ones checking it most carefully, which is the
- * worst failure a test like this can have: it is wrong about the code being
- * right.
- *
- * Brace counting rather than a regex for the body, because an action contains
- * braces in template literals, in JSX and in nested functions, and
- * `[\s\S]*?\}` stops at the first of those. Strings and comments are skipped
- * so a brace inside either cannot unbalance the count.
+/*
+ * The scanner that finds the actions lives in tests/_lib/server-actions.mjs,
+ * because tests/action-permissions.test.mjs needs the same one and a second
+ * copy would drift. The test below still asserts that it found the actions this
+ * file knows about, so an extraction that broke it fails here.
  */
-function bodyAt(src, afterOpenParen) {
-  let depth = 1;
-  let i = afterOpenParen;
-  for (; i < src.length && depth > 0; i++) {
-    if (src[i] === '(') depth++;
-    else if (src[i] === ')') depth--;
-  }
-  const start = src.indexOf('{', i);
-  if (start < 0) return '';
 
-  let braces = 0;
-  for (let j = start; j < src.length; j++) {
-    const c = src[j];
-    if (c === '/' && src[j + 1] === '/') { j = src.indexOf('\n', j); if (j < 0) break; continue; }
-    if (c === '/' && src[j + 1] === '*') { j = src.indexOf('*/', j) + 1; if (j < 1) break; continue; }
-    if (c === "'" || c === '"' || c === '`') {
-      const quote = c;
-      j++;
-      while (j < src.length && src[j] !== quote) j += src[j] === '\\' ? 2 : 1;
-      continue;
-    }
-    if (c === '{') braces++;
-    else if (c === '}') {
-      braces--;
-      if (braces === 0) return src.slice(start, j + 1);
-    }
-  }
-  return '';
-}
-
-/**
- * Every Server Action in the tree, as { file, name, body }.
- *
- * Two shapes, because the codebase uses both: a module with 'use server' at
- * the top, where every exported function is an action, and a function with
- * 'use server' as its first statement inside a page file.
- */
-function actions() {
-  const found = [];
-  for (const full of walk(join(ROOT, 'app'))) {
-    const src = readFileSync(full, 'utf8');
-    if (!src.includes('use server')) continue;
-    const file = relative(ROOT, full).split('\\').join('/');
-    const moduleLevel = /^\s*(?:\/\*[\s\S]*?\*\/\s*)?['"]use server['"];/.test(src);
-
-    for (const m of src.matchAll(/(?:export\s+)?async function\s+([A-Za-z0-9_$]+)\s*\(/g)) {
-      const body = bodyAt(src, m.index + m[0].length);
-      const inline = /^\{\s*(?:\/\/[^\n]*\n\s*)*['"]use server['"];/.test(body);
-      const exported = m[0].startsWith('export');
-      if (!inline && !(moduleLevel && exported)) continue;
-      found.push({ file, name: m[1], body });
-    }
-  }
-  return found;
-}
-
-const ALL = actions();
+const ALL = serverActions();
 
 test('the walk actually finds the actions it is meant to police', () => {
   // A scan that silently matches nothing is a test that passes for ever.
