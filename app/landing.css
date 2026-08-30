@@ -117,7 +117,12 @@
 .s7home .hero-title .row{display:block;overflow:hidden;padding-bottom:.08em;margin-bottom:-.08em}
 .s7home .hero-title .row>span{display:block;will-change:transform}
 .s7home .hero-title .stroke{color:transparent;-webkit-text-stroke:2px var(--ink)}
-[dir="rtl"] .s7home .hero-title .stroke{-webkit-text-stroke:0;color:#C9C2B2}
+/* #C9C2B2 measured 1.74:1 on paper - one of the three lines of the h1, on the
+   site DEFAULT language, effectively unreadable. Arabic cannot use the Latin
+   text-stroke trick above (it breaks the letter joins), so the outline effect is
+   carried by a solid colour, which then has to earn its contrast. ~3.9:1, over
+   the 3:1 large-text minimum. */
+[dir="rtl"] .s7home .hero-title .stroke{-webkit-text-stroke:0;color:color-mix(in srgb,var(--ink) 45%,var(--paper))}
 .s7home .hero-title .red{color:var(--red-ui)}
 .s7home .hero-title .red>span{background:linear-gradient(100deg,var(--red-ui) 42%,#FF9186 50%,var(--red-ui) 58%);background-size:250% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:shine 5s ease-in-out 3}
 @keyframes shine{0%,20%{background-position:130% 0}80%,100%{background-position:-50% 0}}
@@ -186,7 +191,7 @@
 .s7home .hero-stamp text{font-family:var(--font-anton),sans-serif;font-size:11.5px;letter-spacing:.24em;fill:var(--ink)}
 .s7home .price-tag{position:absolute;bottom:9%;inset-inline-end:1%;z-index:5;background:var(--red-ui);color:#fff;border-radius:12px;padding:10px 18px;font-weight:900;box-shadow:0 16px 40px -10px rgba(215,41,29,.5)}
 .s7home .price-tag .pt-num{font-family:var(--font-anton),var(--font-cairo),sans-serif;font-size:26px;line-height:1.1}
-.s7home .price-tag small{font-size:11px;color:#FFD9D4;font-weight:700;display:block}
+.s7home .price-tag small{font-size:11px;color:#FFE9E6;font-weight:700;display:block}
 .s7home .ticker{border-block:1.5px solid var(--ink);padding:16px 0;overflow:hidden;background:var(--red-ui)}
 .s7home .ticker-track{display:flex;gap:48px;width:max-content;animation:slide 22s linear infinite}
 [dir="ltr"] .s7home .ticker-track{animation-name:slide-ltr}
@@ -210,7 +215,7 @@
    which is the difference that read as "no hover animation" on the home page. */
 .s7home .card:hover{transform:translateY(-6px);border-color:var(--c);
   box-shadow:0 20px 44px -14px color-mix(in srgb,var(--c) 55%,transparent)}
-.s7home .card .chip{position:relative;z-index:1;align-self:flex-start;background:color-mix(in srgb,var(--c) 88%,var(--ink));color:#fff;border:none;font-size:11px;font-weight:900;padding:4px 12px;border-radius:99px}
+.s7home .card .chip{position:relative;z-index:1;align-self:flex-start;background:color-mix(in srgb,var(--c) 40%,var(--ink));color:#fff;border:none;font-size:11px;font-weight:900;padding:4px 12px;border-radius:99px}
 .s7home .card img{position:relative;z-index:1;height:170px;width:auto;margin:18px auto 14px;object-fit:contain;filter:drop-shadow(0 16px 18px rgba(18,16,11,.22));transition:transform .3s}
 .s7home .card:hover img{transform:scale(1.07) rotate(-3deg)}
 .s7home .card h3{position:relative;z-index:1;font-size:16.5px;font-weight:900;line-height:1.35}
@@ -234,7 +239,7 @@
 .s7home .prox-copy p{color:#B9B4A8;font-weight:600;max-width:46ch;margin-bottom:28px}
 .s7home .spec{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:32px;max-width:460px}
 .s7home .spec>div{border:1px solid var(--line-invert);border-radius:10px;padding:14px 12px;text-align:center;background:rgba(255,253,248,.04)}
-.s7home .spec b{display:block;font-family:var(--font-anton),var(--font-cairo),sans-serif;font-size:20px;color:var(--red)}
+.s7home .spec b{display:block;font-family:var(--font-anton),var(--font-cairo),sans-serif;font-size:20px;color:#FF6155}
 .s7home .spec span{font-size:11.5px;color:#B9B4A8;font-weight:700}
 .s7home .hold{padding:90px 0}
 /* auto-fit, not a fixed 3: a hold band with nothing in it is not rendered,

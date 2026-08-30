@@ -41,6 +41,8 @@ const T = {
     shop: 'اتفرج على المنتجات',
     sub: 'المجموع', ship: 'الشحن', free: 'مجاني', tot: 'الإجمالي',
     checkout: 'إتمام الطلب', egp: 'ج.م',
+    away: n => `ضيف بـ ${n} كمان والشحن يبقى مجاني`,
+    gotFree: 'الشحن مجاني ✓',
     cod: 'الدفع عند الاستلام',
     less: 'أقل', more: 'أكثر',
   },
@@ -50,6 +52,8 @@ const T = {
     shop: 'Browse the range',
     sub: 'Subtotal', ship: 'Delivery', free: 'Free', tot: 'Total',
     checkout: 'Checkout', egp: 'EGP',
+    away: n => `Add ${n} more and delivery is free`,
+    gotFree: 'Delivery is free',
     cod: 'Cash on delivery',
     less: 'Less', more: 'More',
   },
@@ -200,6 +204,19 @@ export default function CartDrawer({ catalogue = [], lang = 'ar', shipping = 30,
                 </div>
 
                 <div className="cd-foot">
+                  {/* The one number a basket can act on. freeOver was already
+                      known here and never said, so a customer 20 EGP short of
+                      free delivery had no way to find that out. */}
+                  {freeOver > 0 && (
+                    t.shipping === 0
+                      ? <div className="cd-nudge cd-nudge-got">{d.gotFree}</div>
+                      : <div className="cd-nudge">
+                          {d.away(money(Math.max(0, freeOver - subtotal)))}
+                          <span className="cd-bar" aria-hidden="true">
+                            <span style={{ width: `${Math.min(100, Math.round(subtotal / freeOver * 100))}%` }} />
+                          </span>
+                        </div>
+                  )}
                   <div className="cd-row"><span>{d.sub}</span><span>{money(t.subtotal)}</span></div>
                   <div className="cd-row">
                     <span>{d.ship}</span>

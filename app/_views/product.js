@@ -189,6 +189,7 @@ export default async function ProductView({ slug, lang }) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ld(crumbLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ld(faqJsonLd(faq)) }} />
       <Nav lang={lang} path={`product/${p.slug}`} />
+      <main id="content">
 
       <div className="phead">
         <div className="wrap">
@@ -246,9 +247,6 @@ export default async function ProductView({ slug, lang }) {
                     label={ar ? 'ضيفه للسلة' : 'Add to cart'}
                     addedLabel={ar ? 'اتضاف للسلة ✓' : 'Added to cart ✓'}
                   />
-                  <Link className="btn btn-line" href={L(`/checkout`)}>
-                    {ar ? 'إتمام الطلب ←' : 'Checkout →'}
-                  </Link>
                 </>
               ) : (
                 <span className="btn btn-line" style={{ opacity: 0.6, cursor: 'default' }}>
@@ -256,6 +254,17 @@ export default async function ProductView({ slug, lang }) {
                 </span>
               )}
             </div>
+
+            {/* Cash on delivery, said where the decision is made. It was stated
+                once, in the trust row at the very bottom of the page under the
+                ingredients - thousands of pixels below the button it exists to
+                de-risk. On a shop where nobody pays until the parcel is in
+                their hand, that is the strongest sentence on the page. */}
+            {inStock && Number(p.price) > 0 ? (
+              <p className="pdp-cod">
+                {ar ? 'تدفع عند الاستلام — مفيش دفع مقدم' : 'Pay when it arrives — nothing upfront'}
+              </p>
+            ) : null}
 
             <div className="spec">
               <div>
@@ -438,7 +447,7 @@ export default async function ProductView({ slug, lang }) {
                           <bdi>{whole(r.price)} <small>{currencyLabel(lang)}</small></bdi>
                           {r.compare_at != null && <bdi className="was">{whole(r.compare_at)}</bdi>}
                         </div>
-                        <AddButton sku={r.sku} label={ar ? 'ضيف للسلة' : 'Add'} />
+                        <AddButton sku={r.sku} label={ar ? 'ضيف للسلة' : 'Add'} name={ar ? r.name_ar : r.name_en} />
                       </div>
                     </div>
                   );
@@ -449,6 +458,7 @@ export default async function ProductView({ slug, lang }) {
         </div>
       </div>
 
+      </main>
       <Footer lang={lang} />
     </Dir>
   );

@@ -76,6 +76,7 @@ export default async function HomeView({ lang }) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(organisation).replace(/</g, '\\u003c') }}
       />
       <Nav lang={lang} path="" />
+      <main id="content">
       <Landing
         lang={lang}
         products={products}
@@ -83,6 +84,7 @@ export default async function HomeView({ lang }) {
         shipping={site.shipping}
         freeOver={site.freeOver}
       />
+      </main>
       <Footer lang={lang} />
     </Dir>
   );

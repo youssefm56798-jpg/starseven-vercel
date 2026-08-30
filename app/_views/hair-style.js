@@ -119,6 +119,7 @@ export default async function HairStyleView({ slug, lang }) {
       <script type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: ld(faqJsonLd(faq)) }} />
       <Nav lang={lang} path={`hair-styles/${tile.slug}`} />
+      <main id="content">
 
       <div className="phead">
         <div className="wrap">
@@ -324,6 +325,7 @@ export default async function HairStyleView({ slug, lang }) {
         </section>
       </div>
 
+      </main>
       <Footer lang={lang} />
     </Dir>
   );

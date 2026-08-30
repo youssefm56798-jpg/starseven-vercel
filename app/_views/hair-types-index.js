@@ -105,6 +105,7 @@ export default async function HairTypesIndexView({ lang }) {
       <script type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: ld(breadcrumbLd({ tile: null, lang, siteUrl: site.url })) }} />
       <Nav lang={lang} path="hair-types" />
+      <main id="content">
 
       <div className="phead">
         <div className="wrap">
@@ -275,6 +276,7 @@ export default async function HairTypesIndexView({ lang }) {
         </section>
       </div>
 
+      </main>
       <Footer lang={lang} />
     </Dir>
   );

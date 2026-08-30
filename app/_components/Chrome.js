@@ -27,6 +27,13 @@ export function Dir({ lang = 'ar', children }) {
   const ar = lang === 'ar';
   return (
     <div className="s7page" lang={ar ? 'ar' : 'en'} dir={ar ? 'rtl' : 'ltr'}>
+      {/* Every page put its content in a bare div, so there was no main landmark
+          and no way past the nav: a keyboard or screen-reader visitor tabbed the
+          logo, the shop submenu, three links, the language toggle and the cart
+          before reaching a word of the page, on every navigation. */}
+      <a className="skip" href="#content">
+        {ar ? 'تخطى إلى المحتوى' : 'Skip to content'}
+      </a>
       {children}
     </div>
   );
@@ -214,7 +221,7 @@ export async function Footer({ lang = 'ar' }) {
                 links inside Links. Same source as the nav submenu, so a
                 category the client switches on appears in both at once. */}
             <div>
-              <h5>{ar ? 'التشكيلة' : 'The range'}</h5>
+              <h2>{ar ? 'التشكيلة' : 'The range'}</h2>
               {/* Same opt-out as the nav submenu, and for the same reason:
                   this column is the category picker again, just at the bottom
                   of the page and under the long h1 labels instead of the short
@@ -235,7 +242,7 @@ export async function Footer({ lang = 'ar' }) {
             </div>
 
             <div>
-              <h5>{ar ? 'روابط' : 'Links'}</h5>
+              <h2>{ar ? 'روابط' : 'Links'}</h2>
               <ul>
                 <li><Link href={L('/shop')}>{ar ? 'كل المنتجات' : 'The full line'}</Link></li>
                 <li><Link href={L('/hair-types')}>{ar ? 'أنواع الشعر' : 'Hair types'}</Link></li>
@@ -248,7 +255,7 @@ export async function Footer({ lang = 'ar' }) {
             </div>
 
             <div>
-              <h5>{ar ? 'تواصل' : 'Contact'}</h5>
+              <h2>{ar ? 'تواصل' : 'Contact'}</h2>
               <ul>
                 <li>
                   <a href={waLink()} dir="ltr" target="_blank" rel="noopener">

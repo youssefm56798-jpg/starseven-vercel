@@ -38,6 +38,7 @@ export default function OrderFind({ lang }) {
           localePath('/' + path), so the short form would send the Arabic
           reader of this page to /order — which no route file answers. */}
       <Nav lang={ar ? 'ar' : 'en'} path="order/find" />
+      <main id="content">
 
       <div className="wrap ordpage">
         <div className="ord-head">
@@ -68,6 +69,7 @@ export default function OrderFind({ lang }) {
         </p>
       </div>
 
+      </main>
       <Footer lang={ar ? 'ar' : 'en'} />
     </Dir>
   );

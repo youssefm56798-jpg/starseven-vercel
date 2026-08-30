@@ -109,6 +109,7 @@ export default async function ShopView({ kind, lang }) {
           /shop/gel to /en/shop - switching language quietly threw away the
           category they were looking at. */}
       <Nav lang={lang} path={active === 'all' ? 'shop' : `shop/${active}`} />
+      <main id="content">
 
       <div className="phead">
         <div className="wrap">
@@ -199,7 +200,7 @@ export default async function ShopView({ kind, lang }) {
                   <Link className="card-hit" href={L(`/product/${p.slug}`)}>
                     {chip && <span className="chip">{chip}</span>}
                     <img src={imageUrl(p.image)} alt={name} loading="lazy" width="300" height="300" />
-                    <h3>{name}</h3>
+                    <h2>{name}</h2>
                     <div className="sub">{sub}</div>
                   </Link>
                   {/* Sibling of the link, not a child of it, so opening the
@@ -215,12 +216,16 @@ export default async function ShopView({ kind, lang }) {
                           <bdi className="now">{whole(p.price)} <small>{currencyLabel(lang)}</small></bdi>
                           {p.compare_at != null && <bdi className="was">{whole(p.compare_at)}</bdi>}
                         </div>
-                        <AddButton sku={p.sku} label={ar ? 'ضيف للسلة' : 'Add'} />
+                        <AddButton sku={p.sku} label={ar ? 'ضيف للسلة' : 'Add'} name={name} />
                       </>
                     ) : (
                       <>
                         <div className="price ask">{ar ? 'اسأل عن السعر' : 'Ask for price'}</div>
+                        {/* Named for the same reason the Add buttons are: a grid
+                            of unpriced products rendered a column of links all
+                            called "WhatsApp". */}
                         <a className="buy" target="_blank" rel="noopener"
+                          aria-label={ar ? `اسأل عن سعر ${name} على واتساب` : `Ask about ${name} on WhatsApp`}
                           href={`https://wa.me/${site.whatsapp}?text=${encodeURIComponent(
                             ar ? `عايز أعرف سعر ${p.name_ar}` : `What is the price of ${p.name_en}?`)}`}>
                           {ar ? 'واتساب' : 'WhatsApp'}
@@ -250,6 +255,7 @@ export default async function ShopView({ kind, lang }) {
         </nav>
       </div>
 
+      </main>
       <Footer lang={lang} />
     </Dir>
   );

@@ -26,7 +26,12 @@
   margin-bottom: 14px;
 }
 .hs h3 { font-size: 17px; font-weight: 900; line-height: 1.35; }
-.hs p { font-size: 15px; }
+/* :where() drops this to element-only specificity (0,0,1) so it is a DEFAULT,
+   not a winner. As `.hs p` it was (0,1,1) and outranked every single-class rule
+   below it - .hs-short, -avoid, -gapnote, -empty, -alts all computed 15px, so a
+   card rendered five or six consecutive paragraphs at one size and the whole
+   hierarchy written underneath never shipped. */
+:where(.hs) p { font-size: 15px; }
 .hs .hs-lead { color: var(--grey); font-weight: 600; max-width: 70ch; margin-bottom: 18px; }
 
 /* ---------------------------------------------------- how the finder works */
@@ -79,22 +84,13 @@
    it is the number the whole finder turns on. In Anton, bleeding off the top
    corner at low contrast, it is the device .hcard .en and the redesigned home
    tiles already use. */
-.hs-hold {
-  position: absolute;
-  top: -14px;
-  inset-inline-end: 12px;
-  line-height: 1;
-  font-family: var(--font-anton), var(--font-cairo), sans-serif;
-  font-size: 74px;
-  color: color-mix(in srgb, var(--ink) 12%, transparent);
-  pointer-events: none;
-  user-select: none;
-}
 
 .hs-card-head { position: relative; display: flex; gap: 14px; align-items: flex-start; }
 .hs-card-head h3 { margin-bottom: 6px; }
 .hs-card-head h3 a:hover { color: var(--c); }
-.hs-card-head > div { min-width: 0; padding-inline-end: 44px; }
+/* No padding reserve any more: the hold numeral moved inside .hs-shot, and
+   this gutter was still squeezing the card header into 311px of a 516px box. */
+.hs-card-head > div { min-width: 0; }
 
 /* The drawing is a mask, not an image, so it takes the card's own currentColor.
    The same file is loaded as an <img> on the detail hero, where the color
@@ -276,7 +272,7 @@
 .hs-table tbody tr + tr th, .hs-table tbody tr + tr td { border-top: 1px solid var(--line); }
 .hs-table tbody th { font-weight: 900; }
 .hs-table td { color: var(--grey); font-weight: 600; }
-.hs-yes { color: var(--green); font-weight: 900; white-space: nowrap; }
+.hs-yes { color: var(--green-ui); font-weight: 900; white-space: nowrap; }
 .hs-no { color: var(--grey); font-weight: 800; }
 
 /* ---------------------------------------------------------------- gaps --- */
@@ -490,7 +486,6 @@
   .hs-hero { flex-direction: column; align-items: flex-start; gap: 14px; }
   .hs-hero img { width: 74px; height: 74px; }
   .hs-hero img.hs-hero-shot { width: clamp(104px, 34vw, 150px); height: auto; }
-  .hs-hold { font-size: 60px; top: -11px; }
   .hs-pick-main { flex-direction: column; align-items: flex-start; }
   .hs-pick-main img { width: 88px; height: 88px; }
   .hs-sibgrid { grid-template-columns: repeat(2, 1fr); }

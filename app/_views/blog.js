@@ -56,6 +56,7 @@ export default async function BlogView({ lang }) {
   return (
     <Dir lang={lang}>
       <Nav lang={lang} path="blog" />
+      <main id="content">
 
       <div className="phead">
         <div className="wrap">
@@ -90,7 +91,7 @@ export default async function BlogView({ lang }) {
                       Arabic cards. It is a hair type, so it has a name in
                       both languages already. */}
                   {tagLabel(a.hair_type) && <span className="tag">{tagLabel(a.hair_type)}</span>}
-                  <h3>{a.title}</h3>
+                  <h2>{a.title}</h2>
                   <p>{a.excerpt}</p>
                   <span className="more">{ar ? 'اقرأ ←' : 'Read →'}</span>
                 </div>
@@ -100,6 +101,7 @@ export default async function BlogView({ lang }) {
         )}
       </div>
 
+      </main>
       <Footer lang={lang} />
     </Dir>
   );

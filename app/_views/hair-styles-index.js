@@ -101,6 +101,7 @@ export default async function HairStylesIndexView({ lang }) {
       <script type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: ld(styleBreadcrumbLd({ tile: null, lang, siteUrl: site.url })) }} />
       <Nav lang={lang} path="hair-styles" />
+      <main id="content">
 
       <div className="phead">
         <div className="wrap">
@@ -172,7 +173,7 @@ export default async function HairStylesIndexView({ lang }) {
 
               return (
                 <article className="hs-card" key={s.slug}
-                  style={{ '--c': s.color, '--m': `url(/${s.icon})` }}>
+                  style={{ '--c': s.color }}>
                   {/* The render, given room to be looked at. The 46px masked
                       drawing this replaces was too small to tell one cut from
                       another - which is the single job a style tile has.
@@ -323,6 +324,7 @@ export default async function HairStylesIndexView({ lang }) {
         </section>
       </div>
 
+      </main>
       <Footer lang={lang} />
     </Dir>
   );

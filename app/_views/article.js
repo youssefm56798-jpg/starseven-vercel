@@ -220,6 +220,7 @@ export default async function ArticleView({ slug, lang: want }) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbLd).replace(/</g, '\\u003c') }}
       />
       <Nav lang={lang} path={`article/${a.slug}`} />
+      <main id="content">
 
       <div className="wrap">
         <article className="article">
@@ -300,6 +301,7 @@ export default async function ArticleView({ slug, lang: want }) {
         </article>
       </div>
 
+      </main>
       <Footer lang={lang} />
     </Dir>
   );

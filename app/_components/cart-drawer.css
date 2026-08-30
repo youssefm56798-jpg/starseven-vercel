@@ -60,10 +60,17 @@
 }
 .cd-x:hover { color: var(--ink, #12100B); }
 
-.cd-body { flex: 1; overflow-y: auto; padding: 20px 22px; }
+/* overscroll-behavior stops the scroll chaining to the page behind once the
+   list hits its end, which on iOS otherwise scrolls the storefront under an
+   open drawer. */
+.cd-body { flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: 20px 22px; }
+/* The safe-area inset keeps the Checkout button clear of the iPhone home
+   indicator, which otherwise sits over it. Background is --paper, not #fff:
+   white is brighter than the panel and drew a visible band across the bottom. */
 .cd-foot {
   flex: none; border-top: 1.5px solid var(--line, rgba(18,16,11,.13));
-  padding: 18px 22px; background: #fff;
+  padding: 18px 22px calc(18px + env(safe-area-inset-bottom, 0px));
+  background: var(--paper, #FFFDF8);
 }
 
 .cd-item {
@@ -84,13 +91,36 @@
   border: 1.5px solid var(--line, rgba(18,16,11,.13));
   border-radius: 99px; padding: 2px;
 }
+/* 26px is a fine target for a mouse and a poor one for a thumb. The button is
+   36px with a transparent extension to 44px, so the tap area meets the
+   guideline without the control growing visually. */
 .cd-qty button {
-  width: 26px; height: 26px; border: none; background: none;
+  width: 36px; height: 36px; border: none; background: none;
   border-radius: 99px; font-size: 16px; cursor: pointer;
   font-family: inherit; color: inherit;
+  position: relative;
+}
+.cd-qty button::after {
+  content: ''; position: absolute; inset: -4px;
 }
 .cd-qty button:hover { background: var(--paper-2, #F5F2EA); }
 .cd-qty span { min-width: 24px; text-align: center; font-weight: 900; font-size: 13.5px; }
+
+.cd-nudge {
+  font-size: 12.5px; font-weight: 800; color: var(--ink, #12100B);
+  background: var(--paper-2, #F5F2EA);
+  border-radius: 10px; padding: 9px 12px; margin-bottom: 12px;
+}
+.cd-nudge-got { color: var(--green-ui, #3F6B1C); }
+.cd-bar {
+  display: block; height: 4px; border-radius: 99px; margin-top: 7px;
+  background: color-mix(in srgb, var(--ink, #12100B) 12%, transparent);
+  overflow: hidden;
+}
+.cd-bar > span {
+  display: block; height: 100%; border-radius: 99px;
+  background: var(--green-ui, #3F6B1C);
+}
 
 .cd-row {
   display: flex; justify-content: space-between; gap: 10px;
@@ -102,7 +132,7 @@
   margin: 12px 0 16px; padding-top: 12px;
   border-top: 1.5px solid var(--line, rgba(18,16,11,.13));
 }
-.cd-row .cd-free { color: var(--green, #5E9C2B); font-weight: 900; }
+.cd-row .cd-free { color: var(--green-ui, #3F6B1C); font-weight: 900; }
 
 .cd-empty { text-align: center; padding: 50px 10px; color: var(--grey, #6E6A60); font-weight: 700; }
 .cd-empty span {

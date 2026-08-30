@@ -14,7 +14,12 @@
   margin-bottom: 14px;
 }
 .ht h3 { font-size: 17px; font-weight: 900; line-height: 1.35; }
-.ht p { font-size: 15px; }
+/* :where() drops this to element-only specificity (0,0,1) so it is a DEFAULT,
+   not a winner. As `.ht p` it was (0,1,1) and outranked every single-class rule
+   below it - .ht-short, -avoid, -gapnote, -empty, -alts all computed 15px, so a
+   card rendered five or six consecutive paragraphs at one size and the whole
+   hierarchy written underneath never shipped. */
+:where(.ht) p { font-size: 15px; }
 .ht .ht-lead { color: var(--grey); font-weight: 600; max-width: 70ch; margin-bottom: 18px; }
 
 /* ------------------------------------------------------- why type matters */
@@ -22,8 +27,6 @@
 .ht-why { margin-top: 30px; }
 .ht-why > p { color: var(--grey); font-weight: 600; max-width: 72ch; margin-bottom: 14px; }
 
-/* The rounded corners have to follow the text direction too. */
-[dir="rtl"] 
 /* --------------------------------------------------------- the six cards */
 
 .ht-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
@@ -141,7 +144,7 @@
 .ht-table tbody tr + tr th, .ht-table tbody tr + tr td { border-top: 1px solid var(--line); }
 .ht-table tbody th { font-weight: 900; white-space: nowrap; }
 .ht-table td { color: var(--grey); font-weight: 600; }
-.ht-yes { color: var(--green); font-weight: 900; white-space: nowrap; }
+.ht-yes { color: var(--green-ui); font-weight: 900; white-space: nowrap; }
 .ht-no { color: var(--grey); font-weight: 800; }
 
 /* ---------------------------------------------------------------- gaps */

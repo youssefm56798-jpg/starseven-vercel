@@ -137,18 +137,31 @@ function forgetKey() {
   try { localStorage.removeItem(KEY_STORE); } catch { /* nothing to forget */ }
 }
 
+/*
+ * A field, its label, and its error - wired together so the error is not purely
+ * a colour.
+ *
+ * It used to render the message in an anonymous div and mark the input with a
+ * class. Someone who cannot see the red border got no announcement, no name for
+ * what was wrong, and a Place order button that appeared to do nothing.
+ * aria-invalid states it, aria-describedby reads the message out with the field.
+ */
 function Field({ id, label, val, set, err, type = 'text', ta, ...rest }) {
+  const errId = `${id}-err`;
+  const props = {
+    id,
+    className: err ? 'bad' : '',
+    value: val,
+    onChange: e => set(e.target.value),
+    'aria-invalid': err ? 'true' : undefined,
+    'aria-describedby': err ? errId : undefined,
+    ...rest,
+  };
   return (
     <div className="ff">
       <label htmlFor={id}>{label}</label>
-      {ta ? (
-        <textarea id={id} rows="2" className={err ? 'bad' : ''} value={val}
-          onChange={e => set(e.target.value)} {...rest} />
-      ) : (
-        <input id={id} type={type} className={err ? 'bad' : ''} value={val}
-          onChange={e => set(e.target.value)} {...rest} />
-      )}
-      {err && <div className="err">{err}</div>}
+      {ta ? <textarea rows="2" {...props} /> : <input type={type} {...props} />}
+      {err && <div className="err" id={errId}>{err}</div>}
     </div>
   );
 }
@@ -262,7 +275,17 @@ export default function CheckoutClient({ lang, add, catalog, shipping, currency 
     // customer can reach their order again — to check it or to cancel it.
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(f.email.trim())) next.email = T.e_email;
     setErrs(next);
-    if (Object.keys(next).length) return;
+    if (Object.keys(next).length) {
+      /* Put the caret on the first thing that is wrong. Without this the page
+         does not move, nothing is announced, and the only feedback a keyboard
+         user gets is that the button did nothing. */
+      const first = Object.keys(next)[0];
+      requestAnimationFrame(() => {
+        const el = document.getElementById(first);
+        if (el) { el.focus(); el.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+      });
+      return;
+    }
 
     setBusy(true);
     setTop('');
@@ -326,7 +349,9 @@ export default function CheckoutClient({ lang, add, catalog, shipping, currency 
       <div className="co-main">
         <h2>{ar ? 'بيانات التوصيل' : 'Delivery details'}</h2>
         <form onSubmit={submit} noValidate>
-          {top && <div className="formmsg">{top}</div>}
+          {/* role=alert so a failure that lands at the top of the form is spoken,
+              rather than only appearing above a button already scrolled past. */}
+          {top && <div className="formmsg" role="alert">{top}</div>}
 
           <div className="ff2">
             <Field id="name" label={T.name} val={f.name} set={upd('name')} err={errs.name}
@@ -382,7 +407,7 @@ export default function CheckoutClient({ lang, add, catalog, shipping, currency 
           <div className="co-item" key={l.sku}>
             <img src={`/${l.img}`} alt={l[lang].name} width="52" height="52" />
             <div>
-              <h4>{l[lang].name}</h4>
+              <h3>{l[lang].name}</h3>
               <div className="q"><bdi>{money(l.price)}</bdi></div>
             </div>
             <div className="qc">

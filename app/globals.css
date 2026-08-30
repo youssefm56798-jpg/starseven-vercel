@@ -4,6 +4,9 @@
   --paper:#FFFDF8; --paper-2:#F5F2EA; --ink:#12100B; --grey:#6E6A60;
   --red:#E8362A; --red-ui:#D7291D;
   --yellow:#D9A81E; --green:#5E9C2B; --blue:#2A6DE8; --purple:#8B4DC9;
+  /* --green is a 3.3:1 tint on paper: fine for a rule or a tick, too light to
+     read as text. --green-ui is the same hue at 5.6:1 for anything with words. */
+  --green-ui:#3F6B1C;
   --line:rgba(18,16,11,.13); --line-invert:rgba(255,253,248,.16);
 }
 *{margin:0;padding:0;box-sizing:border-box}
@@ -31,6 +34,25 @@ button{font:inherit;cursor:pointer}
 ::selection{background:var(--red-ui);color:#fff}
 
 /* nav */
+/* One ring for everything that takes focus. Four components had a designed
+   indicator and roughly thirty fell back to whatever the browser drew - and the
+   three input rules below replaced it with a border-colour change that vanishes
+   in the error state, where the border is already red. :focus-visible keeps it
+   off mouse clicks. */
+:where(a,button,summary,input,select,textarea,[tabindex]):focus-visible{
+  outline:2px solid var(--ink);outline-offset:2px;border-radius:4px}
+/* On the dark surfaces the ink ring is invisible, so it inverts there. */
+.s7foot :where(a,button):focus-visible,
+.hs-rec :where(a,button):focus-visible,
+.ht-rec :where(a,button):focus-visible,
+.co-side :where(a,button,input):focus-visible{outline-color:var(--paper)}
+
+.skip{position:absolute;inset-inline-start:8px;top:-60px;z-index:200;
+  background:var(--ink);color:var(--paper);font-weight:900;font-size:14px;
+  padding:11px 18px;border-radius:0 0 12px 12px;text-decoration:none;
+  transition:top .15s}
+.skip:focus{top:0}
+
 .s7nav{position:sticky;top:0;z-index:100;background:var(--paper);border-bottom:1.5px solid var(--ink)}
 .s7nav .inner{display:flex;align-items:center;justify-content:space-between;height:66px;gap:16px;flex-wrap:nowrap}
 .s7nav .logo img{height:30px;width:auto}
@@ -119,11 +141,16 @@ button{font:inherit;cursor:pointer}
 .card:hover::before{opacity:1}
 .card>*{position:relative;z-index:1}
 
-.card .chip{align-self:flex-start;background:color-mix(in srgb,var(--c) 88%,var(--ink));color:#fff;
+/* 40%, not 88%. White 11px text on an 88% accent failed WCAG AA on 19 of the
+   60 accents in the catalogue - a pure-yellow chip measured 1.39:1, which is
+   text you cannot read. Measured across every accent in use, 40% is the highest
+   share of colour that still clears 4.5:1 on the lightest one (5.22:1); 45%
+   lands at 4.41 and misses. The chip keeps its identity and becomes legible. */
+.card .chip{align-self:flex-start;background:color-mix(in srgb,var(--c) 40%,var(--ink));color:#fff;
   font-size:11px;font-weight:900;padding:4px 12px;border-radius:99px}
 .card img{height:160px;width:auto;margin:16px auto 12px;object-fit:contain;
   filter:drop-shadow(0 14px 16px rgba(18,16,11,.2))}
-.card h3{font-size:16.5px;font-weight:900;line-height:1.35}
+.card h2{font-size:16.5px;font-weight:900;line-height:1.35}
 .card .sub{color:var(--grey);font-size:12.5px;font-weight:600;margin-bottom:12px}
 .card .foot{margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:8px}
 /* Flex, not inline text. "45 EGP" and a struck-through "55" are two Latin
@@ -137,8 +164,11 @@ button{font:inherit;cursor:pointer}
   border-radius:99px;padding:1px 7px;font-family:var(--font-cairo),sans-serif;white-space:nowrap}
 .card .buy{background:var(--ink);color:var(--paper);border:none;font-weight:900;font-size:12.5px;
   padding:9px 16px;border-radius:99px;transition:.2s}
-.card .buy:hover{background:var(--c);color:#fff}
-.card .buy.added{background:var(--green);color:#fff}
+/* Same failure as the chip: white on a raw accent. 28 of the 60 catalogue
+   accents failed AA and the brightest yellow measured 1.07:1 - hovering Add
+   made the word disappear. 40% accent over ink clears 4.5:1 on every one. */
+.card .buy:hover{background:color-mix(in srgb,var(--c) 40%,var(--ink));color:#fff}
+.card .buy.added{background:var(--green-ui);color:#fff}
 .card-hit{display:flex;flex-direction:column}
 /* The title used to go red on hover. The whole card already lifts, tints its
    border and warms its wash, so recolouring the name on top of that was the
@@ -158,6 +188,11 @@ button{font:inherit;cursor:pointer}
   background:radial-gradient(ellipse 70% 70% at 50% 40%,color-mix(in srgb,var(--c) 22%,transparent),transparent 70%),var(--paper-2);
   display:grid;place-items:center;padding:36px;aspect-ratio:1}
 .pdp-media img{width:80%;filter:drop-shadow(0 30px 34px rgba(18,16,11,.28))}
+.pdp-cod{display:flex;align-items:center;gap:7px;margin-top:11px;
+  font-size:13px;font-weight:800;color:var(--green)}
+.pdp-cod::before{content:"";width:15px;height:15px;flex:none;background:currentColor;
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M6.4,12.9,2.1,8.6,3.6,7.1,6.4,9.9,12.6,3.7,14.1,5.2Z'/%3E%3C/svg%3E") center/contain no-repeat;
+          mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M6.4,12.9,2.1,8.6,3.6,7.1,6.4,9.9,12.6,3.7,14.1,5.2Z'/%3E%3C/svg%3E") center/contain no-repeat}
 .pdp-info .chip{display:inline-block;background:var(--ink);color:#fff;font-size:11.5px;font-weight:900;
   padding:4px 13px;border-radius:99px;margin-bottom:14px}
 .pdp-info h1{font-size:clamp(26px,4vw,40px);font-weight:900;line-height:1.15;margin-bottom:8px}
@@ -205,7 +240,7 @@ button{font:inherit;cursor:pointer}
 .acard .body{padding:20px;display:flex;flex-direction:column;flex:1}
 .acard .tag{align-self:flex-start;font-size:11px;font-weight:900;color:var(--red-ui);
   text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
-.acard h3{font-size:18px;font-weight:900;line-height:1.3;margin-bottom:8px}
+.acard h2{font-size:18px;font-weight:900;line-height:1.3;margin-bottom:8px}
 .acard p{color:var(--grey);font-size:13.5px;font-weight:600;flex:1}
 .acard .more{margin-top:14px;font-weight:900;font-size:13px;color:var(--ink)}
 
@@ -240,7 +275,7 @@ button{font:inherit;cursor:pointer}
 .co-item{display:grid;grid-template-columns:52px 1fr auto;gap:12px;align-items:center;
   padding:12px 0;border-bottom:1px solid var(--line-invert)}
 .co-item img{width:52px;height:52px;object-fit:contain;background:rgba(255,253,248,.06);border-radius:9px;padding:5px}
-.co-item h4{font-size:13.5px;font-weight:900}
+.co-item h3{font-size:13.5px;font-weight:900}
 .co-item .q{color:#B9B4A8;font-size:12px;font-weight:700}
 .co-item .qc{display:flex;align-items:center;gap:1px;border:1.5px solid var(--line-invert);border-radius:99px;padding:2px}
 .co-item .qc button{width:24px;height:24px;border:none;background:none;color:var(--paper);font-weight:900;border-radius:99px}
@@ -278,7 +313,10 @@ button{font:inherit;cursor:pointer}
 /* footer */
 .s7foot{border-top:1.5px solid var(--ink);padding:52px 0 28px;background:var(--ink);color:var(--paper);margin-top:20px}
 .s7foot .fgrid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:38px;margin-bottom:38px}
-.s7foot h5{font-size:13px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:#8B867B;margin-bottom:15px}
+/* h2, not h5. These are the footer's three section headings and were h5 purely
+   because h5 is small - which put a heading-level skip on every page on the
+   site, since the last content heading is an h2 or h3. The size lives here. */
+.s7foot h2{font-size:13px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:#8B867B;margin-bottom:15px}
 .s7foot ul{list-style:none;display:flex;flex-direction:column;gap:10px;font-size:14.5px;font-weight:600}
 .s7foot ul a{color:#B9B4A8;transition:.2s}
 .s7foot ul a:hover{color:var(--red)}
@@ -619,7 +657,11 @@ button{font:inherit;cursor:pointer}
 
 .ord-track{list-style:none;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:34px}
 .ord-track li{position:relative;padding-top:20px;font-size:12.5px;font-weight:800;color:var(--grey)}
-.ord-track li::before{content:"";position:absolute;top:0;inset-inline-start:0;right:0;
+/* inset-inline, not a logical start paired with a physical right: in RTL the
+   logical property resolved to right, left stayed auto, and the bar collapsed
+   to zero width - the whole order tracker was invisible on the Arabic pages,
+   which are the default. */
+.ord-track li::before{content:"";position:absolute;top:0;inset-inline:0;
   height:5px;background:var(--line)}
 .ord-track li.done{color:var(--ink)}
 .ord-track li.done::before{background:var(--red-ui)}

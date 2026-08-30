@@ -136,6 +136,7 @@ export default async function BrandView({ lang }) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ld(crumbLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ld(faqJsonLd(faq)) }} />
       <Nav lang={lang} path="brand" />
+      <main id="content">
 
       <div className="phead">
         <div className="wrap">
@@ -232,6 +233,7 @@ export default async function BrandView({ lang }) {
         </section>
       </div>
 
+      </main>
       <Footer lang={lang} />
     </Dir>
   );
