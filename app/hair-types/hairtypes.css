@@ -31,43 +31,67 @@
 
 .ht-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
 
+/*
+ * The same plate as .hs-card, .ltile, .htile and .hcard - paper-2 ground, a
+ * solid ink edge, and a hard offset shadow that the card steps out of.
+ *
+ * This was the last survivor of an earlier language: the ground was a 6% tint
+ * of the accent over pure white, the border a 30% tint of it, and the hover a
+ * soft coloured glow. Six of those side by side read as a pastel rainbow of
+ * pale blues, pinks and lilacs sitting on a warm paper page - and it put two
+ * different materials and two different hover physics one click apart from the
+ * style cards. The accent is not gone; it moved to the places that carry
+ * meaning, the icon ground and the shadow, instead of washing the whole card.
+ */
 .ht-card {
   --c: var(--red);
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  background: color-mix(in srgb, var(--c) 6%, #fff);
-  border: 1.5px solid color-mix(in srgb, var(--c) 30%, transparent);
+  background: var(--paper-2);
+  border: 1.5px solid var(--ink);
   border-radius: 18px;
-  padding: 22px;
-  transition: border-color .2s, box-shadow .2s;
+  --pad: 22px;
+  padding: var(--pad);
+  color: var(--ink);
+  transition: transform .18s, box-shadow .18s;
 }
-.ht-card:hover {
-  border-color: var(--c);
-  box-shadow: 0 18px 38px -20px color-mix(in srgb, var(--c) 60%, transparent);
+.ht-card:hover { transform: translate(-2px, -2px); box-shadow: 5px 5px 0 var(--c); }
+[dir="rtl"] .ht-card:hover { transform: translate(2px, -2px); box-shadow: -5px 5px 0 var(--c); }
+@media (prefers-reduced-motion: reduce) {
+  .ht-card { transition: none; }
+  .ht-card:hover { transform: none; }
 }
 
 .ht-card-head { display: flex; gap: 14px; align-items: flex-start; }
 .ht-card-head h3 { margin-bottom: 6px; }
 .ht-card-head h3 a:hover { color: var(--c); }
 
+/* The medallion keeps its shape but stops being a tinted disc: one soft accent
+   ground under the drawing, on the card's own paper, instead of a coloured
+   circle inside a coloured card inside a coloured border. */
 .ht-medal {
   flex: none;
   width: 76px; height: 76px;
   border-radius: 50%;
   display: grid; place-items: center;
-  background: color-mix(in srgb, var(--c) 12%, #FFFDF8);
-  border: 1.5px solid color-mix(in srgb, var(--c) 40%, transparent);
+  background:
+    radial-gradient(circle at 50% 62%, color-mix(in srgb, var(--c) 20%, transparent), transparent 68%),
+    var(--paper);
+  border: 1.5px solid var(--ink);
   overflow: hidden;
 }
 .ht-medal img { width: 100%; height: 100%; object-fit: contain; padding: 16%; }
 .ht-medal-lg { width: 118px; height: 118px; }
 
+/* 78% of a yellow or green accent over ink measured 2.87:1 and 3.92:1 against
+   its own 16% tint. 55% keeps the hue and clears AA. */
 .ht-range {
   display: inline-block;
   font-size: 10.5px; font-weight: 900; letter-spacing: .05em;
   background: color-mix(in srgb, var(--c) 16%, transparent);
-  color: color-mix(in srgb, var(--c) 78%, var(--ink));
+  color: color-mix(in srgb, var(--c) 55%, var(--ink));
   padding: 3px 10px; border-radius: 99px;
 }
 .ht-short { color: var(--grey); font-weight: 700; font-size: 13px; margin-top: 7px; }
@@ -101,12 +125,15 @@
 }
 
 .ht-pick { margin-top: auto; display: flex; flex-direction: column; gap: 10px; }
+/* Matched to .hs-pick-main: paper, not #fff - white is brighter than the page
+   and the panel read as a lit patch - and a solid ink edge rather than a 26%
+   tint of the accent. */
 .ht-pick-main {
   display: flex; gap: 14px; align-items: center;
-  background: #fff;
-  border: 1.5px solid color-mix(in srgb, var(--c) 26%, transparent);
+  background: var(--paper);
+  border: 1.5px solid var(--ink);
   border-radius: 14px; padding: 12px 14px;
-  transition: border-color .2s;
+  transition: box-shadow .18s;
 }
 .ht-pick-main:hover { border-color: var(--c); }
 .ht-pick-main img { flex: none; width: 74px; height: 74px; object-fit: contain; }

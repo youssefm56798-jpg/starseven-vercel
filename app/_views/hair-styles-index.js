@@ -195,17 +195,15 @@ export default async function HairStylesIndexView({ lang }) {
                     </div>
                   </div>
 
-                  <p className="hs-look">{c.look}</p>
-                  <p className="hs-why-line">{c.why}</p>
-
-                  <p className="hs-avoid">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" aria-hidden="true">
-                      <circle cx="12" cy="12" r="9" />
-                      <path d="M12 7.5v5.5" strokeLinecap="round" />
-                      <path d="M12 16.4v.2" strokeLinecap="round" />
-                    </svg>
-                    <span>{c.avoid}</span>
-                  </p>
+                  {/* look, why and avoid used to sit here as three more
+                      paragraphs, and all three are already on the style's own
+                      page - "The look", "Why this product", "What to avoid".
+                      A card carrying twelve blocks and standing 1100px tall is
+                      not a card, it is the page it links to, and two of them
+                      never fitted on one screen. What is left is the five
+                      things that decide whether you click: the cut, its name,
+                      one line of orientation, the product that gets you there,
+                      and the way in. */}
 
                   {best ? (
                     <div className="hs-pick">

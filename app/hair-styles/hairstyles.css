@@ -194,12 +194,13 @@
   display: inline-block;
   font-size: 10.5px; font-weight: 900; letter-spacing: .05em;
   background: color-mix(in srgb, var(--c) 16%, transparent);
-  color: color-mix(in srgb, var(--c) 78%, var(--ink));
+  /* 78% of a yellow or green accent over ink measured 2.70:1 and 3.75:1 on a
+     16% tint of the same colour. 55% keeps the hue and clears AA. */
+  color: color-mix(in srgb, var(--c) 55%, var(--ink));
   padding: 3px 10px; border-radius: 99px;
 }
 .hs-short { color: var(--grey); font-weight: 700; font-size: 13px; margin-top: 7px; }
 
-.hs-look { color: var(--grey); font-weight: 600; }
 .hs-why-line {
   border-inline-start: 3px solid var(--c);
   padding-inline-start: 14px;
