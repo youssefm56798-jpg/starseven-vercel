@@ -530,6 +530,11 @@
   margin-top:12px;padding-top:11px;border-top:1px solid var(--line);
   font-size:11.5px;font-weight:700;color:var(--grey)}
 .s7home .ltile .lpick i{font-style:normal;font-weight:900;font-size:12.5px;color:var(--ink)}
+/* margin-inline-start:auto eats the free space before the jar, so it sits hard
+   against the inline end of the row - the right in English, the left in Arabic,
+   which is the same edge to a reader of either. */
+.s7home .ltile .lpick-jar{margin-inline-start:auto;flex:none;width:34px;height:34px;
+  object-fit:contain;align-self:center}
 /* The crop tile is not offered an answer, because there is not one. Its jar is
    the nearest thing that exists and the dashed rule says so before the label
    above it is read. */

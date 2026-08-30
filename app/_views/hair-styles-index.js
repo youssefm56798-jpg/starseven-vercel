@@ -177,8 +177,16 @@ export default async function HairStylesIndexView({ lang }) {
                       an Arabic line without it. */}
                   <span className="hs-hold" dir="ltr" aria-hidden="true">{s.hold}</span>
 
+                  {/* The render, given room to be looked at. The 46px masked
+                      drawing this replaces was too small to tell one cut from
+                      another - which is the single job a style tile has. The
+                      mask stays in the markup below for the small marks, where
+                      a tinted glyph still reads better than a photograph. */}
+                  <div className="hs-shot">
+                    <img src={`/${s.photo}`} alt="" loading="lazy" width="720" height="720" />
+                  </div>
+
                   <div className="hs-card-head">
-                    <span className="hs-mark" aria-hidden="true" />
                     <div>
                       <h3>
                         <Link href={L(`/hair-styles/${s.slug}`)}>{c.name}</Link>

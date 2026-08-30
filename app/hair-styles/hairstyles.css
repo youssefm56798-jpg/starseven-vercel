@@ -62,7 +62,11 @@
   background: var(--paper-2);
   border: 1.5px solid var(--ink);
   border-radius: 18px;
-  padding: 22px;
+  /* Tokenised so .hs-shot can bleed by exactly the padding it sits inside,
+     at every breakpoint, instead of hard-coding one value and overhanging the
+     card by the difference at the next one. */
+  --pad: 22px;
+  padding: var(--pad);
   color: var(--ink);
   transition: transform .18s, box-shadow .18s;
 }
@@ -95,6 +99,52 @@
 /* The drawing is a mask, not an image, so it takes the card's own currentColor.
    The same file is loaded as an <img> on the detail hero, where the color
    attribute inside it resolves currentColor to ink. */
+/*
+ * The render at the top of a style card.
+ *
+ * Full card width and a fixed 4:3 box so six cards in a grid line their
+ * headings up regardless of how tall each render sits in its frame. The 46px
+ * masked glyph this sits above was too small to tell one cut from another,
+ * which is the single job a style tile has.
+ */
+.hs-shot {
+  margin: calc(-1 * var(--pad)) calc(-1 * var(--pad)) 0;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-bottom: 1.5px solid var(--ink);
+  background:
+    radial-gradient(ellipse 70% 80% at 50% 15%, color-mix(in srgb, var(--c) 20%, transparent), transparent 70%),
+    var(--paper);
+}
+.hs-shot img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  object-position: 50% 22%;
+  display: block;
+  transition: transform .35s ease;
+}
+.hs-card:hover .hs-shot img { transform: scale(1.04); }
+@media (prefers-reduced-motion: reduce) {
+  .hs-shot img { transition: none; }
+  .hs-card:hover .hs-shot img { transform: none; }
+}
+
+/* The hero render on a single style page. Square, capped so it never dwarfs
+   the heading beside it, and it keeps its own colour rather than a page tint. */
+/* `.hs-hero img` below is 0,1,1 and sits later in this file, so it beat a bare
+   .hs-hero-shot on both specificity and order and pinned the render to 96px.
+   Qualifying the class with the element outranks it instead of fighting it. */
+.hs-hero img.hs-hero-shot {
+  width: clamp(120px, 26vw, 190px);
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 16px;
+  border: 1.5px solid var(--line);
+  background: var(--paper);
+  flex: none;
+}
+
 .hs-mark {
   flex: none;
   display: block;
@@ -399,10 +449,11 @@
 @media (max-width: 620px) {
   .hs { padding-bottom: 56px; }
   .hs section { margin-top: 34px; }
-  .hs-card { padding: 18px; }
+  .hs-card { --pad: 18px; }
   .hs-honest { padding: 18px; }
   .hs-hero { flex-direction: column; align-items: flex-start; gap: 14px; }
   .hs-hero img { width: 74px; height: 74px; }
+  .hs-hero img.hs-hero-shot { width: clamp(104px, 34vw, 150px); height: auto; }
   .hs-hold { font-size: 60px; top: -11px; }
   .hs-pick-main { flex-direction: column; align-items: flex-start; }
   .hs-pick-main img { width: 88px; height: 88px; }

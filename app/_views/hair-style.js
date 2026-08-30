@@ -134,10 +134,12 @@ export default async function HairStyleView({ slug, lang }) {
 
       <div className="wrap hs hs-one" style={{ '--c': tile.color, '--m': `url(/${tile.icon})` }}>
         <header className="hs-hero">
-          {/* An <img> here rather than the masked span the cards use: the hero
-              mark is the drawing at full size and it should be the ink drawing
-              the file itself declares, not a tint of the page. */}
-          <img src={`/${tile.icon}`} alt="" width="96" height="96" />
+          {/* The render rather than the line drawing: this is the one place on
+              the site with room to show the cut at a size worth looking at, and
+              a visitor who arrived to find out what this style IS is served by
+              a picture of it and not by a glyph. */}
+          <img className="hs-hero-shot" src={`/${tile.photo}`} alt=""
+            width="720" height="720" />
           <div>
             <span className="hs-label" dir={label.dir}>{label.text}</span>
             <h1>{c.name}</h1>

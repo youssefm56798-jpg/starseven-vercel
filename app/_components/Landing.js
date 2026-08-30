@@ -731,6 +731,13 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
                     <span className={'lpick' + (gapTile ? ' gap' : '')}>
                       <span>{gapTile ? d.style_close : d.style_gets}</span>
                       <i>{pick[lang].name}</i>
+                      {/* The jar the line has been naming in words since this
+                          tile was built. Pushed to the inline end rather than
+                          the right: on the Arabic tree that edge IS the left,
+                          and a hard `right` would have parked it under the
+                          label in the language most of the shop reads in. */}
+                      <img className="lpick-jar" src={imageUrl(pick.img)} alt=""
+                        width="34" height="34" loading="lazy" />
                     </span>
                   )}
                 </Link>
