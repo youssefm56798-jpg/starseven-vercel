@@ -161,8 +161,25 @@ test('the key survives a reload, and is dropped once the server has answered', (
   // not survive to hold a ref.
   assert.match(client, /localStorage\.setItem\(KEY_STORE/);
   assert.match(client, /localStorage\.removeItem\(KEY_STORE\)/);
-  // Cleared on success, and on a refusal — but never on a network failure,
-  // which is the one case where the order may exist and the reply be lost.
-  assert.match(client, /endAttempt\(\);\n\s*setDone\(res\)/);
+  /*
+   * Cleared on success, and on a refusal — but never on a network failure,
+   * which is the one case where the order may exist and the reply be lost.
+   *
+   * Checked by ORDER rather than by adjacency. This used to assert the literal
+   * `endAttempt();\n setDone(res)`, which pinned the right property to the
+   * wrong evidence: the two being neighbours is not what makes this correct,
+   * and the assertion broke the moment a third statement was added between them
+   * on the same path. What has to hold is that the attempt is finished before
+   * the success is committed, and that both happen after the server answered.
+   */
+  const answered = client.indexOf("await api('/api/order'");
+  const ended = client.indexOf('endAttempt();', answered);
+  const shown = client.indexOf('setDone(res)', answered);
+
+  assert.ok(answered > 0, 'the order request has moved — this test needs updating');
+  assert.ok(ended > answered, 'endAttempt() no longer runs on the success path');
+  assert.ok(shown > ended,
+    'setDone(res) now runs before endAttempt(), so a success can be shown with the attempt key still held');
+
   assert.match(client, /if \(e\.message !== NET\) endAttempt\(\)/);
 });

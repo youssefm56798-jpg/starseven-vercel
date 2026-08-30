@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import Script from 'next/script';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { anton, cairo, tajawal } from '../lib/fonts.js';
@@ -27,11 +28,50 @@ export const metadata = {
   openGraph: {
     type: 'website',
     siteName: site.name,
-    images: ['/assets/wax-red.png'],
+    // No `images` key: app/opengraph-image.js supplies it. That file is the
+    // 1200x630 every platform crops to, and this used to point at a 900x900
+    // product photograph that lost its top and bottom in every link card.
   },
   twitter: { card: 'summary_large_image' },
   robots: { index: true, follow: true },
 };
+
+/**
+ * Google Analytics 4, and nothing at all when it is not configured.
+ *
+ * The site already carries Vercel Analytics, which counts page views and is
+ * cookieless. It cannot report a purchase, so nothing here has ever been able
+ * to say what a visit was worth - which is what GA4 is being added for. The
+ * events are fired at the point each thing actually happens, not here:
+ * `purchase` in app/checkout/CheckoutClient.js when the order route answers,
+ * and `add_to_cart` in lib/cart.js.
+ *
+ * NEXT_PUBLIC_GA_ID gates it, and the same variable gates the Google hosts in
+ * the CSP in next.config.mjs. That pairing is the point: with no ID there is no
+ * script AND no allowance, so the policy never carries a hole for a third party
+ * the site does not call. Set the variable in Vercel and redeploy - both halves
+ * are read at build time.
+ *
+ * afterInteractive rather than beforeInteractive: nothing on the page waits on
+ * analytics, and this is a storefront where the Largest Contentful Paint is a
+ * product photograph.
+ */
+function GA4() {
+  const id = (process.env.NEXT_PUBLIC_GA_ID || '').trim();
+  if (!id) return null;
+  return (
+    <>
+      <Script
+        src={`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(id)}`}
+        strategy="afterInteractive"
+      />
+      <Script id="ga4-init" strategy="afterInteractive">
+        {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}`
+          + `gtag('js',new Date());gtag('config',${JSON.stringify(id)});`}
+      </Script>
+    </>
+  );
+}
 
 export const viewport = {
   width: 'device-width',
@@ -105,6 +145,7 @@ export default function RootLayout({ children }) {
         {children}
         <Analytics />
         <SpeedInsights />
+        <GA4 />
       </body>
     </html>
   );

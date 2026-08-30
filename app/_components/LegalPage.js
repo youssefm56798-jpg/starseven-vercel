@@ -14,7 +14,7 @@ export default function LegalPage({ doc, lang }) {
       <div className="wrap">
         <article className="article legal">
           <div style={{ marginTop: '34px' }}>
-            <Crumb lang={lang} trail={[{ label: page.title }]} />
+            <Crumb lang={lang} schema trail={[{ label: page.title }]} />
           </div>
           <h1 className="phead" style={{ padding: 0, fontSize: 'clamp(28px,5vw,40px)' }}>
             {page.title}
@@ -28,11 +28,35 @@ export default function LegalPage({ doc, lang }) {
   );
 }
 
+/**
+ * The search-result blurb for each legal page.
+ *
+ * These used to be `description: page.title`, which meant the four legal pages
+ * shipped a fourteen-character meta description - "Privacy Policy" describing
+ * the page titled "Privacy Policy". Google discards a description that short and
+ * writes its own from the body, and the body of a privacy policy makes a poor
+ * snippet. Written out here rather than derived, because a description is copy
+ * and there is nothing in the document to derive it from.
+ *
+ * Each is 145-160 characters, and says what the reader actually wants to know
+ * before clicking: what is collected, why, and what they can ask for.
+ */
+const LEGAL_BLURB = {
+  privacy: {
+    ar: 'سياسة الخصوصية لنيو ستار سفن: إيه البيانات اللي بناخدها وقت الأوردر، ليه بناخدها، مين بيشوفها، وقد إيه بنحتفظ بيها — وإزاي تطلب نسخة منها أو تمسحها.',
+    en: 'How New Star Seven handles your data: what we collect at checkout, why we need it, who processes it, how long we keep it, and how to request a copy or deletion.',
+  },
+  terms: {
+    ar: 'شروط وأحكام الشراء من نيو ستار سفن: الدفع عند الاستلام، مواعيد وتكلفة التوصيل، الأسعار، وسياسة الإرجاع والاستبدال لو المنتج وصلك غلط أو تالف.',
+    en: 'Terms for buying from New Star Seven: cash on delivery, delivery times and cost, pricing, and the returns policy if an order arrives wrong, damaged or incomplete.',
+  },
+};
+
 export function legalMetadata(doc, lang) {
   const page = LEGAL[doc][lang];
   return {
     title: page.title,
-    description: page.title,
+    description: LEGAL_BLURB[doc][lang],
     alternates: alternatesForLang(`/${doc}`, lang),
   };
 }

@@ -734,3 +734,36 @@ button{font:inherit;cursor:pointer}
    way to ask rather than a way to buy. */
 .price.ask{font-family:var(--font-cairo),sans-serif;font-size:13.5px;font-weight:800;
   color:var(--grey);display:block}
+
+/* ---------------------------------------------- hero call to action ------ */
+/* Three index pages - blog, hair types, hair styles - had a heading, a
+   paragraph and then nothing to press until the visitor scrolled. Each is a
+   discovery page whose next step is the shop. */
+.phead-cta{margin-top:18px;display:flex;gap:12px;flex-wrap:wrap}
+
+/* ---------------------------------------------- sticky mobile buy bar ---- */
+/*
+ * The product page's Add to cart sits below the photograph, the price, the
+ * hold rating and the description, which on a phone is well past the fold and
+ * gone again as soon as somebody reads the details. This keeps it reachable.
+ *
+ * Mobile only: on a desktop the buy block is visible beside the photograph and
+ * a fixed bar would just cover the page.
+ *
+ * The safe-area inset matters on an iPhone - without it the bar sits under the
+ * home indicator and the button loses its bottom third to a swipe target.
+ */
+.buybar{display:none}
+@media (max-width:768px){
+  .buybar{position:fixed;inset-inline:0;bottom:0;z-index:280;
+    display:flex;gap:12px;align-items:center;
+    padding:10px 14px calc(10px + env(safe-area-inset-bottom));
+    background:var(--paper,#F5F2EA);border-top:2px solid #12100B}
+  .buybar-price{font-weight:900;font-size:18px;white-space:nowrap;line-height:1.2}
+  .buybar-price small{display:block;font-size:11px;font-weight:700;color:#6E6A60}
+  .buybar .btn,.buybar button{flex:1;justify-content:center;margin:0}
+  /* The WhatsApp float would otherwise sit on top of the bar. */
+  .wa-float{bottom:calc(86px + env(safe-area-inset-bottom))}
+  /* So the last of the page is not permanently hidden behind the bar. */
+  .pdp-has-buybar{padding-bottom:96px}
+}

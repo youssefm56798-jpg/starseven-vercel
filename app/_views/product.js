@@ -189,7 +189,7 @@ export default async function ProductView({ slug, lang }) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ld(crumbLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ld(faqJsonLd(faq)) }} />
       <Nav lang={lang} path={`product/${p.slug}`} />
-      <main id="content">
+      <main id="content" className="pdp-has-buybar">
 
       <div className="phead">
         <div className="wrap">
@@ -459,6 +459,37 @@ export default async function ProductView({ slug, lang }) {
       </div>
 
       </main>
+
+      {/*
+        * The sticky buy bar, phones only.
+        *
+        * Add to cart sits under the photograph, the price, the hold rating and
+        * the description. On a phone that is well past the fold, and it leaves
+        * the screen again the moment somebody reads the details they came to
+        * read - so the page ends with the visitor furthest from the button.
+        *
+        * Rendered only when there is something to press: an unpriced product
+        * sends people to WhatsApp instead, and an out-of-stock one has no
+        * action at all, and a fixed bar saying either would be a permanent
+        * strip of nothing across the bottom of the screen.
+        *
+        * It repeats the price rather than only the button, because the bar is
+        * the whole decision once the price has scrolled away.
+        */}
+      {priced && inStock ? (
+        <div className="buybar">
+          <div className="buybar-price" dir="ltr">
+            {whole(p.price)} <small>{currencyLabel(lang)}</small>
+          </div>
+          <AddButton
+            sku={p.sku}
+            className="btn btn-red"
+            label={ar ? 'ضيفه للسلة' : 'Add to cart'}
+            addedLabel={ar ? 'اتضاف ✓' : 'Added ✓'}
+          />
+        </div>
+      ) : null}
+
       <Footer lang={lang} />
     </Dir>
   );

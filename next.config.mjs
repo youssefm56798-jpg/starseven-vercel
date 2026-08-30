@@ -18,13 +18,32 @@
 // assets are all self-hosted so 'self' and data: cover them. connect-src is
 // 'self' - the storefront calls only its own /api. schema.org and wa.me are
 // href targets, not resource loads, so they need no allowance here.
+/*
+ * Google Analytics widens the policy, so it only widens it when GA exists.
+ *
+ * GA4 needs three holes: the tag script from googletagmanager, the beacons it
+ * posts to google-analytics, and the tracking pixel it falls back to. Writing
+ * those in unconditionally would leave a site with no GA configured carrying
+ * three permanent allowances for a third party it never calls - which is how a
+ * CSP rots into decoration.
+ *
+ * NEXT_PUBLIC_GA_ID is read at build time, so the deployed policy is the
+ * narrow one until the variable is set in Vercel and the site redeployed. The
+ * same variable gates the <Script> tags in app/layout.js, so the two can never
+ * disagree: no ID means no script AND no allowance.
+ */
+const ga = (process.env.NEXT_PUBLIC_GA_ID || '').trim();
+const gaScript = ga ? ' https://www.googletagmanager.com' : '';
+const gaConnect = ga ? ' https://www.google-analytics.com https://*.analytics.google.com https://*.google-analytics.com' : '';
+const gaImg = ga ? ' https://*.google-analytics.com https://*.googletagmanager.com' : '';
+
 const csp = [
   "default-src 'self'",
   // 'unsafe-eval' only in development: Next's dev server hydrates HMR and React
   // Fast Refresh through eval, and a production build does not - so the deployed
   // policy never carries it. Guarding on NODE_ENV keeps the shipped CSP tight
   // while letting the dev server run.
-  `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === 'production' ? '' : " 'unsafe-eval'"}`,
+  `script-src 'self' 'unsafe-inline'${gaScript}${process.env.NODE_ENV === 'production' ? '' : " 'unsafe-eval'"}`,
   "style-src 'self' 'unsafe-inline'",
   // Product photographs uploaded from the admin panel live on Vercel Blob,
   // which serves them from one subdomain per store. Named as a wildcard
@@ -36,9 +55,9 @@ const csp = [
   // not scripts, not frames, not styles - from a host Vercel controls, and it
   // only matters at all to somebody who can already inject HTML into these
   // pages. The rest of the policy is what stops that.
-  "img-src 'self' data: https://*.public.blob.vercel-storage.com",
+  `img-src 'self' data: https://*.public.blob.vercel-storage.com${gaImg}`,
   "font-src 'self' data:",
-  "connect-src 'self'",
+  `connect-src 'self'${gaConnect}`,
   "form-action 'self'",
   "base-uri 'self'",
   "frame-ancestors 'self'",
@@ -65,6 +84,20 @@ const nextConfig = {
       bodySizeLimit: '4mb',
     },
   },
+  /*
+   * /privacy-policy is the address people and audits expect. This site serves
+   * the document at /privacy, and did not answer the other spelling at all - a
+   * 404 on the one URL a reader is most likely to type by hand or paste from a
+   * checklist. Permanent, so the redirect is cached and the canonical stays
+   * /privacy rather than the pair competing.
+   */
+  async redirects() {
+    return [
+      { source: '/privacy-policy', destination: '/privacy', permanent: true },
+      { source: '/en/privacy-policy', destination: '/en/privacy', permanent: true },
+    ];
+  },
+
   async headers() {
     // Applied at the edge to every response. frame-ancestors 'self' is kept in
     // step with X-Frame-Options SAMEORIGIN on purpose - the two say the same

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { localePath } from '../../lib/urls.js';
 import Link from 'next/link';
 import { readCart, writeCart, setQty as setCartQty, clearCart } from '../../lib/cart.js';
@@ -170,6 +171,7 @@ export default function CheckoutClient({ lang, add, catalog, shipping, currency 
   const T = COPY[lang] || COPY.ar;
   const ar = lang === 'ar';
   const L = p => localePath(p, lang);
+  const router = useRouter();
 
   const [cart, setCart] = useState([]);
   const [ready, setReady] = useState(false);
@@ -298,10 +300,52 @@ export default function CheckoutClient({ lang, add, catalog, shipping, currency 
         items: lines.map(l => ({ sku: l.sku, qty: l.qty })),
       });
       endAttempt();
-      setDone(res);
+
+      /*
+       * The conversion, fired where the conversion happens.
+       *
+       * This is the only moment in the app that knows an order was actually
+       * written: the server has answered with a reference and the cart is about
+       * to be cleared. Reporting it from the thank-you screen instead would
+       * count a refresh twice, and reporting it from the submit handler before
+       * the response would count every failure as a sale.
+       *
+       * Optional-chained rather than guarded: gtag only exists when
+       * NEXT_PUBLIC_GA_ID is set, and a shop with no analytics configured must
+       * still be able to take an order. `lines` is read rather than `res`
+       * because the reply carries totals, not the basket.
+       */
+      window.gtag?.('event', 'purchase', {
+        transaction_id: res.ref,
+        value: Number(res.total) || 0,
+        shipping: Number(res.shipping) || 0,
+        currency: 'EGP',
+        items: lines.map(l => ({
+          item_id: l.sku,
+          item_name: l.name,
+          price: Number(l.price) || 0,
+          quantity: l.qty,
+        })),
+      });
+
       clearCart();
       setCart([]);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setDone(res);
+
+      /*
+       * router.replace, not push.
+       *
+       * The order is written and the cart is gone, so the form behind this is
+       * not a page anybody can use again - and push would leave the browser's
+       * back button pointing straight at it, showing a submitted form over an
+       * empty basket. replace takes /checkout out of the history entirely, so
+       * back goes to whatever the customer was looking at before they checked
+       * out, which is the shop.
+       *
+       * setDone still runs, so the panel renders for the instant before the
+       * navigation lands and there is no blank frame in between.
+       */
+      router.replace(L(`/order/thanks?ref=${encodeURIComponent(res.ref)}`));
     } catch (e) {
       // A refusal is still an answer: the server saw this attempt and decided,
       // so it is over and the next submit is a new one with a new key. Only a

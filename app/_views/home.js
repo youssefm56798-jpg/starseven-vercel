@@ -39,7 +39,9 @@ export function homeMeta(lang) {
   const ar = lang !== 'en';
   return {
     title: {
-      absolute: ar ? 'نيو ستار سفن — امسك ستايلك' : 'New Star Seven — Hold your style',
+      absolute: ar
+        ? 'واكس وجل شعر بريميوم للرجالة — نيو ستار سفن'
+        : 'Premium Hair Wax & Gel for Men — New Star Seven',
     },
     // Without its own description this page inherited the Arabic default in
     // app/layout.js, so the English home served an Arabic snippet.

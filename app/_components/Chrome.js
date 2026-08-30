@@ -305,18 +305,64 @@ export async function Footer({ lang = 'ar' }) {
 }
 
 /** Breadcrumbs. `trail` is [{label, href}] with the last item usually hrefless. */
-export function Crumb({ lang = 'ar', trail = [] }) {
+export function Crumb({ lang = 'ar', trail = [], schema = false }) {
   const ar = lang === 'ar';
   const L = p => localePath(p, lang);
+
+  /*
+   * `schema` is opt-in, and has to be.
+   *
+   * Eight of the eleven screens that render a trail already build their own
+   * BreadcrumbList - app/shop/view.js and the six _views that import from
+   * hair-types/lib.js and hair-styles/lib.js. Emitting one from here as well
+   * would put two BreadcrumbList blocks on those pages, which is not a
+   * cosmetic duplicate: Google picks one and it is not defined which, so the
+   * trail that shows in the result stops being the one anybody chose.
+   *
+   * The three that were missing it entirely - /blog, /privacy, /terms - opt in
+   * instead. tests/breadcrumbs.test.mjs holds the line that no page ends up
+   * with two.
+   *
+   * Built from the SAME `trail` array that renders above, rather than passed in
+   * separately. Google requires breadcrumb markup to match what the visitor can
+   * see, and the way that requirement gets broken is a page where the two are
+   * assembled from different sources and drift apart. Here they cannot.
+   */
+  const base = site.url.replace(/\/$/, '');
+  const items = [
+    { name: ar ? 'الرئيسية' : 'Home', href: '/' },
+    ...trail.map(t => ({ name: t.label, href: t.href })),
+  ];
+  const ld = schema ? {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: items.map((it, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: String(it.name ?? ''),
+      // The last crumb is the current page and carries no link on screen, so it
+      // carries no item here either - that is what schema.org expects of it.
+      ...(it.href ? { item: `${base}${L(it.href)}` } : {}),
+    })),
+  } : null;
+
   return (
-    <div className="crumb">
-      <Link href={L('/')}>{ar ? 'الرئيسية' : 'Home'}</Link>
-      {trail.map((t, i) => (
-        <span key={i}>
-          <span>›</span>
-          {t.href ? <Link href={L(t.href)}>{t.label}</Link> : t.label}
-        </span>
-      ))}
-    </div>
+    <>
+      {ld ? (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(ld).replace(/</g, '\\u003c') }}
+        />
+      ) : null}
+      <div className="crumb">
+        <Link href={L('/')}>{ar ? 'الرئيسية' : 'Home'}</Link>
+        {trail.map((t, i) => (
+          <span key={i}>
+            <span>›</span>
+            {t.href ? <Link href={L(t.href)}>{t.label}</Link> : t.label}
+          </span>
+        ))}
+      </div>
+    </>
   );
 }

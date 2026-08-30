@@ -24,7 +24,7 @@ import { Dir, Nav, Footer, Crumb } from '../_components/Chrome.js';
 export function blogMeta(lang) {
   const ar = lang !== 'en';
   return {
-    title: ar ? 'مقالات العناية بالشعر' : 'Hair care guides',
+    title: ar ? 'مقالات ونصايح العناية بشعر الرجالة' : 'Hair Care Guides & Styling Tips for Men',
     description: ar
       ? 'نصايح تصفيف وعناية شعر الرجال: أنهي منتج لنوع شعرك، إزاي تحطه صح، وإزاي يقعد طول اليوم.'
       : 'Men’s hair styling and care guides: which product suits your hair, how to apply it, and how to make it last.',
@@ -60,13 +60,18 @@ export default async function BlogView({ lang }) {
 
       <div className="phead">
         <div className="wrap">
-          <Crumb lang={lang} trail={[{ label: ar ? 'مقالات' : 'Articles' }]} />
+          <Crumb lang={lang} schema trail={[{ label: ar ? 'مقالات' : 'Articles' }]} />
           <h1>{ar ? 'مقالات العناية بالشعر' : 'Hair care guides'}</h1>
           <p>
             {ar
               ? 'كل اللي محتاج تعرفه عن شعرك — من اختيار المنتج لحد الروتين اليومي.'
               : 'Everything you need to know about your hair — from picking a product to the daily routine.'}
           </p>
+          <div className="phead-cta">
+            <Link className="btn btn-red" href={L('/shop')}>
+              {ar ? 'اتفرج على المنتجات' : 'Shop the range'}
+            </Link>
+          </div>
         </div>
       </div>
 

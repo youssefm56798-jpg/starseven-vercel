@@ -112,6 +112,11 @@ export default async function HairStylesIndexView({ lang }) {
               ? 'اختار الشكل اللي عايزه، ونقولك بأنهي منتج توصله وإزاي بالظبط — وفي حالة واحدة نقولك إننا مش بنعمل اللي إنت محتاجه.'
               : 'Pick the look you want and we will tell you which product gets you there and exactly how — and in one case, that we do not make what you need.'}
           </p>
+          <div className="phead-cta">
+            <Link className="btn btn-red" href={L('/shop')}>
+              {ar ? 'اتفرج على المنتجات' : 'Shop the range'}
+            </Link>
+          </div>
         </div>
       </div>
 

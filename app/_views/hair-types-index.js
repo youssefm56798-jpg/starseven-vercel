@@ -116,6 +116,11 @@ export default async function HairTypesIndexView({ lang }) {
               ? 'مش كل شعر بياخد نفس المنتج. اعرف نوع شعرك، واعرف أنهي واكس أو جل هيمسك معاك — وليه، ومن إيه تبعد.'
               : 'Not every head takes the same product. Find your type, then the wax or gel that actually holds on it — and why, and what to avoid.'}
           </p>
+          <div className="phead-cta">
+            <Link className="btn btn-red" href={L('/shop')}>
+              {ar ? 'اتفرج على المنتجات' : 'Shop the range'}
+            </Link>
+          </div>
         </div>
       </div>
 
