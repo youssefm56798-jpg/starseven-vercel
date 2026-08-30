@@ -11,7 +11,8 @@ Bilingual (Arabic-first, English under `/en`) storefront for **New Star Seven**,
 a men's hair-care brand made by **Ovanza Cosmetics** (Belbeis, El Sharqia).
 Next.js App Router on Vercel, Neon Postgres, Resend for email.
 
-- Repo: `github.com/youssefm56798-jpg/starseven-vercel` (private)
+- Repo: `github.com/youssefm56798-jpg/starseven-vercel` (**public** — nothing
+  secret may ever land in this file)
 - Live: `starseven-vercel.vercel.app` — **no custom domain yet**
 - Deploys on push to `main`. `vercel-build` runs `scripts/setup-db.mjs`
   (schema + seed) before `next build`, so the database migrates every deploy.
@@ -37,8 +38,11 @@ cancellation/refund request. The token is 32 random bytes stored only as a
 SHA-256 — see `lib/order-access.js`.
 
 **Admin** at `/admin`: dashboard, orders, subscribers, offers (the coupon
-screen), products (price, stock, active, featured) and security. Six tabs, and
-that is the whole back office — `app/admin/(panel)/tabs.js` is the list.
+screen), products (price, stock, active, featured), accounts and security.
+Seven tabs, and that is the whole back office — `app/admin/(panel)/tabs.js` is
+the list. Each tab carries the permission its screen needs; hiding one is a
+courtesy, never a control, because every screen and every Server Action calls
+`requirePermission()` for itself.
 
 **There is no articles screen, and there never was.** The `articles` table is
 seeded from `db/seed.sql` and re-applied on every deploy, so the blog is edited
@@ -61,7 +65,10 @@ because the seed is the only thing that writes it.
 4. **`MAIL_FROM`** — currently defaults to `newstarseven.com`, which belongs to
    an unrelated honey business. The brand's real domain is
    **ovanzacosmetics.com** (it is printed on the jar).
-5. **Remove `ADMIN_SETUP_KEY`** once the first admin exists.
+5. ~~**Remove `ADMIN_SETUP_KEY`** once the first admin exists.~~ **Done, 30 Aug
+   2026** — the first admin exists and the key is out of the production
+   environment, so `/admin/setup` now serves no form. `keyOk()` fails closed
+   when no key is configured, which is what makes that safe.
 6. Price the 31 unpriced products, or leave them on "ask".
 
 ---
@@ -132,7 +139,7 @@ behind a green build:
 | `tests/sql-split.test.mjs` | Every correction to the eight original products has to be its own guarded UPDATE, because their seed is `DO NOTHING` and editing the literal changes nothing live |
 | `tests/backup-format.test.mjs` | A truncated dump has to be refusable. A backup that stops half way opens, and the first rows look right |
 
-`npm test` — 1,069 tests, no database needed.
+`npm test` — 1,261 tests, no database needed.
 
 ---
 
