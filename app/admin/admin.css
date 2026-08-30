@@ -240,3 +240,41 @@
 .s7admin ul.tl li:last-child { border-bottom: none; }
 .s7admin ul.tl .tl-when { color: var(--grey); font-size: 12.5px; font-weight: 700; white-space: nowrap; min-width: 96px; }
 .s7admin ul.tl .tl-body { font-size: 14px; }
+
+/* ------------------------------------------------- the product list row
+   Sixty-three products used to render as sixty-three open edit forms, so
+   the page was about twelve hundred form fields and the only way to reach
+   one product was the scrollbar. Each row is a summary line now, with the
+   form behind a <details>. These rules are what make the summary line
+   readable as a row rather than as a heading with things bolted on. */
+.s7admin .prod-row h2 { flex-wrap: wrap; gap: 8px; }
+.s7admin .prod-thumb {
+  width: 34px; height: 34px; border-radius: 8px;
+  background: #F5F2EA; object-fit: cover; flex: none;
+}
+
+/* The price and the stock count, which are what the owner opened the page
+   for. Tabular figures so a column of them lines up instead of shifting by
+   a pixel per digit. */
+.s7admin .prod-figs {
+  display: inline-flex; align-items: center; gap: 10px;
+  margin-inline-start: 4px; font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The disclosure itself. Styled as a quiet full-width control rather than a
+   native triangle, because it is the one thing on the row that opens
+   something and it should look like it. */
+.s7admin .prod-edit > summary {
+  cursor: pointer; list-style: none;
+  padding: 10px 18px; border-top: 1px solid var(--line);
+  font-size: 13px; font-weight: 700; color: var(--grey);
+  user-select: none;
+}
+.s7admin .prod-edit > summary::-webkit-details-marker { display: none; }
+.s7admin .prod-edit > summary::before { content: '▸ '; display: inline-block; margin-inline-end: 4px; }
+.s7admin .prod-edit[open] > summary::before { content: '▾ '; }
+.s7admin .prod-edit > summary:hover { color: var(--ink); background: #FAF8F3; }
+/* Keyboard users get the same ring every other control here has. Removing
+   the native marker must not also remove the focus affordance. */
+.s7admin .prod-edit > summary:focus-visible { outline: 2px solid var(--red); outline-offset: -2px; }

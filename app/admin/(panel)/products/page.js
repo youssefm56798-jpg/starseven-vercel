@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { csrfOk, csrfToken } from '../../../../lib/auth.js';
 import { blobEnabled, putProductImage } from '../../../../lib/blob.js';
@@ -15,7 +16,7 @@ import { imageUrl } from '../../../../lib/product-image.js';
 import ConfirmButton from '../../_lib/confirm-button.js';
 import { requirePermission } from '../../_lib/guard.js';
 import { can } from '../../../../lib/admin-roles.js';
-import { Flash } from '../../_lib/ui.js';
+import { Flash, money } from '../../_lib/ui.js';
 
 export const dynamic = 'force-dynamic';
 // An upload is a multipart POST of up to three megabytes plus twenty text
@@ -458,9 +459,44 @@ export default async function ProductsPage({ searchParams }) {
   const token = await csrfToken();
   const uploads = blobEnabled();
 
+  /*
+   * Search and filter, because sixty-three products do not fit on a screen.
+   *
+   * This page used to render every product as a fully expanded edit form: about
+   * twenty fields each, twelve hundred fields in one document, and no way to
+   * reach one of them except scrolling. Changing a single price meant hunting
+   * through the whole catalogue. The fix is in two halves - narrowing what is
+   * on the page, which is here, and collapsing what is left, which is below.
+   *
+   * The search runs over the two names and the SKU concatenated, matching how
+   * the orders screen searches, so somebody can type a word of Arabic, a word
+   * of English, or a code and get the same row.
+   */
+  const q = String(sp?.q || '').trim().slice(0, 60);
+  const kind = KINDS.includes(String(sp?.kind || '')) ? String(sp.kind) : '';
+  const show = ['live', 'hidden', 'unpriced'].includes(String(sp?.show || '')) ? String(sp.show) : '';
+
   const products = await sql`SELECT * FROM products ORDER BY sort ASC, id ASC`;
-  const live = products.filter(p => !p.archived_at);
+
+  const matches = p => {
+    if (q) {
+      const hay = `${p.name_ar} ${p.name_en} ${p.sku}`.toLowerCase();
+      if (!hay.includes(q.toLowerCase())) return false;
+    }
+    if (kind && p.kind !== kind) return false;
+    if (show === 'live' && !p.active) return false;
+    if (show === 'hidden' && p.active) return false;
+    // The unpriced rows are the ones the storefront shows an "ask us" button
+    // for. They are the ones the owner most often needs to find, and the
+    // hardest to spot in a list of sixty-three.
+    if (show === 'unpriced' && Number(p.price) > 0) return false;
+    return true;
+  };
+
+  const all = products.filter(p => !p.archived_at);
+  const live = all.filter(matches);
   const archived = products.filter(p => p.archived_at);
+  const filtered = q || kind || show;
 
   /*
    * Which archived products have ever been ordered.
@@ -543,13 +579,62 @@ export default async function ProductsPage({ searchParams }) {
         </div>
       </div>
 
+      {/* Find one product out of sixty-three, without scrolling past the rest. */}
+      <div className="panel">
+        <h2>
+          Find a product
+          <span className="right">
+            <form method="get" className="bar-row">
+              <input name="q" defaultValue={q} placeholder="Name or SKU" style={{ width: '200px' }} />
+              <select name="kind" defaultValue={kind} style={{ width: '150px' }}>
+                <option value="">All categories</option>
+                {KINDS.map(k => <option key={k} value={k}>{KIND_LABELS[k] || k}</option>)}
+              </select>
+              <select name="show" defaultValue={show} style={{ width: '150px' }}>
+                <option value="">Live and hidden</option>
+                <option value="live">Live only</option>
+                <option value="hidden">Hidden only</option>
+                <option value="unpriced">Needs a price</option>
+              </select>
+              <button className="btn sm" type="submit">Apply</button>
+              <Link className="btn sm ghost" href="/admin/products">Reset</Link>
+            </form>
+          </span>
+        </h2>
+        <div className="pad muted" style={{ paddingTop: 0 }}>
+          Showing <b>{live.length}</b> of {all.length} products
+          {archived.length ? ` · ${archived.length} archived below` : ''}
+        </div>
+      </div>
+
       {live.length === 0 ? (
-        <div className="panel"><div className="empty">No products yet — add one above, or run the database seed.</div></div>
+        <div className="panel">
+          <div className="empty">
+            {/* Two different situations, and telling them apart is the whole
+                point: an empty catalogue needs a seed, an empty filter needs
+                clearing. Saying "nothing matches" to somebody who has no
+                products at all sends them looking for a filter they never set. */}
+            {filtered
+              ? <>No product matches that. <Link href="/admin/products">Clear the filter</Link> to see all {all.length}.</>
+              : 'No products yet — add one above, or run the database seed.'}
+          </div>
+        </div>
       ) : live.map(p => (
-        <div className="panel" key={p.id}>
+        <div className="panel prod-row" key={p.id}>
           <h2>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img className="prod-thumb" src={imageUrl(p.image)} alt="" width="34" height="34" />
             <span dir="rtl">{p.name_ar}</span>
             <span className="muted" style={{ fontWeight: 600 }}>· {p.name_en} · {p.sku}</span>
+            {/* The two numbers the owner actually came here for, readable
+                without opening anything. A zero price is the "ask us" state and
+                is called that, because "0 EGP" reads as free. */}
+            <span className="prod-figs">
+              <b>{Number(p.price) > 0 ? money(p.price) : 'no price'}</b>
+              <span className={Number(p.stock) > 0 ? 'muted' : 'pill cancelled'}>
+                {Number(p.stock) > 0 ? `${p.stock} in stock` : 'out of stock'}
+              </span>
+            </span>
             <span className={p.active ? 'pill active' : 'pill cancelled'}>{p.active ? 'live' : 'hidden'}</span>
             {p.featured && <span className="pill active" title="Shown on the home page">home</span>}
             <span className="right">
@@ -585,6 +670,23 @@ export default async function ProductsPage({ searchParams }) {
             </span>
           </h2>
 
+          {/*
+            The twenty fields, behind one click.
+            -------------------------------------
+            Every product used to render this form open, so the page was the
+            whole catalogue expanded at once and the only way to a given product
+            was the scrollbar. Collapsed, the page becomes a list you can read,
+            and the form is still one click away for the row you actually want.
+
+            <details> rather than a state toggle because this is a server
+            component: no JavaScript, it survives a failed save, and the browser
+            gives keyboard and screen-reader behaviour for free. The forms stay
+            OUTSIDE the <summary> - a form inside a summary is invalid, and the
+            quick actions above are the ones worth having without opening
+            anything anyway.
+          */}
+          <details className="prod-edit">
+            <summary>Edit all details</summary>
           <div className="pad">
             <form action={saveProduct}>
               <input type="hidden" name="_csrf" value={token} />
@@ -600,6 +702,7 @@ export default async function ProductsPage({ searchParams }) {
               </div>
             </form>
           </div>
+          </details>
         </div>
       ))}
 

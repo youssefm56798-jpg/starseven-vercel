@@ -75,10 +75,26 @@ export default async function Dashboard({ searchParams }) {
      ORDER BY q DESC
      LIMIT 6`;
 
+  /*
+   * Running low, meaning products that are actually being sold.
+   *
+   * This asked for active products at stock 20 or under, which sounds right and
+   * was not: half the catalogue is priced at zero on purpose - the storefront
+   * reads that as "ask us" and shows a WhatsApp button instead of Add to cart -
+   * and those rows are deliberately held at stock 0 as a second lock. So the
+   * most prominent table on the dashboard was thirty-odd permanent red zeros
+   * that no amount of restocking would ever clear, and a genuine shortage would
+   * have appeared somewhere in the middle of them.
+   *
+   * A warning that is always on is not a warning. Priced products only.
+   */
   const lowStock = await sql`
     SELECT sku, name_ar, name_en, stock
       FROM products
-     WHERE active = true AND stock <= 20
+     WHERE active = true
+       AND archived_at IS NULL
+       AND price > 0
+       AND stock <= 20
      ORDER BY stock ASC`;
 
   const ordersNew = Number(kpi.orders_new);

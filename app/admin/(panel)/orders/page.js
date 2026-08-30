@@ -138,7 +138,21 @@ export default async function OrdersPage({ searchParams }) {
         </h2>
 
         {orders.length === 0 ? (
-          <div className="empty">Nothing matches that.</div>
+          /*
+           * Two different situations wearing one sentence.
+           *
+           * "Nothing matches that" is true when a filter is set and false when
+           * the shop simply has not had an order yet — and on a shop that has
+           * not launched, which is exactly when somebody first opens this
+           * screen, it sends them hunting for a filter they never set. The
+           * distinction is free: we already know whether either control is in
+           * use.
+           */
+          <div className="empty">
+            {(status || q)
+              ? <>No order matches that. <Link href="/admin/orders">Clear the filter</Link> to see them all.</>
+              : 'No orders yet. When somebody checks out, they land here — newest first.'}
+          </div>
         ) : (
           <div className="table-scroll">
             <table>
