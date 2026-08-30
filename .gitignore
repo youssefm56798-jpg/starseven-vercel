@@ -18,3 +18,17 @@ backups/*
 !backups/.gitignore
 *.ndjson
 *.pg_dump.sql
+# Keys and certificates.
+#
+# Nothing of this shape belongs in the tree today, and the point of the rule is
+# that the day one appears - a service-account file, a certificate pulled down
+# to debug TLS, an SSH key copied in to reach a box - it is already ignored
+# rather than noticed in a diff by whoever happens to read it. The repository
+# is public, so the cost of missing one is not a bad commit, it is a leaked key.
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
+.npmrc
+.netrc
