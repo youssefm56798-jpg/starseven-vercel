@@ -21,6 +21,7 @@
     "verify:backup": "node scripts/verify-backup.mjs",
     "verify:products": "node scripts/verify-product-admin.mjs",
     "verify:accounts": "node scripts/verify-admin-accounts.mjs",
+    "verify:grants": "node scripts/verify-grants.mjs",
     "vercel-build": "node scripts/setup-db.mjs && next build"
   },
   "dependencies": {

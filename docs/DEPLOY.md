@@ -33,7 +33,8 @@ Copy `.env.example` and fill it in. Every variable must exist in **Production**,
 
 | Variable | What it is |
 |---|---|
-| `DATABASE_URL` | Set by the Neon integration. Don't edit by hand. |
+| `DATABASE_URL` | Set by the Neon integration. Don't edit by hand. This is the **owner** role: it can run DDL, which the migration needs. |
+| `DATABASE_URL_APP` | Optional but recommended. The **restricted** role the running site connects as. See below. Absent, the site falls back to `DATABASE_URL`. |
 | `NEXT_PUBLIC_SITE_URL` | The live origin, no trailing slash. Used for canonical URLs, `sitemap.xml` and `robots.txt`. Getting this wrong hurts SEO more than anything else on this list. |
 | `NEXT_PUBLIC_WHATSAPP` | Support number in international format, no `+`. |
 | `SHIPPING_FEE` | Delivery fee in EGP. |
@@ -45,6 +46,48 @@ Copy `.env.example` and fill it in. Every variable must exist in **Production**,
 | `SESSION_SECRET` | Signs the admin login cookie. Generate with `node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"`. Changing it logs every admin out. |
 | `ADMIN_SETUP_KEY` | Used **once** to create the first admin login, then delete the variable. |
 | `BLOB_READ_WRITE_TOKEN` | Set for you when a Blob store is connected. Optional — see below. |
+
+### The restricted runtime role
+
+`DATABASE_URL` is the Neon owner: it owns every table, runs DDL, and carries
+`BYPASSRLS`. The migration needs that. A web server does not — holding it means
+anything that reaches SQL execution through the running site inherits the power
+to drop the orders table.
+
+So point the runtime at a role that can only do what the code actually does.
+The privileges are listed in `db/grants.mjs`, applied on every deploy by
+`setup-db.mjs`, and proved against a throwaway database by `npm run verify:grants`.
+It cannot create, alter or drop anything, and it cannot delete an order, an
+order event, an access token or a mail-log row — the order history and the audit
+trail are not the application's to erase.
+
+**Once, by hand.** In the Neon SQL editor, on the production database:
+
+```sql
+CREATE ROLE s7_app LOGIN PASSWORD 'paste-a-generated-password-here';
+```
+
+Generate the password rather than inventing one:
+
+```
+node -e "console.log(require('crypto').randomBytes(24).toString('base64url'))"
+```
+
+Then take the `DATABASE_URL` connection string, replace the username and
+password with `s7_app` and that password, keep everything else identical
+(`?sslmode=require` included), and set it as `DATABASE_URL_APP` in Vercel —
+Production and Preview. Redeploy. The deploy applies the grants itself; you do
+not run any GRANT statement by hand.
+
+Check it landed with `node scripts/apply-grants.mjs --check`, which prints what
+the role holds against what the matrix wants.
+
+**To roll back**, delete `DATABASE_URL_APP` and redeploy. The site falls back to
+the owner string and nothing else changes — worth knowing before you need it.
+
+A new table added by a later migration picks its grants up on the next deploy,
+because `db/grants.mjs` is re-applied every time. Adding a table without adding
+it to that file fails `npm test`, which is the intended way to find out.
 
 ### Product image uploads
 

@@ -19,6 +19,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { splitStatements } from './sql-split.mjs';
 import { applyEnv } from './env-file.mjs';
+import { applyGrants } from './apply-grants.mjs';
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 const NEWLINE = String.fromCharCode(10);
@@ -183,6 +184,22 @@ try {
 
 if (!wants.seedOnly) await runFile(exec, 'db/schema.sql');
 if (!wants.schemaOnly) await runFile(exec, 'db/seed.sql');
+
+/*
+ * The runtime role's grants, re-applied every time.
+ *
+ * It has to be every time rather than once, because a table added by a later
+ * migration would otherwise be unreachable by the running site until somebody
+ * remembered - and "somebody remembers" is what this whole script exists to
+ * avoid. Re-applying is cheap and the statements are idempotent.
+ *
+ * A missing role is not an error. This runs inside the deploy, and the hardening
+ * being half-finished must not be able to take a deployment down.
+ */
+const grants = await applyGrants(exec);
+console.log(grants.skipped
+  ? `${NEWLINE}  grants — role ${grants.role} does not exist yet, skipped (see docs/DEPLOY.md)`
+  : `${NEWLINE}  grants — ${grants.applied} statement(s) applied to ${grants.role}`);
 
 /* -------------------------------------------------------------- summary */
 
