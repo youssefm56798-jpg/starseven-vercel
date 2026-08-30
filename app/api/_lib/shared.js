@@ -55,6 +55,32 @@ export const tooBig = () => fail('Request too large.', 413);
  * `accent` is the celebratory treatment (star, red offset shadow, filled
  * button) used on confirmation; unsubscribe gets the quieter outlined card.
  */
+/*
+ * No webfont link in the markup below, deliberately.
+ *
+ * This page used to pull Cairo straight from fonts.googleapis.com, and three
+ * things were wrong with that at once.
+ *
+ * The rest of the site does not do it: lib/fonts.js loads Cairo through
+ * next/font/google, which downloads the files at BUILD time and serves them
+ * from this origin - which is why the site CSP names no Google host at all.
+ * That one hand-written link was the only request to Google in the whole app.
+ *
+ * It was refused anyway. The /api header rule sends default-src 'none', so the
+ * stylesheet, the preconnects and the inline <style> were all blocked, and every
+ * subscriber who clicked confirm or unsubscribe got an unstyled page in
+ * production. next.config.mjs now gives these two routes a document policy.
+ *
+ * And of all the pages to call Google from, the unsubscribe link is the worst:
+ * somebody telling us to stop contacting them should not have their IP handed to
+ * a third party by the click that does it.
+ *
+ * The stack starts at system-ui, which resolves to a real Arabic face on every
+ * platform this is read on.
+ *
+ * Kept as a JS comment rather than an HTML one - the first version of this
+ * explanation sat inside the template literal and shipped to every visitor.
+ */
 export function brandPage({ lang = 'ar', title, body, status = 200, accent = false }) {
   const rtl = lang === 'ar';
   // Derived, not printed from the argument. This is the only text/html response
@@ -78,29 +104,6 @@ export function brandPage({ lang = 'ar', title, body, status = 200, accent = fal
 <meta name="robots" content="noindex">
 <title>${esc(title)} — ${esc(site.name)}</title>
 <link rel="icon" type="image/png" href="/assets/favicon.png">
-<!--
-  No webfont link here, deliberately.
-
-  This page used to pull Cairo straight from fonts.googleapis.com. Three things
-  were wrong with that, and they compounded:
-
-  The rest of the site does not do it. lib/fonts.js loads Cairo through
-  next/font/google, which downloads the files at BUILD time and serves them from
-  this origin - which is why the site CSP allows no Google host at all. This one
-  hand-written link was the only request to Google in the entire app.
-
-  It was blocked anyway. The /api header rule sends default-src 'none', so the
-  stylesheet, the preconnects and the inline <style> below were all refused, and
-  every subscriber who clicked confirm or unsubscribe got an unstyled page. That
-  is what led here.
-
-  And of all the pages to call Google from, this is the worst one: the unsubscribe
-  link. Someone telling us to stop contacting them should not have their IP handed
-  to a third party by the click that does it.
-
-  The stack below starts at system-ui, which resolves to a real Arabic face on
-  every platform this site is read on.
--->
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
   body{min-height:100vh;display:grid;place-items:center;background:#FFFDF8;color:#12100B;
