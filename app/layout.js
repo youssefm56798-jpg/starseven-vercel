@@ -1,12 +1,10 @@
 import { Suspense } from 'react';
-import Script from 'next/script';
-import { Analytics } from '@vercel/analytics/next';
-import { SpeedInsights } from '@vercel/speed-insights/next';
 import { anton, cairo, tajawal } from '../lib/fonts.js';
 import './globals.css';
 import { site } from '../lib/config.js';
 import PageWipe from './_components/PageWipe.js';
 import CardSpotlight from './_components/CardSpotlight.js';
+import Telemetry from './_components/Telemetry.js';
 
 /**
  * Root layout for the storefront.
@@ -36,42 +34,23 @@ export const metadata = {
   robots: { index: true, follow: true },
 };
 
-/**
- * Google Analytics 4, and nothing at all when it is not configured.
+/*
+ * Analytics used to live here: <Analytics />, <SpeedInsights /> and a GA4
+ * component with its own inline gtag config. All three are now
+ * app/_components/Telemetry.js, and the move is a security fix rather than
+ * tidying.
  *
- * The site already carries Vercel Analytics, which counts page views and is
- * cookieless. It cannot report a purchase, so nothing here has ever been able
- * to say what a visit was worth - which is what GA4 is being added for. The
- * events are fired at the point each thing actually happens, not here:
- * `purchase` in app/checkout/CheckoutClient.js when the order route answers,
- * and `add_to_cart` in lib/cart.js.
+ * Each of the three reports a page view as a full `location.href`, and this
+ * site puts an order's access token in the query string — so every visit to
+ * /order/S7-2708-12345?t=<token> handed that token to a third party. Vercel
+ * Web Analytics has been doing it since the day the component was added; it
+ * needs no key, so nothing gated it.
  *
- * NEXT_PUBLIC_GA_ID gates it, and the same variable gates the Google hosts in
- * the CSP in next.config.mjs. That pairing is the point: with no ID there is no
- * script AND no allowance, so the policy never carries a hole for a third party
- * the site does not call. Set the variable in Vercel and redeploy - both halves
- * are read at build time.
- *
- * afterInteractive rather than beforeInteractive: nothing on the page waits on
- * analytics, and this is a storefront where the Largest Contentful Paint is a
- * product photograph.
+ * The redaction is `beforeSend`, which is a FUNCTION prop, and a function
+ * cannot be passed from a Server Component to a client one. This file is a
+ * server component. That is the whole reason those three tags had to leave it
+ * rather than being fixed in place. lib/analytics-url.js carries the argument.
  */
-function GA4() {
-  const id = (process.env.NEXT_PUBLIC_GA_ID || '').trim();
-  if (!id) return null;
-  return (
-    <>
-      <Script
-        src={`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(id)}`}
-        strategy="afterInteractive"
-      />
-      <Script id="ga4-init" strategy="afterInteractive">
-        {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}`
-          + `gtag('js',new Date());gtag('config',${JSON.stringify(id)});`}
-      </Script>
-    </>
-  );
-}
 
 export const viewport = {
   width: 'device-width',
@@ -143,9 +122,11 @@ export default function RootLayout({ children }) {
             cannot live in either of them. */}
         <CardSpotlight />
         {children}
-        <Analytics />
-        <SpeedInsights />
-        <GA4 />
+        {/* Same Suspense reasoning as PageWipe above: Telemetry reads the
+            current route through useSearchParams to report a page view on
+            client-side navigation, and an unwrapped useSearchParams this high
+            in the tree opts the whole site out of prerendering. */}
+        <Suspense fallback={null}><Telemetry /></Suspense>
       </body>
     </html>
   );
