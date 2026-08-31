@@ -836,7 +836,7 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
       {/* -------------------------------------------------------- barber */}
       <section className="barber">
         <div className="bgwrap">
-          <img className="bg" src="/assets/barbershop.jpg" alt="" loading="lazy" />
+          <img className="bg" src="/assets/barbershop.webp" alt="" loading="lazy" decoding="async" />
           <div className="tint" />
         </div>
         <div className="shade" />
