@@ -30,7 +30,6 @@
     "@vercel/blob": "^2.8.0",
     "@vercel/speed-insights": "^2.0.0",
     "bcryptjs": "^2.4.3",
-    "framer-motion": "^11.11.17",
     "jose": "^5.9.6",
     "next": "^15.1.6",
     "react": "^19.0.0",

@@ -9,7 +9,7 @@ import { rankProducts, sellable } from '../../lib/hairtypes.js';
 import { HAIR_STYLES, rankForStyle } from '../../lib/hairstyles.js';
 import { currencyLabel, whole, discountPercent } from '../../lib/money.js';
 import { runDir } from '../hair-types/lib.js';
-import { imageUrl } from '../../lib/product-image.js';
+import { imageUrl, imageSrcSet } from '../../lib/product-image.js';
 
 /**
  * The landing page.
@@ -166,7 +166,8 @@ function Card({ p, lang, d, L, onAdd }) {
     <div className="card" style={{ '--c': p.color }}>
       <Link className="card-hit" href={L(`/product/${p.slug}`)}>
         {t.chip && <span className="chip">{t.chip}</span>}
-        <img src={imageUrl(p.img)} alt={t.name} loading="lazy" width="300" height="300" />
+        <img src={imageUrl(p.img)} srcSet={imageSrcSet(p.img)} sizes="(max-width: 700px) 45vw, 300px"
+          alt={t.name} loading="lazy" width="300" height="300" />
         <h3>{t.name}</h3>
         <div className="sub">{t.sub}</div>
       </Link>

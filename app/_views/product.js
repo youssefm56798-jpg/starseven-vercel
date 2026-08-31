@@ -10,7 +10,7 @@ import { productFaq, faqJsonLd } from '../../lib/faq.js';
 import { Dir, Nav, Footer, Crumb } from '../_components/Chrome.js';
 import AddButton from '../_components/AddButton.js';
 import { CATEGORIES, shopPath } from '../shop/lib.js';
-import { absoluteImageUrl, imageUrl } from '../../lib/product-image.js';
+import { absoluteImageUrl, imageUrl, imageSrcSet } from '../../lib/product-image.js';
 
 /**
  * The product detail page, rendered once and mounted at two addresses.
@@ -206,7 +206,8 @@ export default async function ProductView({ slug, lang }) {
       <div className="wrap">
         <div className="pdp">
           <div className="pdp-media" style={{ '--c': p.color }}>
-            <img src={imageUrl(p.image)} alt={name} width="600" height="600" />
+            <img src={imageUrl(p.image)} srcSet={imageSrcSet(p.image)} sizes="(max-width: 900px) 92vw, 600px"
+              alt={name} width="600" height="600" />
           </div>
 
           <div className="pdp-info">
@@ -438,7 +439,8 @@ export default async function ProductView({ slug, lang }) {
                   return (
                     <div className="card" key={r.sku} style={{ '--c': r.color }}>
                       <Link className="card-hit" href={L(`/product/${r.slug}`)}>
-                        <img src={imageUrl(r.image)} alt={rName} loading="lazy" width="300" height="300" />
+                        <img src={imageUrl(r.image)} srcSet={imageSrcSet(r.image)} sizes="(max-width: 700px) 45vw, 300px"
+                          alt={rName} loading="lazy" width="300" height="300" />
                         <h3>{rName}</h3>
                         <div className="sub">{ar ? r.sub_ar : r.sub_en}</div>
                       </Link>

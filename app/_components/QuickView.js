@@ -7,7 +7,7 @@ import { currencyLabel, whole } from '../../lib/money.js';
 import { site } from '../../lib/config.js';
 import AddButton from './AddButton.js';
 import './quickview.css';
-import { imageUrl } from '../../lib/product-image.js';
+import { imageUrl, imageSrcSet } from '../../lib/product-image.js';
 
 /**
  * Quick view for the shop grid.
@@ -185,7 +185,8 @@ function QuickViewModal({ lang, product, onClose, triggerRef }) {
         </button>
 
         <div className="qv-media">
-          <img src={imageUrl(product.image)} alt={product.name} width="360" height="360" />
+          <img src={imageUrl(product.image)} srcSet={imageSrcSet(product.image)} sizes="(max-width: 700px) 80vw, 360px"
+            alt={product.name} width="360" height="360" />
         </div>
 
         <div className="qv-info">
