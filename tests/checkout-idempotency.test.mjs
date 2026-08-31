@@ -136,15 +136,19 @@ test('the reply is built once and both answers come from it', () => {
 });
 
 test('a refusal that a concurrent duplicate can cause asks the key first', () => {
-  // The two checks a winning duplicate can flip under a loser: it takes the
-  // stock, and it spends the last use of a capped code. Refusing on either
+  // The three checks a winning duplicate can flip under a loser: it takes the
+  // stock, it spends the last use of a capped code, and it takes this
+  // customer's own slot on a per-customer code. Refusing on any of them
   // without asking the key tells a customer their order failed when their own
-  // earlier request is what placed it.
+  // earlier request is what placed it — and the third is the worst of the
+  // three to get wrong, because "already used on this number" reads as an
+  // accusation rather than as bad luck.
   const guarded = [...route.matchAll(/return \(await replayed\(\)\) \?\? fail\(/g)];
-  assert.equal(guarded.length, 2, 'the raceable refusals are not replay-checked');
+  assert.equal(guarded.length, 3, 'the raceable refusals are not replay-checked');
   const stock = route.indexOf('in stock.');
   const spent = route.indexOf('has been fully used.');
-  for (const at of [stock, spent]) {
+  const mine = route.indexOf('already been used on this number.');
+  for (const at of [stock, spent, mine]) {
     const before = route.lastIndexOf('return (await replayed()) ?? fail(', at);
     assert.ok(before > 0 && at - before < 400, 'this refusal is not replay-checked');
   }

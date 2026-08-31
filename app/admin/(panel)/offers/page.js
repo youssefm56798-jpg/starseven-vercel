@@ -22,6 +22,28 @@ export const metadata = { title: 'Offers — Star Seven admin' };
 
 const TYPES = ['percent', 'fixed', 'none'];
 
+/**
+ * A redemption cap, as the database wants it: a positive integer, or NULL.
+ *
+ * Blank means unlimited and has to survive as NULL rather than becoming 0. The
+ * difference is the whole meaning of the field — 0 is a code nobody may ever
+ * use, NULL is a code anybody may use as often as they like — and `Number('')`
+ * is 0, so leaving this to the usual `Number(x) || 0` idiom used elsewhere on
+ * this form would silently create dead codes every time the box was left empty.
+ *
+ * Anything that is not a positive whole number is also read as unlimited rather
+ * than refused. These two boxes are optional extras beside the fields that
+ * actually define an offer, and failing the whole form because somebody typed
+ * "none" into one of them would be a worse answer than the one the placeholder
+ * already promises.
+ */
+function capOf(raw) {
+  const s = String(raw ?? '').trim();
+  if (!s) return null;
+  const n = Math.trunc(Number(s));
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
 async function createOffer(formData) {
   'use server';
   await requirePermission('offers:write');
@@ -39,11 +61,15 @@ async function createOffer(formData) {
   const starts = String(formData.get('starts_at') || '') || null;
   const ends = String(formData.get('ends_at') || '') || null;
 
+  const maxUses = capOf(formData.get('max_uses'));
+  const perCustomer = capOf(formData.get('per_customer'));
+
   // The datetime-local input gives a wall clock with no zone; it is the shop's
   // wall clock, so it is read as Cairo time before being stored as UTC.
   await sql`
     INSERT INTO offers (title_ar, title_en, body_ar, body_en, code, discount_type,
-                        discount_value, min_total, starts_at, ends_at, active)
+                        discount_value, min_total, starts_at, ends_at, active,
+                        max_uses, per_customer)
     VALUES (${titleAr},
             ${String(formData.get('title_en') || '').trim()},
             ${bodyAr},
@@ -51,7 +77,8 @@ async function createOffer(formData) {
             ${code}, ${type}, ${value}, ${minTotal},
             ${starts}::timestamp AT TIME ZONE 'Africa/Cairo',
             ${ends}::timestamp AT TIME ZONE 'Africa/Cairo',
-            true)`;
+            true,
+            ${maxUses}::int, ${perCustomer}::int)`;
 
   redirect('/admin/offers?m=offer_created');
 }
@@ -148,6 +175,25 @@ export default async function OffersPage({ searchParams }) {
             </div>
             <div className="grid2">
               <div className="field">
+                <label htmlFor="max_uses">Total redemptions</label>
+                <input id="max_uses" type="number" name="max_uses" min="1" step="1"
+                  placeholder="unlimited" />
+              </div>
+              <div className="field">
+                <label htmlFor="per_customer">Per customer</label>
+                <input id="per_customer" type="number" name="per_customer" min="1" step="1"
+                  placeholder="unlimited" />
+              </div>
+            </div>
+            <p className="muted" style={{ margin: '0 0 14px', fontSize: '13px' }}>
+              Leave both blank for a code anyone can use as often as they like. <b>Total</b> is the
+              cap across everybody — once it is reached the code stops working for the next person
+              who tries. <b>Per customer</b> is counted against the phone number on the order, so
+              “1” is how you write “first order only”. A cancelled order gives its redemption back
+              on both counts.
+            </p>
+            <div className="grid2">
+              <div className="field">
                 <label htmlFor="starts_at">Starts</label>
                 <input id="starts_at" type="datetime-local" name="starts_at" />
               </div>
@@ -186,6 +232,15 @@ export default async function OffersPage({ searchParams }) {
                       {o.discount_type === 'fixed' && money(o.discount_value)}
                       {o.discount_type === 'none' && '—'}
                       {Number(o.min_total) > 0 ? <div>min {money(o.min_total)}</div> : null}
+                      {/* The caps, and only when there are any — an unlimited
+                          code is the common one and saying "unlimited" on every
+                          row would bury the two that are capped. */}
+                      {o.max_uses != null ? (
+                        <div>{Number(o.used_count)}/{Number(o.max_uses)} used</div>
+                      ) : null}
+                      {o.per_customer != null ? (
+                        <div>max {Number(o.per_customer)} per customer</div>
+                      ) : null}
                     </td>
                     <td className="muted">{dayShort(o.starts_at)} → {dayShort(o.ends_at)}</td>
                     <td className="muted">

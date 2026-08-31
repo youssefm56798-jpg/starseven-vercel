@@ -540,6 +540,63 @@ export async function POST(req) {
           RETURNING id
         )
         SELECT 1 / count(*)::int AS guard FROM spent`);
+
+      /*
+       * Record WHO redeemed it, and enforce the per-customer cap while doing it.
+       *
+       * offers.used_count above is a counter, and a counter cannot answer the
+       * question the shop asks when a code looks abused: which customer. This
+       * writes the row behind that number, inside the same transaction as the
+       * order, so the two can never disagree — and it is deleted again by the
+       * cancel path in lib/order-status.js, exactly as the counter is
+       * decremented there.
+       *
+       * One statement covers both capped and uncapped codes, and the difference
+       * is the slot:
+       *
+       *   uncapped   `slot` is NULL. A unique index treats two NULLs as
+       *              distinct, so the index below does not constrain these rows
+       *              at all — an uncapped code is recorded without being
+       *              limited, which is the point.
+       *   capped     `slot` is the next ordinal for this (code, phone), and
+       *              idx_redemptions_slot is UNIQUE over the three. Two
+       *              checkouts racing for the last slot both compute the same
+       *              number; Postgres makes the second WAIT on the first and
+       *              then refuses it. That refusal is what makes the cap exact
+       *              rather than a check-then-insert — the same property the
+       *              order_attempts claim at the top of this batch relies on.
+       *
+       * max(slot) + 1 rather than count(*), and the difference matters the
+       * moment a cancellation gives a redemption back. With a cap of two: a
+       * customer redeems slot 0, redeems slot 1, then cancels the first. count
+       * is now 1, so a third order is allowed — correctly, they are holding one
+       * — but a count-derived slot would be 1, which already exists, and the
+       * order would fail on the unique index instead. Slots are monotonic per
+       * (code, phone) and never reused; the CAP is the count, which is the
+       * figure that is supposed to move when a redemption is returned.
+       *
+       * Casts are explicit throughout for the reason the item insert documents:
+       * a bare parameter in an INSERT ... SELECT target list has no column to
+       * take its type from, and a bare NULL has nothing at all.
+       */
+      stmts.push(sql`
+        WITH claimed AS (
+          INSERT INTO offer_redemptions (code, order_id, phone, email, slot)
+          SELECT ${couponCode}::text, o.id, ${phone}::text, ${custEmail}::text,
+                 CASE WHEN ${couponPerCustomer}::int IS NULL THEN NULL
+                      ELSE (SELECT coalesce(max(r.slot), -1) + 1
+                              FROM offer_redemptions r
+                             WHERE r.code = ${couponCode} AND r.phone = ${phone})
+                 END
+            FROM orders o
+           WHERE o.ref = ${ref}
+             AND (${couponPerCustomer}::int IS NULL
+                  OR (SELECT count(*) FROM offer_redemptions r
+                       WHERE r.code = ${couponCode} AND r.phone = ${phone})
+                     < ${couponPerCustomer}::int)
+          RETURNING id
+        )
+        SELECT 1 / count(*)::int AS guard FROM claimed`);
     }
 
     return stmts;
@@ -550,10 +607,21 @@ export async function POST(req) {
   let written = false;
   let writeErr = null;
 
-  // order_ref() is four random digits within a day, so a collision is unlikely
-  // but not impossible. A duplicate is worth retrying; anything else is not.
-  // A retry is safe for the claim too: the collision aborted the batch, so the
-  // key it tried to take was rolled back with everything else and is free again.
+  /*
+   * orderRef() is five random digits within a day, so a collision is unlikely
+   * but not impossible. A duplicate is worth retrying; anything else is not.
+   * A retry is safe for the claim too: the collision aborted the batch, so the
+   * key it tried to take was rolled back with everything else and is free again.
+   *
+   * 23505 has a second meaning now, and the retry is right for that one too.
+   * Two checkouts racing for the last slot of a per-customer-capped code both
+   * compute the same slot number and one loses on idx_redemptions_slot. Its
+   * whole batch rolls back, this loop draws a fresh reference and tries again —
+   * and the second attempt reads the winner's committed redemption, fails the
+   * count test in the same statement, and is refused as 22012 below. So the
+   * loser is told the code is spent rather than being handed a second
+   * redemption, which is exactly the outcome the index exists to produce.
+   */
   for (let attempt = 0; attempt < 5 && !written; attempt++) {
     ref = orderRef();
     reply = replyFor(ref);
@@ -571,7 +639,7 @@ export async function POST(req) {
 
     /*
      * 22012 is division_by_zero — one of our own guards, never a real fault.
-     * Three of them can raise it now and they mean different things, so ask
+     * Four of them can raise it now and they mean different things, so ask
      * which before choosing what to tell the customer.
      *
      * A row under our key can only have been written by somebody else: our own
@@ -589,8 +657,18 @@ export async function POST(req) {
       const lost = await replayed();
       if (lost) return lost;
 
-      // No claim in the way, so it was the stock guard or the coupon guard.
-      // The stock is the one a customer can act on, so that is the message.
+      /*
+       * No claim in the way, so it was the stock guard, the coupon cap guard or
+       * the per-customer redemption guard. The stock is the one a customer can
+       * act on, so that is the message.
+       *
+       * The two coupon cases are only reachable by losing a race — both have a
+       * courteous check above that catches every sequential attempt and answers
+       * precisely — so the wrong-but-harmless wording here is paid by a
+       * vanishingly rare caller whose next move ("try again") is the same
+       * either way. Distinguishing them would cost two more queries on an error
+       * path to improve a sentence almost nobody reads.
+       */
       return fail(
         ar ? 'واحد من المنتجات خلص من المخزن دلوقتي. راجع السلة وجرّب تاني.'
            : 'One of those items just sold out. Check your cart and try again.',
