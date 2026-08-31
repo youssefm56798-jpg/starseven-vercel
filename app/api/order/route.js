@@ -17,6 +17,7 @@ import { sendMail, tplOrder, tplOrderAdmin } from '../../../lib/mail.js';
 import { newAccessToken, sha256, orderUrl } from '../../../lib/order-access.js';
 import { site, mail, limits } from '../../../lib/config.js';
 import { str, trapped, isEmail, tooMany, tooBig } from '../_lib/shared.js';
+import { isServed } from '../../../lib/delivery-eta.js';
 
 export const dynamic = 'force-dynamic';
 
@@ -106,7 +107,28 @@ export async function POST(req) {
     );
   }
 
+  /*
+   * The delivery area, refused here rather than only on the picker.
+   *
+   * Checkout offers three governorates in a <select>, and that is a courtesy:
+   * this route is a plain POST endpoint that anything can call with any body,
+   * so the select is not what stops an order for Aswan - this is. The shop has
+   * no courier contract outside Cairo, Giza and Qalyubia, and an order it
+   * cannot deliver is worse than one it never took: the customer has been told
+   * yes, the stock has been decremented, and somebody has to ring them back.
+   *
+   * isServed() reads neighbourhoods too, so "المعادي" and "الشيخ زايد" pass
+   * without the customer having to know which governorate they are in.
+   */
   const city = str(body.city, 80);
+  if (!isServed(city)) {
+    return fail(
+      ar ? 'دلوقتي بنوصّل للقاهرة والجيزة والقليوبية بس. لو إنت بره دول، كلّمنا واتساب.'
+         : 'We currently deliver to Cairo, Giza and Qalyubia only. Outside those, message us on WhatsApp.',
+      422, { field: 'city' },
+    );
+  }
+
   const notes = str(body.notes, 500);
 
   /* ---------------------------------------------------------------- items */

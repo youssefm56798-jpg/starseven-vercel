@@ -32,6 +32,10 @@ import {
   formatDay,
   formatStamp,
   isYmd,
+  SERVED,
+  SERVED_LABELS,
+  governorateFor,
+  isServed,
 } from '../lib/delivery-eta.js';
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
@@ -377,4 +381,77 @@ test('the customer timeline returns only status changes and the refund request',
   assert.match(query, /kind IN \('status', 'refund-request'\)/);
   assert.match(query, /CASE WHEN kind = 'refund-request' THEN note ELSE '' END/,
     'the note on a status or mail row is not blanked out');
+});
+
+/* ------------------------------------------------- where we deliver ---- */
+
+test('the served list is the three governorates and nothing else', () => {
+  assert.deepEqual(SERVED, ['cairo', 'giza', 'qalyubia']);
+  for (const g of SERVED) {
+    assert.ok(SERVED_LABELS[g]?.ar, `${g} has no Arabic label for the picker`);
+    assert.ok(SERVED_LABELS[g]?.en, `${g} has no English label for the picker`);
+  }
+});
+
+test('a served governorate is recognised however it is written', () => {
+  for (const [input, want] of [
+    ['القاهرة', 'cairo'], ['Cairo', 'cairo'], ['محافظة القاهرة', 'cairo'],
+    ['الجيزة', 'giza'], ['الجيزه', 'giza'], ['Giza', 'giza'],
+    ['القليوبية', 'qalyubia'], ['Qalyubia', 'qalyubia'],
+  ]) {
+    assert.equal(governorateFor(input), want, `${input} should be ${want}`);
+  }
+});
+
+test('a neighbourhood counts as its governorate', () => {
+  /*
+   * The tail that decides whether this feature loses orders. Nobody writes
+   * "محافظة الجيزة" in a delivery box - they write "الشيخ زايد". Refusing that
+   * is worse than mis-quoting a delivery window, because the order never
+   * happens at all.
+   */
+  for (const [input, want] of [
+    ['المعادي', 'cairo'], ['مدينة نصر', 'cairo'], ['التجمع الخامس', 'cairo'],
+    ['الشيخ زايد', 'giza'], ['6 أكتوبر', 'giza'], ['الهرم', 'giza'],
+    ['المهندسين', 'giza'], ['بنها', 'qalyubia'], ['العبور', 'qalyubia'],
+  ]) {
+    assert.equal(governorateFor(input), want, `${input} should be ${want}`);
+  }
+});
+
+test('Shubra is Cairo and Shubra El Kheima is Qalyubia', () => {
+  // Longest alias first, or the شبرا in شبرا الخيمة decides it.
+  assert.equal(governorateFor('شبرا'), 'cairo');
+  assert.equal(governorateFor('شبرا الخيمة'), 'qalyubia');
+});
+
+test('everywhere else is refused', () => {
+  /*
+   * Including بلبيس, which is where the shop physically is - it is in Sharqia,
+   * and the courier contract is what decides this list, not the address on the
+   * jar.
+   */
+  for (const input of [
+    'الإسكندرية', 'Alexandria', 'أسوان', 'طنطا', 'المنصورة', 'شرم الشيخ',
+    'البحر الأحمر', 'الشرقية', 'بلبيس', 'الزقازيق', '', '   ', 'asdf', null, undefined,
+  ]) {
+    assert.equal(governorateFor(input), null, `${input} must not be served`);
+    assert.equal(isServed(input), false);
+  }
+});
+
+test('the order route refuses an unserved governorate server-side', () => {
+  /*
+   * The picker on checkout is markup. This route is a POST endpoint anything
+   * can call with any body, so the refusal has to live here or it does not
+   * exist - the same reason every other field is re-validated after the form
+   * has already checked it.
+   */
+  const route = readFileSync(join(ROOT, 'app/api/order/route.js'), 'utf8');
+  assert.match(route, /isServed/, 'the order route no longer checks the delivery area');
+
+  const checked = route.indexOf('isServed(city)');
+  const written = route.search(/INSERT INTO orders/);
+  assert.ok(checked > 0, 'isServed(city) is not called');
+  assert.ok(written > checked, 'the order is written before the delivery area is checked');
 });

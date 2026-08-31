@@ -6,6 +6,7 @@ import { localePath } from '../../lib/urls.js';
 import Link from 'next/link';
 import { readCart, writeCart, setQty as setCartQty, clearCart } from '../../lib/cart.js';
 import { cartTotals } from '../../lib/pricing.js';
+import { SERVED, SERVED_LABELS } from '../../lib/delivery-eta.js';
 
 /**
  * Checkout.
@@ -26,6 +27,7 @@ const COPY = {
     place: 'أكّد الأوردر — الدفع عند الاستلام', placing: 'بنسجل الأوردر…',
     e_name: 'اكتب اسمك.', e_phone: 'رقم موبايل مصري غير صحيح.', e_addr: 'اكتب العنوان بالتفصيل.',
     e_email: 'اكتب إيميل صحيح.', e_net: 'مفيش اتصال بالسيرفر. جرّب تاني.',
+    city_pick: 'اختار المحافظة', e_city: 'اختار محافظة من القايمة.',
     done_h: 'استلمنا طلبك', done_p: 'هنكلمك نأكد العنوان والتوصيل. الدفع عند الاستلام.',
     done_more: 'ارجع للتسوق', cod: 'الدفع عند الاستلام',
     consent: 'ابعتلي العروض والخصومات على رقمي',
@@ -43,6 +45,7 @@ const COPY = {
     e_name: 'Please enter your name.', e_phone: 'Enter a valid Egyptian mobile number.',
     e_addr: 'Please enter a full address.', e_email: 'Enter a valid email address.',
     e_net: 'Could not reach the server. Try again.',
+    city_pick: 'Choose your governorate', e_city: 'Choose a governorate from the list.',
     done_h: 'Order received', done_p: 'We will call you to confirm the address and delivery. Cash on receipt.',
     done_more: 'Back to shopping', cod: 'Cash on delivery',
     consent: 'Send me offers and discounts on my number',
@@ -147,7 +150,7 @@ function forgetKey() {
  * what was wrong, and a Place order button that appeared to do nothing.
  * aria-invalid states it, aria-describedby reads the message out with the field.
  */
-function Field({ id, label, val, set, err, type = 'text', ta, ...rest }) {
+function Field({ id, label, val, set, err, type = 'text', ta, sel, ...rest }) {
   const errId = `${id}-err`;
   const props = {
     id,
@@ -161,7 +164,11 @@ function Field({ id, label, val, set, err, type = 'text', ta, ...rest }) {
   return (
     <div className="ff">
       <label htmlFor={id}>{label}</label>
-      {ta ? <textarea rows="2" {...props} /> : <input type={type} {...props} />}
+      {sel
+        ? <select {...props}>{sel}</select>
+        : ta
+          ? <textarea rows="2" {...props} />
+          : <input type={type} {...props} />}
       {err && <div className="err" id={errId}>{err}</div>}
     </div>
   );
@@ -273,6 +280,10 @@ export default function CheckoutClient({ lang, add, catalog, shipping, currency 
     if (f.name.trim().length < 3) next.name = T.e_name;
     if (!/^(?:\+?20|0020)?0?1[0125]\d{8}$/.test(f.phone.replace(/\D/g, ''))) next.phone = T.e_phone;
     if (f.addr.trim().length < 8) next.addr = T.e_addr;
+    // The picker starts empty, so this catches somebody submitting without
+    // touching it. The server refuses an unserved governorate regardless -
+    // this only saves the round trip.
+    if (!f.city.trim()) next.city = T.e_city;
     // Required. There are no accounts, so this address is the only way the
     // customer can reach their order again — to check it or to cancel it.
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(f.email.trim())) next.email = T.e_email;
@@ -408,8 +419,21 @@ export default function CheckoutClient({ lang, add, catalog, shipping, currency 
             autoComplete="street-address" />
 
           <div className="ff2">
-            <Field id="city" label={T.city} val={f.city} set={upd('city')}
-              autoComplete="address-level2" />
+            {/* A picker, not a text box. The shop delivers to three
+                governorates; letting somebody type a fourth and be refused by
+                the server after they have filled the whole form is a worse
+                way to tell them. The server still checks - see
+                app/api/order/route.js - because this select is markup and
+                markup is not a control. */}
+            <Field id="city" label={T.city} val={f.city} set={upd('city')} err={errs.city}
+              autoComplete="address-level2" required sel={[
+                <option key="" value="">{T.city_pick}</option>,
+                ...SERVED.map(g => (
+                  <option key={g} value={SERVED_LABELS[g][ar ? 'ar' : 'en']}>
+                    {SERVED_LABELS[g][ar ? 'ar' : 'en']}
+                  </option>
+                )),
+              ]} />
             <Field id="email" label={T.email} val={f.email} set={upd('email')} err={errs.email}
               type="email" dir="auto" autoComplete="email" required />
           </div>
