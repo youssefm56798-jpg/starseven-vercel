@@ -1885,10 +1885,24 @@ WHERE sku IN ('S7-W120-COCONU', 'S7-W135-OLIVE', 'S7-W135-ARGAN', 'S7-W135-COCON
 --  have put that on the shop, at no price, on the next deploy. The rows it was
 --  written for all came from the seed, so it says so.
 -- ---------------------------------------------------------------------------
+--  Except the depilatory range, which the client asked to be taken off the
+--  shop on 31 Aug. It is a different category of product from everything else
+--  here, it has never been priced, and "ask us on WhatsApp" was inviting a
+--  conversation about something there is no stock of.
+--
+--  Naming it here rather than only setting active = FALSE in the database is
+--  the whole point: this statement is what put them back the first time. A
+--  hidden, unpriced, seeded row is exactly what it looks for, so hiding one by
+--  hand lasted until the next deploy and no longer.
+--
+--  This is an exclusion, not a re-hide. There is no statement anywhere that
+--  forces the depilatory rows hidden, so the day a price arrives the owner can
+--  set it in the admin and the range comes back without a code change.
 UPDATE products
    SET active = TRUE
  WHERE price = 0 AND active = FALSE
-   AND origin = 'seed';
+   AND origin = 'seed'
+   AND kind <> 'depilatory';
 
 
 -- ---------------------------------------------------------------------------
