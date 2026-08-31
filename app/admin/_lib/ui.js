@@ -138,6 +138,14 @@ const MESSAGES = {
   offer_needs_text: ['err', 'Arabic title and body are required.'],
   csrf: ['err', 'Session expired — reload the page and try again.'],
   bad_input: ['err', 'That did not look right — check the form and try again.'],
+  // Cash reconciliation. cash_short is deliberately an 'ok' rather than an
+  // 'err': the figure saved correctly, and a variance is a fact being recorded
+  // rather than a mistake being refused. Colouring it red would train whoever
+  // does the reconciliation to read a successful save as a failure.
+  cash_saved: ['ok', 'Cash recorded.'],
+  cash_short: ['ok', 'Cash recorded — it does not match the order total. The difference is on the order history.'],
+  cash_bad: ['err', 'That is not an amount. Type what the driver handed over, in pounds.'],
+  cash_locked: ['err', 'Cash can only be recorded on a delivered order.'],
   pw_changed: ['ok', 'Password changed. Every other browser has been signed out.'],
   pw_wrong: ['err', 'That is not your current password.'],
   rate: ['err', 'Too many attempts. Wait a few minutes and try again.'],

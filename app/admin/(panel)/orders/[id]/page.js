@@ -117,6 +117,120 @@ async function saveDispatch(formData) {
 }
 
 /**
+ * The statuses on which cash may be recorded.
+ *
+ * Only `delivered`, and that is the whole rule: money changes hands at the door
+ * on this shop, so an order that has not been delivered has no cash to account
+ * for. Recording a figure earlier would mean the report below could not tell
+ * "collected in advance" from "typed on the wrong order".
+ *
+ * Terminal in the transition table, so an order here cannot move again and the
+ * figure cannot be stranded on an order that later becomes something else.
+ */
+const SETTLEABLE = ['delivered'];
+
+/** More than any real order on this shop, and a guard against a fat finger. */
+const MAX_COLLECTED = 1000000;
+
+/**
+ * What the driver actually came back with.
+ *
+ * ---------------------------------------------------------------------------
+ * Why this exists at all
+ *
+ * Every other number on an order is what the shop ASKED for. The total is
+ * computed from the products table at checkout and recomputed from it on every
+ * edit, and nothing a browser sends about money is consulted at any point — so
+ * the amount on the waybill is not something a customer can move. That half is
+ * solid.
+ *
+ * The half that was missing is the other end. Nothing recorded what was handed
+ * over, so `total` was silently doing double duty as both the asking price and
+ * the assumed receipt. A driver or a member of staff who collects the right
+ * amount and remits less of it leaves no trace anywhere in this database,
+ * because there was no field that could disagree with the total.
+ *
+ * This is that field. It does not stop anybody doing it — nothing in software
+ * can, at the point where cash crosses a doorstep — it makes it VISIBLE, which
+ * is the only control that was available and the one that was absent.
+ *
+ * ---------------------------------------------------------------------------
+ * Staff, not owner-only
+ *
+ * Prices, stock and offers are owner-only because they are money that can be
+ * changed silently. This is money being REPORTED, by the person who made the
+ * reconciliation call, and it writes an order_events row stamped with their
+ * admin id — which is the line lib/admin-roles.js actually draws: staff may do
+ * the things that leave a trail. Making it owner-only would not make the figure
+ * more honest, it would just mean the owner typing what staff told them, with
+ * the audit row naming the wrong person.
+ *
+ * ---------------------------------------------------------------------------
+ * Blank clears it
+ *
+ * A figure typed onto the wrong order has to be removable, and a shop that can
+ * only ever add numbers accumulates wrong ones. Clearing writes its own audit
+ * row saying so, so the correction is as visible as the original.
+ */
+async function saveSettlement(formData) {
+  'use server';
+  const me = await requirePermission('orders:write');
+
+  const id = Number(formData.get('id'));
+  const raw = String(formData.get('collected') || '').trim();
+
+  if (!(await csrfOk(formData.get('_csrf')))) redirect(backTo(id, 'csrf'));
+  if (!Number.isInteger(id) || id <= 0) redirect(backTo(id, 'bad_input'));
+
+  let amount = null;
+  if (raw) {
+    const n = Number(raw);
+    // Zero is allowed and is a real answer — the driver came back with nothing,
+    // which is exactly the case the report downstream is looking for. It is
+    // NULL that means "nobody has said", and that is what blank writes.
+    if (!Number.isFinite(n) || n < 0 || n > MAX_COLLECTED) redirect(backTo(id, 'cash_bad'));
+    amount = Math.round(n * 100) / 100;
+  }
+
+  /*
+   * The status is tested on the live row inside the UPDATE rather than read
+   * first and trusted, the same shape saveDispatch uses and for the same
+   * reason. `delivered` is terminal so the race is narrow, but a write that
+   * checks its own precondition costs nothing and does not depend on the page
+   * having been rendered a moment ago.
+   *
+   * settled_at is stamped from the amount rather than assigned unconditionally,
+   * so clearing a figure clears the timestamp with it and an order never sits
+   * in the "settled, but no amount" state that a report would have to special
+   * case.
+   */
+  const rows = await sql`
+    UPDATE orders
+       SET collected_amount = ${amount}::numeric,
+           settled_at = CASE WHEN ${amount}::numeric IS NULL THEN NULL ELSE now() END
+     WHERE id = ${id}
+       AND status = ANY(${SETTLEABLE}::text[])
+     RETURNING ref, total, collected_amount`;
+
+  if (!rows.length) redirect(backTo(id, 'cash_locked'));
+
+  const row = rows[0];
+  const short = amount === null ? null : Math.round((Number(row.total) - amount) * 100) / 100;
+
+  await logEvent({
+    orderId: id,
+    kind: 'note',
+    actor: me.name || `admin:${me.id}`,
+    note: amount === null
+      ? 'Cash record cleared'
+      : `Cash collected ${amount.toFixed(2)} against ${Number(row.total).toFixed(2)}`
+        + (short ? ` — ${short > 0 ? 'short' : 'over'} by ${Math.abs(short).toFixed(2)}` : ' — matches'),
+  });
+
+  redirect(backTo(id, amount !== null && short ? 'cash_short' : 'cash_saved'));
+}
+
+/**
  * The refusals lib/order-edit.js can answer with, as flash codes.
  *
  * Every one of them is a sentence an admin can act on, which is why they are
@@ -307,6 +421,14 @@ export default async function OrderDetail({ params, searchParams }) {
     : [];
 
   const seq = Number(order.edit_seq) || 0;
+
+  // Cash is only recordable on a delivered order — see saveSettlement. The
+  // variance is computed once here rather than twice in the markup below, and
+  // is only meaningful when there is a figure to compare against.
+  const settleable = SETTLEABLE.includes(order.status);
+  const shortBy = order.collected_amount == null
+    ? 0
+    : Math.round((Number(order.total) - Number(order.collected_amount)) * 100) / 100;
 
   return (
     <>
@@ -510,6 +632,57 @@ export default async function OrderDetail({ params, searchParams }) {
             <>
               No delivery window yet. One is written from the governorate in the address the first
               time this order is confirmed or shipped, and the customer sees it on their order page.
+            </>
+          )}
+        </div>
+      </div>
+
+      {/*
+        * Cash, and only once the order is delivered.
+        *
+        * Rendered as a form when there is something to record and as a flat
+        * statement when there is not, the same shape ItemsPanel uses: a form
+        * that the server would refuse is a worse way to say no than not
+        * offering one.
+        */}
+      <div className="panel">
+        <h2>
+          Cash collected
+          {settleable ? (
+            <span className="right">
+              <form action={saveSettlement} className="bar-row">
+                <input type="hidden" name="_csrf" value={token} />
+                <input type="hidden" name="id" value={order.id} />
+                <input name="collected" type="number" step="0.01" min="0" max={MAX_COLLECTED}
+                  defaultValue={order.collected_amount == null ? '' : Number(order.collected_amount)}
+                  placeholder={Number(order.total).toFixed(2)} style={{ width: '120px' }}
+                  aria-label="Amount the driver handed over" />
+                <button className="btn sm ghost" type="submit">Save</button>
+              </form>
+            </span>
+          ) : null}
+        </h2>
+        <div className="muted" style={{ padding: '14px 20px' }}>
+          {!settleable ? (
+            <>Cash is recorded once the order is delivered. This one is {title(order.status)}.</>
+          ) : order.collected_amount == null ? (
+            <>
+              Nothing recorded yet. Type what the driver actually handed over — not what the
+              waybill said. The order asked for <b>{money(order.total)}</b>. Leave it blank until
+              you have the real figure; every delivered order with no number here is listed on the
+              Orders screen.
+            </>
+          ) : (
+            <>
+              <b>{money(order.collected_amount)}</b> recorded against <b>{money(order.total)}</b>
+              {shortBy === 0 ? (
+                <> — matches.</>
+              ) : (
+                <> — <b style={{ color: 'var(--red)' }}>{shortBy > 0 ? 'short' : 'over'} by {money(Math.abs(shortBy))}</b>.</>
+              )}
+              {order.settled_at ? <> Recorded {dt(order.settled_at)}.</> : null}
+              {' '}Clear the box and save to remove a figure entered by mistake; both go on the
+              history below.
             </>
           )}
         </div>

@@ -114,12 +114,105 @@ export default async function OrdersPage({ searchParams }) {
     }
   }
 
+  /*
+   * The cash that has not been accounted for.
+   *
+   * This is the report half of the reconciliation the order screen records —
+   * see saveSettlement in app/admin/(panel)/orders/[id]/page.js for why the
+   * column exists at all. The short version: on a shop that takes cash at the
+   * door, `total` is what was ASKED for, and until there was a second column
+   * nothing in this database could ever disagree with it. A driver or a member
+   * of staff remitting less than they collected left no trace.
+   *
+   * Two different problems in one query, and deliberately so, because they are
+   * the same problem to whoever is doing the reconciliation: a delivered order
+   * with nothing recorded, and one where the figure does not match. The first
+   * is much more common and is usually just work not done yet; the second is
+   * the one worth a conversation. Listing them together is what stops the
+   * second hiding among the first.
+   *
+   * It is not filtered by the screen's own status/search filter. This is a
+   * standing question about the whole shop — "what is outstanding" — and
+   * answering it only about the rows that happen to match a search box would
+   * make it silently wrong exactly when somebody is looking at something else.
+   *
+   * Deliberately unpaged and capped. If there are more than fifty of these the
+   * shop has a bookkeeping backlog, not a pagination problem, and the line
+   * below says so rather than offering to page through it.
+   */
+  const outstanding = await sql`
+    SELECT id, ref, name, total, collected_amount
+      FROM orders
+     WHERE status = 'delivered'
+       AND (collected_amount IS NULL OR collected_amount <> total)
+     ORDER BY id DESC
+     LIMIT 51`;
+
+  const shown = outstanding.slice(0, 50);
+  const mismatched = shown.filter(o => o.collected_amount != null);
+
   return (
     <>
       <h1>Orders</h1>
       <p className="sub">Cash on delivery. Call the customer, confirm, then move the status along.</p>
 
       <Flash code={sp?.m} />
+
+      {shown.length ? (
+        <div className="panel">
+          <h2>
+            Cash outstanding
+            <span className="right muted" style={{ fontSize: '13px' }}>
+              {shown.length}{outstanding.length > 50 ? '+' : ''} delivered
+              {mismatched.length ? ` · ${mismatched.length} not matching` : ''}
+            </span>
+          </h2>
+          <div className="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Order</th><th>Customer</th>
+                  <th style={{ textAlign: 'right' }}>Asked</th>
+                  <th style={{ textAlign: 'right' }}>Collected</th>
+                  <th style={{ textAlign: 'right' }}>Difference</th>
+                </tr>
+              </thead>
+              <tbody>
+                {shown.map(o => {
+                  const has = o.collected_amount != null;
+                  const diff = has
+                    ? Math.round((Number(o.total) - Number(o.collected_amount)) * 100) / 100
+                    : null;
+                  return (
+                    <tr key={o.id}>
+                      <td><Link href={`/admin/orders/${o.id}`}><b>{o.ref}</b></Link></td>
+                      <td className="muted">{o.name}</td>
+                      <td style={{ textAlign: 'right' }}>{money(o.total)}</td>
+                      <td style={{ textAlign: 'right' }}>
+                        {has ? money(o.collected_amount) : <span className="muted">not recorded</span>}
+                      </td>
+                      <td style={{ textAlign: 'right' }}>
+                        {diff === null ? (
+                          <span className="muted">—</span>
+                        ) : (
+                          <b style={{ color: 'var(--red)' }}>
+                            {diff > 0 ? '−' : '+'}{money(Math.abs(diff))}
+                          </b>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          <div className="muted" style={{ padding: '14px 20px', borderTop: '1.5px solid var(--line)' }}>
+            Every delivered order whose cash has not been recorded, or whose recorded amount does
+            not match what was asked. Open one to enter what the driver actually handed over.
+            {outstanding.length > 50 ? ' Only the fifty most recent are listed.' : ''}
+          </div>
+        </div>
+      ) : null}
 
       <div className="panel">
         <h2>
