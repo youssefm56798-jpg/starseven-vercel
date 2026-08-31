@@ -809,8 +809,14 @@ button{font:inherit;cursor:pointer}
   .buybar-price{font-weight:900;font-size:18px;white-space:nowrap;line-height:1.2}
   .buybar-price small{display:block;font-size:11px;font-weight:700;color:#6E6A60}
   .buybar .btn,.buybar button{flex:1;justify-content:center;margin:0}
-  /* The WhatsApp float would otherwise sit on top of the bar. */
-  .wa-float{bottom:calc(86px + env(safe-area-inset-bottom))}
+  /* The WhatsApp float would otherwise sit on top of the bar - but only on the
+     pages that have a bar. Raising it unconditionally parked it a third of the
+     way up the screen on every other page, where it covered body text and, on
+     the hair finder, the two alternate product buttons. main carries the class
+     and comes before the float inside .s7page, so a sibling combinator reaches
+     it and this needs no :has(). */
+  .wa-float{bottom:calc(24px + env(safe-area-inset-bottom))}
+  .pdp-has-buybar ~ .wa-float{bottom:calc(86px + env(safe-area-inset-bottom))}
   /* So the last of the page is not permanently hidden behind the bar. */
   .pdp-has-buybar{padding-bottom:96px}
 }

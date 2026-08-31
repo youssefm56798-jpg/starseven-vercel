@@ -434,6 +434,18 @@
    word. The range line stays visible at every width, because hiding the only
    specific thing on the tile is part of why the rest read as filler. */
 @media(max-width:560px){.s7home .hair-grid{gap:9px}
+.s7home .hres-in{padding:16px}
+.s7home .hres-pick{padding:20px 16px}
+/* The card is a padded box inside a padded box inside the page gutter, and on
+   a 375px phone that left it 281px wide - too narrow for the two alternate
+   names side by side, so the label and both pills each took their own line and
+   the card read as a ragged column. Trimming the outer padding buys 16px, and
+   the grid spends it: two equal pills on one row whatever the names are, since
+   rankProducts caps the list at three and never yields more than two. */
+.s7home .hres-alt{display:grid;grid-template-columns:1fr 1fr}
+.s7home .hres-alt a{text-align:center}
+.s7home .hres-alt .alt-lbl{grid-column:1 / -1}
+.s7home .hres-alt a:only-of-type{grid-column:1 / -1}
 .s7home .hair-grid.density{grid-template-columns:1fr}
 .s7home .htile{padding:12px 13px 13px}
 .s7home .htile .hmark{width:30px;height:30px;margin-bottom:9px}
