@@ -303,11 +303,13 @@ button{font:inherit;cursor:pointer}
   font-family:inherit;font-size:15px;font-weight:600;background:#fff;color:var(--ink)}
 .ff input:focus,.ff textarea:focus,.ff select:focus{outline:none;border-color:var(--ink)}
 .ff input.bad,.ff textarea.bad,.ff select.bad{border-color:var(--red-ui);background:#FDECEA}
-/* The governorate picker. Without an explicit height a select is a line
-   shorter than the inputs beside it in the same grid row, and appearance:none
-   would strip the caret with nothing drawn to replace it - so the native
-   control is kept and only sized to match. */
-.ff select{height:47px;cursor:pointer}
+/* The governorate picker keeps the native control - appearance:none would
+   strip the caret with nothing drawn to replace it. No explicit height: a
+   select's content box is a pixel taller than an input's at the same padding,
+   and .ff2 is a grid, so both cells stretch to the taller of the two on their
+   own. Pinning a height here is what made it seven pixels SHORT of the email
+   field beside it. */
+.ff select{cursor:pointer}
 .ff .err{color:var(--red-ui);font-size:12.5px;font-weight:800;margin-top:5px}
 .ff2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .coupon{display:flex;gap:8px;margin-bottom:14px}
