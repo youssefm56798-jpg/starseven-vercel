@@ -325,6 +325,12 @@ button{font:inherit;cursor:pointer}
 .s7page[dir="ltr"] .ff select{background-position:right 15px center;padding-right:40px}
 .s7page[dir="rtl"] .ff select{background-position:left 15px center;padding-left:40px}
 .ff .err{color:var(--red-ui);font-size:12.5px;font-weight:800;margin-top:5px}
+/* A field label names the field. Anything longer belongs here, under the
+   control: the email label used to carry the reason we ask for it, ran to eight
+   words, and wrapped to three lines - which pushed the email box below the
+   governorate box sharing its .ff2 row on every screen from 561px to 780px.
+   The error message takes this slot when there is one, so the two never stack. */
+.ff .hint{color:var(--grey);font-size:12.5px;font-weight:600;margin-top:5px;line-height:1.45}
 .ff2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .coupon{display:flex;gap:8px;margin-bottom:14px}
 .coupon input{flex:1;min-width:0;border:1.5px solid var(--line-invert);background:rgba(255,253,248,.07);

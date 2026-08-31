@@ -23,7 +23,7 @@ const COPY = {
     items: 'طلبك', sub: 'المجموع', ship: 'التوصيل', free: 'مجاني', disc: 'الخصم', tot: 'الإجمالي',
     cop_ph: 'كود الخصم', cop_go: 'طبّق', cop_off: 'شيل',
     name: 'الاسم', phone: 'رقم الموبايل', addr: 'العنوان بالتفصيل', city: 'المحافظة / المدينة',
-    email: 'الإيميل — هنبعتلك عليه لينك تتابع بيه الأوردر', notes: 'ملاحظات (اختياري)',
+    email: 'الإيميل', email_hint: 'هنبعتلك عليه لينك تتابع بيه الأوردر.', notes: 'ملاحظات (اختياري)',
     place: 'أكّد الأوردر — الدفع عند الاستلام', placing: 'بنسجل الأوردر…',
     e_name: 'اكتب اسمك.', e_phone: 'رقم موبايل مصري غير صحيح.', e_addr: 'اكتب العنوان بالتفصيل.',
     e_email: 'اكتب إيميل صحيح.', e_net: 'مفيش اتصال بالسيرفر. جرّب تاني.',
@@ -40,7 +40,7 @@ const COPY = {
     items: 'Your order', sub: 'Subtotal', ship: 'Delivery', free: 'Free', disc: 'Discount', tot: 'Total',
     cop_ph: 'Discount code', cop_go: 'Apply', cop_off: 'Remove',
     name: 'Full name', phone: 'Mobile number', addr: 'Full address', city: 'City / governorate',
-    email: 'Email — we send you a link to follow your order', notes: 'Notes (optional)',
+    email: 'Email', email_hint: 'We send you a link to follow your order.', notes: 'Notes (optional)',
     place: 'Confirm order — cash on delivery', placing: 'Placing your order…',
     e_name: 'Please enter your name.', e_phone: 'Enter a valid Egyptian mobile number.',
     e_addr: 'Please enter a full address.', e_email: 'Enter a valid email address.',
@@ -150,15 +150,16 @@ function forgetKey() {
  * what was wrong, and a Place order button that appeared to do nothing.
  * aria-invalid states it, aria-describedby reads the message out with the field.
  */
-function Field({ id, label, val, set, err, type = 'text', ta, sel, ...rest }) {
+function Field({ id, label, val, set, err, hint, type = 'text', ta, sel, ...rest }) {
   const errId = `${id}-err`;
+  const hintId = `${id}-hint`;
   const props = {
     id,
     className: err ? 'bad' : '',
     value: val,
     onChange: e => set(e.target.value),
     'aria-invalid': err ? 'true' : undefined,
-    'aria-describedby': err ? errId : undefined,
+    'aria-describedby': err ? errId : (hint ? hintId : undefined),
     ...rest,
   };
   return (
@@ -169,7 +170,9 @@ function Field({ id, label, val, set, err, type = 'text', ta, sel, ...rest }) {
         : ta
           ? <textarea rows="2" {...props} />
           : <input type={type} {...props} />}
-      {err && <div className="err" id={errId}>{err}</div>}
+      {err
+        ? <div className="err" id={errId}>{err}</div>
+        : hint && <div className="hint" id={hintId}>{hint}</div>}
     </div>
   );
 }
@@ -435,6 +438,7 @@ export default function CheckoutClient({ lang, add, catalog, shipping, currency 
                 )),
               ]} />
             <Field id="email" label={T.email} val={f.email} set={upd('email')} err={errs.email}
+              hint={T.email_hint}
               type="email" dir="auto" autoComplete="email" required />
           </div>
 
