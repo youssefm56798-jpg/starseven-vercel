@@ -101,20 +101,27 @@ export function formatCounts(rows) {
 
 const GAPS = {
   fine: {
-    ar: 'ملحوظة بصراحة: الكلاي واكس اتعمل بس لسه منزلش على الموقع، فالجرّة اللي فوق مش هي. لحد ما ينزل، أقل واكس لامع بكمية صغيرة على شعر ناشف هو أقرب حاجة — وهي أقرب حاجة، مش الحاجة المتعملة للحالة دي.',
-    en: 'Said plainly: the clay wax is made but not on the shop yet, so the jar above is not it. Until it lands, the least shiny wax we sell, used sparingly on dry hair, is the closest you can get — and closest is all it is.',
+    ar: 'الكلاي واكس اتعمل بس لسه مش على الموقع — فالجرّة اللي فوق أقرب حاجة، مش المتعملة ليك.',
+    en: 'The clay wax is made but not on the shop yet — so the jar above is the closest we sell, not the one built for you.',
   },
   curly: {
-    ar: 'ملحوظة بصراحة: كريم الكيرلي وفوم الكيرلي لسه تحت التنفيذ. اللي موجود دلوقتي — الواكس والكريم جل — بيعرّف الكيرلة ويمشّي الحال، بس المنتج المتعمل للكيرلي مخصوص لسه في الطريق.',
-    en: 'Said plainly: the curl cream and the curl foam are still in production. What exists now — the wax and the cream gel — defines curl and does the job, but the product built specifically for curly hair is still on its way.',
+    ar: 'كريم الكيرلي وفوم الكيرلي لسه تحت التنفيذ. الواكس بيعرّف الكيرلة، بس مش هو المنتج المتعمل ليها.',
+    en: 'The curl cream and the curl foam are still in production. The wax defines curl; it is not the product built for it.',
   },
   coily: {
-    ar: 'ملحوظة بصراحة: الليڤ-إن لسه تحت التنفيذ، وده المنتج اللي بيتحط قبل التصفيف وبيفرق أكتر حاجة مع الشعر الأفرو. اللي عندنا دلوقتي بيقفل الرطوبة اللي في شعرك جوه — هو مش بيضيفها.',
-    en: 'Said plainly: the leave-in is still in production, and that is the pre-styler that matters most for coily hair. What we make now seals the moisture already in your hair in — it does not add any.',
+    ar: 'الليڤ-إن لسه تحت التنفيذ. اللي عندنا بيقفل الرطوبة اللي في شعرك جوه — مش بيضيفها.',
+    en: 'The leave-in is still in production. What we sell seals the moisture already in your hair — it does not add any.',
   },
 };
 
-/** The honest range note for a tile, or null when there is nothing to admit. */
+/**
+ * The honest range note for a tile, or null when there is nothing to admit.
+ *
+ * One or two lines each, and that is a design constraint rather than a taste:
+ * the note renders inside a card that already carries a name, a symptom, a
+ * verdict and a jar, and a four-line block there is the longest thing on the
+ * card. An honesty notice nobody finishes is not an honesty notice.
+ */
 export function gapNote(slug, lang) {
   const g = GAPS[slug];
   if (!g) return null;

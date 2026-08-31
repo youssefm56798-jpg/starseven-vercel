@@ -27,7 +27,7 @@ test('tiles are in the expected order', () => {
 // One test per field so a gap names itself, the way the PHP suite did.
 for (const tile of HAIR_TYPES) {
   for (const lang of ['ar', 'en']) {
-    for (const key of ['name', 'short', 'problem', 'answer', 'avoid']) {
+    for (const key of ['name', 'why', 'short', 'problem', 'answer', 'avoid']) {
       test(`${tile.slug}.${lang}.${key} is filled`, () => {
         assert.equal(typeof tile[lang]?.[key], 'string');
         assert.notEqual((tile[lang]?.[key] ?? '').trim(), '');

@@ -133,16 +133,67 @@ export default async function HairStylesIndexView({ lang }) {
         <section className="hs-why">
           <h2>{ar ? 'الاستايل بيتحدد بحاجتين بس' : 'A style is decided by two things'}</h2>
 
-          <p>
-            {ar
-              ? 'التثبيت واللمعة. التثبيت بيقول الشكل هيقعد قد إيه، واللمعة بتقول هيبان لامع ولا ناشف. حط أي استايل رجالي على الاتنين دول، والمنتج هيبان لوحده.'
-              : 'Hold and shine. Hold is how long the shape lasts, shine is how wet or dry it looks. Put any men’s style on those two and the product picks itself.'}
-          </p>
+          {/* The two axes as two scales, not as two paragraphs.
+              What was here said exactly this and buried it: five lines of body
+              copy in which the reader had to assemble a scale out of a sentence
+              - "the gels are 5, Pro X and Pro are 4, and Shea, Argan and Black
+              are 3" - while the thing being described is a ladder and reads as
+              one instantly when it is drawn as one. Every product named here is
+              still named; it is the prose around them that has gone.
+              Mirrors .ht-axes on /hair-types. The two finders are the same
+              instrument pointed at two questions, and they should not teach
+              their reader two different shapes. */}
+          <div className="hs-axes">
+            <div className="hs-axis">
+              <span className="hs-axis-k">{ar ? 'المحور الأول · التثبيت' : 'Axis one · Hold'}</span>
+              <p>{ar ? 'الشكل هيقعد قد إيه.' : 'How long the shape lasts.'}</p>
+              <dl>
+                <div>
+                  <dt>{ar ? '٥ · جل' : '5 · Gel'}</dt>
+                  <dd>{ar ? 'أعلى تثبيت في التشكيلة — بينشف على الشكل' : 'The highest hold in the range — it sets on the shape'}</dd>
+                </div>
+                <div>
+                  <dt>{ar ? '٤ · برو إكس وبرو' : '4 · Pro X and Pro'}</dt>
+                  <dd>{ar ? 'تثبيت قوي بتكستشر' : 'Firm hold with texture'}</dd>
+                </div>
+                <div>
+                  <dt>{ar ? '٣ · شيا وأرجان وبلاك' : '3 · Shea, Argan, Black'}</dt>
+                  <dd>{ar ? 'متوسط ومرن — تعدّله في أي وقت' : 'Medium and flexible — rework it whenever'}</dd>
+                </div>
+              </dl>
+            </div>
 
-          <p>
+            <div className="hs-axis">
+              <span className="hs-axis-k">{ar ? 'المحور التاني · اللمعة' : 'Axis two · Shine'}</span>
+              <p>{ar ? 'هيبان لامع ولا ناشف.' : 'Whether it reads wet or dry.'}</p>
+              <dl>
+                <div>
+                  <dt>{ar ? 'عالية' : 'High'}</dt>
+                  <dd>{ar ? 'برو إكس، برو، أرجان، بلاك، والجل الأزرق' : 'Pro X, Pro, Argan, Black and the Blue gel'}</dd>
+                </div>
+                <div>
+                  <dt>{ar ? 'متوسطة' : 'Medium'}</dt>
+                  <dd>{ar ? 'الشيا، والجل الجولدن والأخضر' : 'Shea, and the Golden and Green gels'}</dd>
+                </div>
+                <div>
+                  <dt>{ar ? 'مطفي' : 'Matte'}</dt>
+                  {/* Gated on the same count as every other matte claim on this
+                      page. The row itself always shows - matte is a real rung
+                      of the scale and hiding it would misdescribe the axis -
+                      but what it says about availability has to follow the
+                      catalogue rather than this file. */}
+                  <dd>{counts.matte === 0
+                    ? (ar ? 'الكلاي والبوماد — لسه مش على الموقع' : 'The clay wax and the pomade — not on the shop yet')
+                    : (ar ? 'الكلاي والبوماد' : 'The clay wax and the pomade')}</dd>
+                </div>
+              </dl>
+            </div>
+          </div>
+
+          <p className="hs-why-note">
             {ar
-              ? 'التثبيت عندنا سلّم واحد من ١ لـ ٥ على التشكيلة كلها: الجل ٥، برو إكس وبرو ٤، والشيا والأرجان والبلاك ٣. واللمعة دي أرقام المصنع نفسه لكل منتج على حدة — مش تقديرنا إحنا. الجدول اللي تحت هو التشكيلة كلها على المحورين.'
-              : 'Hold here is one scale from 1 to 5 across the whole range: the gels are 5, Pro X and Pro are 4, and Shea, Argan and Black are 3. The shine ratings are the manufacturer’s own, per product — not our estimate. The table below is the whole range on both axes.'}
+              ? 'التثبيت سلّم واحد من ١ لـ ٥ على التشكيلة كلها، واللمعة تصنيف المصنع نفسه لكل منتج — مش تقديرنا. الجدول اللي تحت هو التشكيلة كلها على المحورين.'
+              : 'Hold is one scale from 1 to 5 across the whole range, and the shine ratings are the manufacturer’s own, per product — not our estimate. The table below is the whole range on both axes.'}
           </p>
 
           {/* Gated on the same count the generated gap line above is gated on,

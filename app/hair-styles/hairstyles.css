@@ -37,7 +37,40 @@
 /* ---------------------------------------------------- how the finder works */
 
 .hs-why { margin-top: 30px; }
-.hs-why > p { color: var(--grey); font-weight: 600; max-width: 72ch; margin-bottom: 14px; }
+
+/* The two axes, drawn as the two ladders they are. Same plate and the same
+   dl-of-pairs as .ht-axes on /hair-types: the two finders ask different
+   questions with one instrument, and a reader who has learnt the shape on one
+   should not have to learn it again on the other. */
+.hs-axes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.hs-axis {
+  background: var(--paper-2);
+  border: 1.5px solid var(--ink);
+  border-radius: 18px;
+  padding: 20px 22px;
+}
+.hs-axis-k {
+  display: inline-block;
+  font-size: 10.5px; font-weight: 900; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--red-ui);
+  margin-bottom: 9px;
+}
+.hs-axis > p { font-weight: 800; font-size: 15.5px; line-height: 1.45; }
+.hs-axis dl { display: grid; gap: 9px; margin-top: 14px; }
+.hs-axis dl > div {
+  display: grid;
+  grid-template-columns: minmax(0, 9.5rem) 1fr;
+  gap: 12px; align-items: baseline;
+  padding-top: 9px;
+  border-top: 1px solid var(--line);
+}
+.hs-axis dt { font-weight: 900; font-size: 13px; }
+.hs-axis dd { color: var(--grey); font-weight: 600; font-size: 13px; line-height: 1.5; }
+/* Provenance, not argument. It sits between the two scales and the matte
+   notice below, and at body size the three read as one grey mass with no
+   order to them - so this one steps down and the notice stays the loud one. */
+.hs-why-note { color: var(--grey); font-weight: 600; font-size: 13px; line-height: 1.6;
+  margin: 16px 0 0; max-width: 74ch; }
 
 .hs-honest {
   background: var(--paper-2);
@@ -472,6 +505,7 @@
 
 @media (max-width: 1020px) {
   .hs-grid { grid-template-columns: 1fr; }
+  .hs-axes { grid-template-columns: 1fr; }
   .hs-cols { grid-template-columns: 1fr; gap: 26px; }
   .hs-rail { position: static; order: -1; }
   .hs-rec img { height: 150px; }
@@ -493,6 +527,9 @@
 }
 
 @media (max-width: 380px) {
+  /* The term column stops paying for itself once it is narrower than its own
+     longest term, so the pair stacks instead of hyphenating. */
+  .hs-axis dl > div { grid-template-columns: 1fr; gap: 2px; }
   .hs-card-head { flex-direction: column; }
   .hs-card-head > div { padding-inline-end: 0; }
   .hs-mark { width: 38px; height: 38px; }

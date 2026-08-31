@@ -25,7 +25,40 @@
 /* ------------------------------------------------------- why type matters */
 
 .ht-why { margin-top: 30px; }
-.ht-why > p { color: var(--grey); font-weight: 600; max-width: 72ch; margin-bottom: 14px; }
+
+/* Two plates rather than two paragraphs. Same material as .ht-card below, so
+   the explainer and the thing it explains read as one system, and the reader
+   meets the plate shape here before it starts carrying tiles. */
+.ht-axes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.ht-axis {
+  background: var(--paper-2);
+  border: 1.5px solid var(--ink);
+  border-radius: 18px;
+  padding: 20px 22px;
+}
+.ht-axis-k {
+  display: inline-block;
+  font-size: 10.5px; font-weight: 900; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--red-ui);
+  margin-bottom: 9px;
+}
+/* The claim, at the weight of a claim. It was body grey at 15px, which is the
+   same setting as the detail underneath it, so the sentence carrying the idea
+   looked exactly like the sentence carrying the example. */
+.ht-axis > p { font-weight: 800; font-size: 15.5px; line-height: 1.45; }
+.ht-axis dl { display: grid; gap: 9px; margin-top: 14px; }
+/* The rule sits above each pair rather than between them, so the two rows are
+   two of a kind instead of one row with a divider hanging off it. */
+.ht-axis dl > div {
+  display: grid;
+  grid-template-columns: minmax(0, 6.2rem) 1fr;
+  gap: 12px; align-items: baseline;
+  padding-top: 9px;
+  border-top: 1px solid var(--line);
+}
+.ht-axis dt { font-weight: 900; font-size: 13px; }
+.ht-axis dd { color: var(--grey); font-weight: 600; font-size: 13px; line-height: 1.5; }
+.ht-why-note { color: var(--grey); font-weight: 700; margin-top: 16px; max-width: 70ch; }
 
 /* --------------------------------------------------------- the six cards */
 
@@ -96,7 +129,6 @@
 }
 .ht-short { color: var(--grey); font-weight: 700; font-size: 13px; margin-top: 7px; }
 
-.ht-prob { color: var(--grey); font-weight: 600; }
 .ht-ans {
   border-inline-start: 3px solid var(--c);
   padding-inline-start: 14px;
@@ -313,6 +345,7 @@
 
 @media (max-width: 1020px) {
   .ht-grid { grid-template-columns: 1fr; }
+  .ht-axes { grid-template-columns: 1fr; }
   .ht-cols { grid-template-columns: 1fr; gap: 26px; }
   .ht-rail { position: static; order: -1; }
   .ht-rec img { height: 150px; }
@@ -329,6 +362,9 @@
 }
 
 @media (max-width: 380px) {
+  /* The term column stops paying for itself once it is narrower than its own
+     longest term, so the pair stacks instead of hyphenating. */
+  .ht-axis dl > div { grid-template-columns: 1fr; gap: 2px; }
   .ht-card-head { flex-direction: column; }
   .ht-medal { width: 64px; height: 64px; }
 }

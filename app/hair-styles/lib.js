@@ -91,20 +91,20 @@ export function finishCounts(rows) {
 
 const GAPS = {
   'textured-crop': {
-    ar: 'الكلاي واكس هو منتج الكروب، والمصنع بيعمله — بس لسه منزلش على الموقع. لحد ما ينزل، الترشيح اللي فوق هو أقرب واكس عندنا، مش الحاجة المتعملة للشكل ده.',
-    en: 'The clay wax is the crop product, and the factory makes it — it is just not on the shop yet. Until it is, the pick above is the closest wax we sell, not the thing built for this look.',
+    ar: 'الكلاي واكس هو منتج الكروب، والمصنع بيعمله — بس لسه مش على الموقع. الترشيح اللي فوق أقرب واكس، مش المتعمل للشكل ده.',
+    en: 'The clay wax is the crop product and the factory makes it — it is just not on the shop yet. The pick above is the closest wax, not the one built for this.',
   },
   curtains: {
-    ar: 'الكيرتن الأصح ليه كريم تصفيف خفيف، وكريمات التصفيف لسه تحت التنفيذ. واكس الشيا أقرب حاجة عندنا — خفيف وأقل واحد لامع في التشكيلة — بس هو واكس، مش الكريم الخفيف اللي الاستايل ده محتاجه فعلاً.',
-    en: 'A centre part is really built for a light styling cream, and the styling creams are still in production. The Shea is the closest thing here — light, and the least shiny in the range — but it is a wax, not the light cream this look actually wants.',
+    ar: 'الكيرتن الأصح ليه كريم تصفيف خفيف، وكريمات التصفيف لسه تحت التنفيذ. الشيا أقرب حاجة — بس هو واكس.',
+    en: 'A centre part is really built for a light styling cream, and the styling creams are still in production. The Shea is the closest thing — but it is a wax.',
   },
   'defined-curls': {
-    ar: 'كريم الكيرلي وفوم الكيرلي والليڤ-إن لسه تحت التنفيذ، ودول اللي بيعملوا الترطيب الحقيقي. الواكس ده بيقفل الرطوبة اللي في شعرك جوه — هو مش بيضيف رطوبة. عشان كده لازم يتحط والشعر لسه مبلول، وإلا مفيش حاجة يقفل عليها.',
-    en: 'The curl cream, the curl foam and the leave-in are all still in production, and those are the products that actually add moisture. This wax seals in the water already in your hair. It does not add any. So it goes on while the hair is still wet, or there is nothing for it to seal.',
+    ar: 'كريم الكيرلي وفوم الكيرلي والليڤ-إن لسه تحت التنفيذ. الواكس ده بيقفل الرطوبة اللي في شعرك — مش بيضيفها، فلازم يتحط والشعر مبلول.',
+    en: 'The curl cream, the curl foam and the leave-in are all still in production. This wax seals the water already in your hair rather than adding any, so it has to go on wet.',
   },
   quiff: {
-    ar: 'مفيش عندنا موس ولا منتج بيتحط قبل الاستشوار، ودي الحاجة اللي بتدي الارتفاع نفسه. يعني الاستايل ده معتمد على الاستشوار عندك أكتر ما هو معتمد على اللي في العلبة.',
-    en: 'We do not make a mousse or a pre-styling primer, and that is the product that builds the height. This look leans on your dryer more than on anything in the jar.',
+    ar: 'مفيش عندنا موس ولا منتج بيتحط قبل الاستشوار، ودي الحاجة اللي بتدي الارتفاع. الاستايل ده على الاستشوار أكتر من العلبة.',
+    en: 'We do not make a mousse or a pre-styling primer, and that is what builds the height. This look leans on your dryer more than on the jar.',
   },
 };
 

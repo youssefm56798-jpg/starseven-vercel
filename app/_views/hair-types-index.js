@@ -153,21 +153,63 @@ export default async function HairTypesIndexView({ lang }) {
 
       <div className="wrap ht">
         {/* ------------------------------------------------ why type matters */}
+        {/* Two axes, two plates, and every fact that used to be in the two
+            paragraphs this replaces. The paragraphs said the same thing and
+            said it at a length that made them scenery: nine lines of unbroken
+            body copy is the block a reader scrolls past to reach the tiles, so
+            the one idea the whole finder rests on was the one thing on the page
+            nobody read.
+            The comparison is a <dl> because it is one: two terms, each with its
+            description. That also gives the pairing to a screen reader, which a
+            grid of divs would not. */}
         <section className="ht-why">
-          <h2>{ar ? 'ليه نوع الشعر هو اللي بيحدد المنتج' : 'Why hair type decides the product'}</h2>
+          <h2>{ar ? 'الاختيار بيتحدد بحاجتين' : 'Two things decide it'}</h2>
 
-          <p>
+          <div className="ht-axes">
+            <div className="ht-axis">
+              <span className="ht-axis-k">{ar ? '١ · الوزن' : '1 · Weight'}</span>
+              <p>
+                {ar
+                  ? 'وزن المنتج لازم يقابل كثافة الشعرة.'
+                  : 'The weight of the product has to match the density of the hair.'}
+              </p>
+              <dl>
+                <div>
+                  <dt>{ar ? 'زيت خفيف' : 'Light oil'}</dt>
+                  <dd>{ar ? 'بيدخل جوه الشعرة ويلمّع من غير ما يتقّل — للناعم والكيرلي' : 'Goes into the strand and adds shine without dragging — fine and curly'}</dd>
+                </div>
+                <div>
+                  <dt>{ar ? 'زبدة تقيلة' : 'Heavy butter'}</dt>
+                  <dd>{ar ? 'بتقعد فوق وبتقفل الرطوبة — للخشن والكثيف، وبتوقّع الخفيف' : 'Sits on top and seals moisture in — coarse and thick, and it flattens fine hair'}</dd>
+                </div>
+              </dl>
+            </div>
+
+            <div className="ht-axis">
+              <span className="ht-axis-k">{ar ? '٢ · الشكل' : '2 · Format'}</span>
+              <p>
+                {ar
+                  ? 'الشكل بيحدد النهاية، مش التركيبة بس.'
+                  : 'The format decides the finish, not just the formula.'}
+              </p>
+              <dl>
+                <div>
+                  <dt>{ar ? 'جل' : 'Gel'}</dt>
+                  <dd>{ar ? 'أعلى تثبيت ولمعة مبلولة — بينشف على الشكل ومش هتعدّله' : 'Highest hold, wet finish — it sets hard and there is no restyling'}</dd>
+                </div>
+                <div>
+                  <dt>{ar ? 'واكس' : 'Wax'}</dt>
+                  <dd>{ar ? 'تثبيت متوسط لعالي ولمعة طبيعية — تكستشر تعدّله طول اليوم' : 'Medium-high hold, natural finish — texture you can rework all day'}</dd>
+                </div>
+              </dl>
+            </div>
+          </div>
+
+          <p className="ht-why-note">
             {ar
-              ? 'الموضوع كله وزن: وزن المنتج لازم يقابل كثافة الشعرة. زيت الأرجان خفيف وبيدخل جوه الشعرة نفسها، فبيلين ويلمع من غير ما يتقّل. زبدة الشيا العكس — تقيلة وبتقعد على السطح وبتقفل الرطوبة جوه، وده اللي محتاجه الشعر الخشن بالظبط، وهو نفسه اللي بيوقّع الشعر الخفيف على الفروة.'
-              : 'It comes down to weight: the weight of the product has to match the density of the hair. Argan oil is light and penetrates the shaft, so it softens and adds shine without dragging hair down. Shea butter does the opposite — it is heavy, sits on the surface and seals moisture in, which is exactly what coarse hair wants and exactly what flattens fine hair against the scalp.'}
+              ? 'عشان كده نفس المنتج ينفع مع واحد ويبوّظ شكل التاني — مش مسألة ذوق.'
+              : 'That is why one product suits one man and ruins the next — it is not a matter of taste.'}
           </p>
-
-          <p>
-            {ar
-              ? 'وشكل المنتج نفسه بيفرق زي ما التركيبة بتفرق. الجل تثبيته أعلى حاجة ولمعته مبلولة، بيمسك شكل محدد لكنه بينشف ومش بتعرف تعدّله بعد كده. الواكس تثبيته متوسط لعالي ولمعته طبيعية، بيدي تكستشر من غير ما يلزّق. عشان كده نفس المنتج ينفع مع واحد ويبوّظ شكل التاني — مش مسألة ذوق.'
-              : 'The format matters as much as the formula. Gel has the highest hold and a wet finish: it holds a defined shape, but it dries hard and there is no restyling afterwards. Wax has medium-high hold and a natural finish: texture without the glued-down look. That is why one product suits one man and ruins the next — it is not a matter of taste.'}
-          </p>
-
         </section>
 
         {/* ------------------------------------------------- the seven tiles */}
@@ -198,17 +240,13 @@ export default async function HairTypesIndexView({ lang }) {
                     </div>
                   </div>
 
-                  <p className="ht-prob">{c.problem}</p>
-                  <p className="ht-ans">{c.answer}</p>
-
-                  <p className="ht-avoid">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" aria-hidden="true">
-                      <circle cx="12" cy="12" r="9" />
-                      <path d="M12 7.5v5.5" strokeLinecap="round" />
-                      <path d="M12 16.4v.2" strokeLinecap="round" />
-                    </svg>
-                    <span>{c.avoid}</span>
-                  </p>
+                  {/* One line, not three paragraphs. The card's job is
+                      recognise-yourself then here-is-the-jar, and `why` is the
+                      sentence that joins the two. The problem, the full answer
+                      and the avoid line are the type page's copy - printing all
+                      three here made a wall seven cards tall and published that
+                      page's text a second time at a second URL. */}
+                  <p className="ht-ans">{c.why}</p>
 
                   {best ? (
                     <div className="ht-pick">
