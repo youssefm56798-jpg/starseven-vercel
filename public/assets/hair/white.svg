@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-hidden="true">
+  <!-- Grey is a colour, and this mark cannot use colour: on the home tiles the file is a CSS mask, so only the alpha survives. The strands are drawn broken instead — three solid, two dashed — and the dashes read as the strands that have lost their pigment. Same six-strand bundle as the density marks, so the set still looks like one hand drew it. -->
+  <!-- currentColor, resolved to ink by the color attribute below, so the file still
+       reads as an ink drawing when it is loaded as an <img> on the hair-type pages,
+       which inherit nothing from the page around them. On the home tiles the same
+       file is a CSS mask, where only the alpha matters and the tile paints it. -->
+  <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" color="#12100B">
+    <path stroke-width="3.4" d="M10 8C8.8 18 10.8 30 10.2 42"/>
+    <path stroke-width="3.4" stroke-dasharray="4.6 4.4" d="M17.4 6.6C16.2 18 18.2 30 17.2 42.8"/>
+    <path stroke-width="3.6" d="M24.6 5.8C24 18 25.6 30 24.6 43"/>
+    <path stroke-width="3.4" stroke-dasharray="4.6 4.4" d="M31.8 6.6C32.4 18 30.8 30 31.8 42.8"/>
+    <path stroke-width="3.4" d="M39 8C40.2 18 38.2 30 38.8 42"/>
+  </g>
+</svg>

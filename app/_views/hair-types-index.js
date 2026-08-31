@@ -32,7 +32,7 @@ import { imageUrl } from '../../lib/product-image.js';
  *
  * This page's job is the editorial content; the product picks are the payoff,
  * not the page. A database that is missing or unhappy therefore degrades to a
- * guide with no jars on it rather than a 500 — the six tiles, the reasoning
+ * guide with no jars on it rather than a 500 — the seven tiles, the reasoning
  * and the honest limits all still render.
  */
 async function loadProducts() {
@@ -53,50 +53,77 @@ export default async function HairTypesIndexView({ lang }) {
 
   // The formats table only claims what the live catalogue holds, so it can
   // never advertise a range we stopped stocking.
+  //
+  // Three states, not two. A count is the answer whenever the shop has one, and
+  // "no" whenever the brand does not make the format at all — but the clay wax
+  // and the pomade are neither: the factory makes both and the shop has not
+  // listed either, because the photographs and the prices had not arrived. Both
+  // of the two-state answers would have been a lie in a different direction, so
+  // the cell says what is true. It stops saying it, on its own, the moment
+  // `counts` finds one — which is why `soon` still asks the same question the
+  // other rows do rather than being a hard-coded string.
   const no = ar ? 'لأ' : 'No';
-  const yes = (n, unitAr, unitEn) =>
-    n > 0 ? (ar ? `${n} ${unitAr}` : `${n} ${unitEn}`) : no;
+  const soon = ar ? 'قريب على الموقع' : 'Coming to the shop';
+  const count = (n, unitAr, unitEn) => (ar ? `${n} ${unitAr}` : `${n} ${unitEn}`);
+  const yes = (n, unitAr, unitEn) => (n > 0 ? count(n, unitAr, unitEn) : no);
+  const made = (n, unitAr, unitEn) => (n > 0 ? count(n, unitAr, unitEn) : soon);
 
   const have = {
     gel: yes(counts.gel, 'جل', counts.gel === 1 ? 'gel' : 'gels'),
     wax: yes(counts.wax, 'واكس', counts.wax === 1 ? 'wax' : 'waxes'),
     cream: yes(counts.cream, 'كريم جل', counts.cream === 1 ? 'cream gel' : 'cream gels'),
+    clay: made(counts.clay, 'كلاي واكس', counts.clay === 1 ? 'clay wax' : 'clay waxes'),
+    pomade: made(counts.pomade, 'بوماد', counts.pomade === 1 ? 'pomade' : 'pomades'),
     none: no,
+    soon,
   };
 
+  // Shine is the column the customer is really reading, and two rows in it were
+  // wrong. The gel row said "wet", which is a look rather than a level — it is
+  // the highest shine on the shelf and the table now says so. The pomade row
+  // said high, which is true of the classic oil-based pomade and not of the one
+  // this brand makes: theirs finishes matte, and the shiny version of that idea
+  // is sold separately as the gel wax. Both corrections come from the
+  // manufacturer.
   const formats = ar
     ? [
-        ['جل', 'عالي جداً', 'مبلولة', 'استايل محدد، فرق جانبي، وتعريف الكيرلة', 'اللي عايز شكل طبيعي — بينشف ومش هتعدله بعد كده', have.gel],
+        ['جل', 'عالي جداً', 'لمعة عالية', 'استايل محدد، فرق جانبي، وتعريف الكيرلة', 'اللي عايز شكل طبيعي — بينشف ومش هتعدله بعد كده', have.gel],
         ['واكس', 'متوسط لعالي', 'طبيعية', 'الشعر القصير والمتوسط، التكستشر، وتعريف الشعر الخشن', 'الشعر الطويل — بيقع تحت وزنه', have.wax],
-        ['طين (clay)', 'عالي', 'مطفي', 'الشعر الخفيف اللي عايز حجم', 'الكيرلي والأفرو — بينشّفهم', have.none],
+        ['كلاي (طين)', 'عالي', 'مطفي', 'الشعر الخفيف اللي عايز حجم، والكروب المكركب', 'الكيرلي والأفرو — بينشّفهم', have.clay],
         ['كريم', 'خفيف', 'قليلة', 'أسهل شكل في التعامل، بيشتغل مع كل الأنواع', 'اللي محتاج تثبيت حقيقي', have.cream],
-        ['بوميد', 'متوسط لعالي', 'عالية', 'الشعر المتوسط والكثيف، السليك باك والفرق الجانبي', 'الشعر الخفيف — تقيل عليه', have.none],
+        ['بوماد', 'متوسط لعالي', 'من غير لمعة', 'الشعر المتوسط والكثيف، السليك باك والفرق الجانبي', 'الشعر الخفيف — تقيل عليه', have.pomade],
       ]
     : [
-        ['Gel', 'Very high', 'Wet', 'Structured styles, sharp side parts, curl definition', 'Anyone wanting a natural look — it sets hard, no restyling', have.gel],
+        ['Gel', 'Very high', 'High shine', 'Structured styles, sharp side parts, curl definition', 'Anyone wanting a natural look — it sets hard, no restyling', have.gel],
         ['Wax', 'Medium–high', 'Natural', 'Short to medium hair, texture, defining coarse hair', 'Long hair — it sags under its own weight', have.wax],
-        ['Clay', 'High', 'Matte', 'Fine or thin hair that needs volume', 'Very curly or coily hair — too drying', have.none],
+        ['Clay', 'High', 'Matte', 'Fine or thin hair that needs volume, and the choppy crop', 'Very curly or coily hair — too drying', have.clay],
         ['Cream', 'Light', 'Low', 'The most forgiving format, works across every type', 'Anyone needing real structure', have.cream],
-        ['Pomade', 'Medium–high', 'High', 'Medium to thick hair, slick-backs and side parts', 'Thin or fine hair — too heavy', have.none],
+        ['Pomade', 'Medium–high', 'No shine', 'Medium to thick hair, slick-backs and side parts', 'Thin or fine hair — too heavy', have.pomade],
       ];
 
-  // Generated from the live catalogue, not typed. The cream line was true when
-  // the range was five waxes and three gels; it stopped being true the moment
-  // a cream gel was stocked, and a claim that quietly rots is worse than no
-  // claim at all.
+  // Four products the factory is making now, not four holes in the range.
+  //
+  // This list used to be derived from the live catalogue, because every line in
+  // it was a claim about something absent and a claim that quietly rots is
+  // worse than no claim at all. Two of those lines have since been overtaken —
+  // the cream gel landed, and so did the clay — and what is left is a
+  // production schedule rather than an admission, so it is written out rather
+  // than counted. The rule the derivation existed to enforce still stands: the
+  // day one of these four is on the shop, its line comes off this list.
   const gaps = [
     ar
-      ? 'مفيش طين (clay) ولا معجون مطفي. ده أوضح نقص: الشعر الخفيف اللي عايز حجم أنسب حاجة ليه طين، وإحنا بنرشحله أقرب حل موجود عندنا — مش منتج متعمل للحالة دي مخصوص.'
-      : 'No clay and no matte paste. That is the clearest gap: fine hair that needs volume is best served by a clay, and we point it at the closest thing that exists here — not at a product built for the job.',
-    counts.cream === 0
-      ? (ar
-        ? 'مفيش كريم. الكريم أخف شكل وأسهله، وهو أنسب بداية لصاحب الشعر الكيرلي أو الأفرو اللي شايف الواكس تقيل عليه.'
-        : 'No cream. Cream is the lightest and most forgiving format, and the better starting point for curly or coily hair that finds wax too much.')
-      : null,
+      ? 'ليڤ-إن — المنتج اللي بيتحط على الشعر المبلول وبيفضل فيه، وأكتر حاجة بتفرق مع الشعر الأفرو والخشن.'
+      : 'A leave-in — the one that goes on wet hair and stays there. The single biggest difference-maker for coily and coarse hair.',
     ar
-      ? 'مفيش ليڤ-إن ولا منتج بيتحط قبل التصفيف للشعر الأفرو.'
-      : 'No leave-in or pre-styler for coily hair.',
-  ].filter(Boolean);
+      ? 'كريم كيرلي — للترطيب وتعريف الكيرلة مع بعض، من غير ما يفرد الكيرلة.'
+      : 'A curl cream — moisture and curl definition at the same time, without flattening the curl.',
+    ar
+      ? 'فوم كيرلي — بيدي حجم وتعريف للكيرلي من غير وزن.'
+      : 'A curl foam — volume and definition for curly hair with none of the weight.',
+    ar
+      ? 'كريمات تصفيف — أخف تثبيت في التشكيلة، لليومي ولحد لسه بيجرب.'
+      : 'Styling creams — the lightest hold in the line, for daily use and for anyone still finding their product.',
+  ];
 
   return (
     <Dir lang={lang}>
@@ -143,9 +170,9 @@ export default async function HairTypesIndexView({ lang }) {
 
         </section>
 
-        {/* --------------------------------------------------- the six tiles */}
+        {/* ------------------------------------------------- the seven tiles */}
         <section className="ht-tiles" id="types">
-          <h2>{ar ? 'الستة أنواع' : 'The six types'}</h2>
+          <h2>{ar ? 'السبع حالات' : 'The seven cases'}</h2>
 
           <div className="ht-grid">
             {HAIR_TYPES.map(t => {
@@ -232,8 +259,8 @@ export default async function HairTypesIndexView({ lang }) {
           <h2>{ar ? 'الأشكال الخمسة وبتعمل إيه' : 'The five formats, and what each does'}</h2>
           <p className="ht-lead">
             {ar
-              ? 'قبل ما تختار نوع شعرك، دي الأشكال اللي بتتباع في السوق وبتعمل إيه فعلاً — وأنهي واحد فيهم موجود عندنا وأنهي واحد لأ.'
-              : 'Before you pick a type, here is what each format on the market actually does — and which of them we make.'}
+              ? 'قبل ما تختار نوع شعرك، دي الأشكال اللي بتتباع في السوق وبتعمل إيه فعلاً — وأنهي واحد فيهم تقدر تشتريه من هنا النهارده وأنهي واحد لسه في الطريق.'
+              : 'Before you pick a type, here is what each format on the market actually does — and which of them you can buy here today, and which is still on its way.'}
           </p>
 
           <div className="ht-tablewrap">
@@ -256,7 +283,11 @@ export default async function HairTypesIndexView({ lang }) {
                     <td>{shine}</td>
                     <td>{good}</td>
                     <td>{bad}</td>
-                    <td><bdi className={ours === have.none ? 'ht-no' : 'ht-yes'}>{ours}</bdi></td>
+                    <td>
+                      <bdi className={
+                        ours === have.none ? 'ht-no' : ours === have.soon ? 'ht-soon' : 'ht-yes'
+                      }>{ours}</bdi>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -266,11 +297,11 @@ export default async function HairTypesIndexView({ lang }) {
 
         {/* ---------------------------------------------------------- gaps */}
         <section className="ht-gaps">
-          <h2>{ar ? 'حاجات لسه مبنعملهاش' : 'What we do not make yet'}</h2>
+          <h2>{ar ? 'منتجات تحت التنفيذ' : 'In production now'}</h2>
           <p className="ht-lead">
             {ar
-              ? 'التشكيلة كلها واكس وجل. الأشكال اللي تحت دي بيوصّي بيها البحث لحالات معينة، ومش عندنا منها حاجة لحد دلوقتي — والترشيح اللي فوق هو أحسن اختيار من اللي موجود فعلاً، مش أكتر ولا أقل.'
-              : 'The whole range is wax and gel. The formats below are what the research recommends for certain cases, and we make none of them — so the picks above are the best answer that exists here, no more and no less.'}
+              ? 'دي المنتجات اللي تحت الإنتاج دلوقتي وهتنزل قريب. لسه مش على الموقع، فالترشيح اللي فوق هو أحسن اختيار من اللي موجود فعلاً النهارده.'
+              : 'These are in production now and land soon. They are not on the shop yet, so the picks above are the best answer that exists here today.'}
           </p>
           <ul className="ht-gaplist">
             {gaps.map((g, i) => <li key={i}>{g}</li>)}

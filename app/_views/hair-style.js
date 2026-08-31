@@ -204,13 +204,19 @@ export default async function HairStyleView({ slug, lang }) {
             {best ? (
               <div className="hs-rec">
                 <span className="hs-rec-badge">
-                  {/* A look the range cannot serve is never sold a right
-                      answer, because there is not one. It gets the closest
-                      thing that exists, under a label that says so, and the
-                      alternates block below is suppressed for the same reason:
-                      a tile that has just admitted it cannot do this has no
-                      business listing a runner-up. */}
-                  {tile.served === 'no'
+                  {/* A look the shop cannot serve properly is never sold a
+                      right answer, because there is not one on it. It gets the
+                      closest thing that exists, under a label that says so, and
+                      the alternates block below is suppressed for the same
+                      reason: a tile that has just graded itself down has no
+                      business listing a runner-up.
+                      Keyed on "not yes" rather than on "no", so a tile whose
+                      real product is made but unlisted — the crop, waiting on
+                      the clay — is held to the same standard as one the range
+                      cannot reach at all. Those two are the same thing from the
+                      customer's side: the jar in front of them is not the jar
+                      the page just described. */}
+                  {tile.served !== 'yes'
                     ? (ar ? 'أقرب حاجة' : 'The closest')
                     : (ar ? 'اللي هيوصلك له' : 'What gets you there')}
                 </span>
@@ -259,7 +265,7 @@ export default async function HairStyleView({ slug, lang }) {
                   {ar ? 'تفاصيل المنتج ←' : 'Full product detail →'}
                 </Link>
 
-                {tile.served !== 'no' && alts.length > 0 && (
+                {tile.served === 'yes' && alts.length > 0 && (
                   <div className="hs-rec-alts">
                     <span>{ar ? 'ينفع كمان مع الاستايل ده:' : 'Also works for this look:'}</span>
                     {alts.map(a => (

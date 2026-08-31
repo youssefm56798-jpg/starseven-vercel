@@ -23,8 +23,8 @@ CREATE TABLE IF NOT EXISTS products (
   sku          TEXT NOT NULL UNIQUE,
   slug         TEXT NOT NULL UNIQUE,
   kind         TEXT NOT NULL DEFAULT 'wax'
-               CHECK (kind IN ('wax','gel','gelwax','cream','spray',
-                               'cologne','shampoo','depilatory')),
+               CHECK (kind IN ('wax','gel','gelwax','cream','clay','pomade',
+                               'spray','cologne','shampoo','depilatory')),
   name_ar      TEXT NOT NULL,
   name_en      TEXT NOT NULL,
   sub_ar       TEXT NOT NULL DEFAULT '',
@@ -78,9 +78,17 @@ ALTER TABLE products ADD COLUMN IF NOT EXISTS ingredients   TEXT NOT NULL DEFAUL
 -- still carries the old three-value CHECK — which would reject every one of
 -- them. Dropped and re-added rather than altered: Postgres has no
 -- ALTER CONSTRAINT for a CHECK, and IF EXISTS keeps this safe to re-run.
+--
+-- clay and pomade joined in Aug 2026. Both are matte, which is the one finish
+-- the range had never had, and both are the answer a guide page gives to a
+-- question it used to have to decline - see the crop tile in lib/hairstyles.js
+-- and the fine tile in lib/hairtypes.js. The rows themselves are not seeded:
+-- the manufacturer catalogue for them had not arrived, so the client adds them
+-- in the admin with their own names, sizes, photographs and prices. This
+-- constraint and lib/product-form.js are what let that happen without a deploy.
 ALTER TABLE products DROP CONSTRAINT IF EXISTS products_kind_check;
 ALTER TABLE products ADD CONSTRAINT products_kind_check
-  CHECK (kind IN ('wax','gel','gelwax','cream','spray',
+  CHECK (kind IN ('wax','gel','gelwax','cream','clay','pomade','spray',
                   'cologne','shampoo','depilatory'));
 
 ALTER TABLE products ADD COLUMN IF NOT EXISTS featured BOOLEAN NOT NULL DEFAULT FALSE;

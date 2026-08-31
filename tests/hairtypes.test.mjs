@@ -12,12 +12,12 @@ import { fileURLToPath } from 'node:url';
 import { HAIR_TYPES, bySlug, rankProducts } from '../lib/hairtypes.js';
 
 const ROOT = fileURLToPath(new URL('../', import.meta.url));
-const SLUGS = ['straight', 'wavy', 'curly', 'coily', 'fine', 'thick'];
+const SLUGS = ['straight', 'wavy', 'curly', 'coily', 'fine', 'thick', 'white'];
 
 /* ------------------------------------------------------------- the tiles */
 
-test('exactly six tiles', () => {
-  assert.equal(HAIR_TYPES.length, 6);
+test('exactly seven tiles', () => {
+  assert.equal(HAIR_TYPES.length, 7);
 });
 
 test('tiles are in the expected order', () => {
@@ -74,11 +74,16 @@ for (const tile of HAIR_TYPES) {
 // Black Seed lost 'fine' with the matte claim it was sold on: it is a
 // high-shine grey-covering wax with no matting agent in it. Pro carries the
 // fine tile now - last in its list, so it takes nothing else over.
+//
+// It leads 'white' instead, and leads it first. Grey coverage is the only thing
+// this SKU is actually sold on - the pack says so and docs/product-facts.md
+// says the site never mentioned it - so the tile that asks for exactly that has
+// to get this jar before anything else in the range.
 const CATALOGUE = [
   { sku: 'S7-WAX-RED', hold_level: 4, hair_types: 'wavy,thick' },
   { sku: 'S7-WAX-PUR', hold_level: 3, hair_types: 'coily,curly,thick' },
   { sku: 'S7-WAX-BLU', hold_level: 3, hair_types: 'curly,coily,wavy' },
-  { sku: 'S7-WAX-BLK', hold_level: 3, hair_types: 'wavy,thick' },
+  { sku: 'S7-WAX-BLK', hold_level: 3, hair_types: 'white,wavy,thick' },
   { sku: 'S7-WAX-YEL', hold_level: 4, hair_types: 'thick,straight,wavy,fine' },
   { sku: 'S7-GEL-YEL', hold_level: 5, hair_types: 'straight' },
   { sku: 'S7-GEL-GRN', hold_level: 5, hair_types: 'straight' },
@@ -141,6 +146,7 @@ const primaries = [
   ['coily', 'S7-WAX-PUR', 'Shea butter'],
   ['fine', 'S7-WAX-YEL', 'Pro (the one Ovanza call all-hair-types)'],
   ['thick', 'S7-WAX-YEL', 'Pro (daily strong)'],
+  ['white', 'S7-WAX-BLK', 'Black (the only colour-depositing jar in the range)'],
 ];
 
 for (const [type, sku, why] of primaries) {

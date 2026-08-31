@@ -167,7 +167,8 @@
 .s7home .btn-line{border-color:var(--ink);color:var(--ink)}
 .s7home .btn-line:hover{background:var(--ink);color:var(--paper)}
 .s7home .stage{position:relative;height:100%;min-height:500px;display:grid;place-items:center;contain:layout}
-.s7home .hero-idle .orbit,.s7home .hero-idle .ring,.s7home .hero-idle .hero-stamp{animation-play-state:paused}
+.s7home .hero-idle .orbit,.s7home .hero-idle .ring,.s7home .hero-idle .hero-stamp,
+.s7home .hero-idle .jar-orbit,.s7home .hero-idle .jar-orbit .float-jar{animation-play-state:paused}
 .s7home .stage .disc{position:absolute;width:112%;max-width:640px;aspect-ratio:1;border-radius:50%;overflow:hidden;
   background:repeating-conic-gradient(from 8deg,rgba(232,54,42,.10) 0deg 11deg,transparent 11deg 30deg),
   radial-gradient(circle,#FFE4DE 0%,#FBEFE0 46%,rgba(251,239,224,0) 71%)}
@@ -182,9 +183,38 @@
 .s7home .stage .jar-wrap{position:relative;z-index:3;width:min(390px,74%);will-change:transform}
 .s7home .stage .jar-wrap img{width:100%;filter:drop-shadow(0 26px 22px rgba(18,16,11,.32))}
 .s7home .float-jar{position:absolute;width:140px;display:block;filter:drop-shadow(0 10px 12px rgba(18,16,11,.22));z-index:4;will-change:transform}
-.s7home .float-jar.j1{bottom:6%;inset-inline-start:4%}
-.s7home .float-jar.j2{top:4%;inset-inline-end:4%;width:112px}
 .s7home .float-jar img{width:100%;display:block}
+/* The three small jars ride one circle instead of sitting parked in two
+   corners. Each is pinned to the 9 o'clock point of a full-width ring that
+   turns, and counter-turns at exactly the same rate so the jar itself stays
+   upright — a label that rolls over is a label nobody reads. The wrapper and
+   the jar inside it share one duration and one delay, which is what keeps the
+   two rotations cancelling; changing one without the other makes the jars
+   tumble.
+   The ring is pointer-events:none and the jar re-enables them, so the
+   invisible 540px circle cannot swallow clicks meant for the hero buttons
+   underneath it. */
+.s7home .jar-orbit{position:absolute;width:86%;max-width:480px;aspect-ratio:1;border-radius:50%;
+  animation:orb 38s linear infinite;pointer-events:none;z-index:4;will-change:transform}
+.s7home .jar-orbit .float-jar{top:50%;left:0;transform:translate(-50%,-50%);
+  animation:orb-back 38s linear infinite;pointer-events:auto}
+/* Evenly spaced round the circle. The delay is negative so each jar starts
+   already a third of the way along rather than queueing at 9 o'clock for the
+   first pass. --park is the same three angles for the reduced-motion parking
+   below, where there is no animation to derive them from. */
+.s7home .jar-orbit.ja1{--park:0deg}
+.s7home .jar-orbit.ja2{--park:120deg;animation-delay:-12.667s}
+.s7home .jar-orbit.ja2 .float-jar{animation-delay:-12.667s;width:132px}
+.s7home .jar-orbit.ja3{--park:240deg;animation-delay:-25.333s}
+.s7home .jar-orbit.ja3 .float-jar{animation-delay:-25.333s;width:120px}
+@keyframes orb-back{from{transform:translate(-50%,-50%) rotate(0)}to{transform:translate(-50%,-50%) rotate(-360deg)}}
+/* Someone who asked for less motion still gets three jars in three places,
+   not three stacked on one. `animation:none` alone would leave every ring at
+   0deg with all three jars on top of each other at 9 o'clock. */
+@media (prefers-reduced-motion:reduce){
+  .s7home .jar-orbit{animation:none;transform:rotate(var(--park))}
+  .s7home .jar-orbit .float-jar{animation:none;transform:translate(-50%,-50%) rotate(calc(-1 * var(--park)))}
+}
 .s7home .hero-stamp{position:absolute;top:5%;inset-inline-start:2%;z-index:5;width:106px;height:106px;animation:s7spin 14s linear infinite;will-change:transform}
 @keyframes s7spin{to{transform:rotate(360deg)}}
 .s7home .hero-stamp svg{width:100%;height:100%}
@@ -292,9 +322,9 @@
 .s7home .hair-sets{margin-bottom:34px}
 
 /* The six types are not peers, and lib/hairtypes.js says so in its own header:
-   four are Andre Walker curl families and two are density states. One row of
-   six identical cards threw that away and left the reader with six
-   interchangeable buttons and no way in. Two labelled groups put the two axes
+   four are Andre Walker curl families, two are density states, and one is grey.
+   One row of identical cards threw that away and left the reader with a set of
+   interchangeable buttons and no way in. Three labelled groups put the axes
    back, which is also the one move that stops every tile being weighted the
    same. */
 .s7home .hair-set + .hair-set{margin-top:26px}
@@ -303,6 +333,9 @@
 .s7home .hair-lbl::after{content:"";flex:1;height:1.5px;background:var(--line)}
 .s7home .hair-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
 .s7home .hair-grid.density{grid-template-columns:repeat(2,1fr)}
+/* A group with one tile in it takes the whole row rather than sitting in the
+   left half of a two-up grid with a hole beside it. */
+.s7home .hair-grid.solo{grid-template-columns:1fr}
 
 /* The tile is a plate, not a medallion. Idle it is warm paper and the same
    solid ink rule every other control on this page carries, so the grid reads
@@ -445,6 +478,12 @@
 .s7home .hold-grid{grid-template-columns:1fr}}
 @media(max-width:720px){.s7home .grid{grid-template-columns:1fr 1fr;gap:10px}
 .s7home .card img{height:120px}
+/* The stage is barely wider than the big jar down here, so the three
+   travelling jars have to come down with it or they cross it. */
+.s7home .jar-orbit{width:84%}
+.s7home .jar-orbit .float-jar{width:76px}
+.s7home .jar-orbit.ja2 .float-jar{width:72px}
+.s7home .jar-orbit.ja3 .float-jar{width:68px}
 .s7home .order-steps{grid-template-columns:1fr}
 .s7home .shead{flex-direction:column;align-items:flex-start}
 .s7home{padding-bottom:64px}}

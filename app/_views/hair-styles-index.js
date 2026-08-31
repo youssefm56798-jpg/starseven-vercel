@@ -3,7 +3,7 @@ import { localePath } from '../../lib/urls.js';
 import { sql, hasDb } from '../../lib/db.js';
 import { site } from '../../lib/config.js';
 import { currencyLabel, whole } from '../../lib/money.js';
-import { HAIR_STYLES, FINISH, rankForStyle } from '../../lib/hairstyles.js';
+import { HAIR_STYLES, finishOf, rankForStyle } from '../../lib/hairstyles.js';
 import { Dir, Nav, Footer, Crumb } from '../_components/Chrome.js';
 import {
   ld, styleLabel, finishCounts, styleGap, styleIndexLd, styleBreadcrumbLd,
@@ -59,8 +59,12 @@ export default async function HairStylesIndexView({ lang }) {
     : { 1: 'Matte', 2: 'Medium shine', 3: 'High shine' }[s] || '—');
 
   const leads = new Map(HAIR_STYLES.map(s => [s.needs.lead, s]));
+  // finishOf rather than FINISH, so a clay or a pomade the client switches on
+  // appears in this table on the same rules as the eight SKUs with a
+  // photographed panel. Anything with no rating at all is still left out - the
+  // table's whole claim is that every row in it carries a published finish.
   const grid = products
-    .filter(p => FINISH[p.sku])
+    .filter(p => finishOf(p))
     .map(p => {
       const fronts = leads.get(p.sku);
       return {
@@ -68,7 +72,7 @@ export default async function HairStylesIndexView({ lang }) {
         slug: p.slug,
         name: ar ? p.name_ar : p.name_en,
         hold: Number(p.hold_level),
-        shine: shineWord(FINISH[p.sku].shine),
+        shine: shineWord(finishOf(p).shine),
         fronts: fronts ? (ar ? fronts.ar.name : fronts.en.name) : null,
         frontsSlug: fronts ? fronts.slug : null,
       };
@@ -81,9 +85,12 @@ export default async function HairStylesIndexView({ lang }) {
   const gaps = [
     counts.matte === 0
       ? (ar
-        ? 'مفيش حاجة مطفية في التشكيلة كلها. كل الواكس شمع وفازلين ومفيهاش سيليكا ولا نشا ولا كلاي، يعني مفيش أي مكوّن يقدر يطفي اللمعة أصلاً. عشان كده الفرنش كروب — أكتر قصة الناس بتطلبها دلوقتي — مش هنعرف نعمله لك.'
-        : 'Nothing in the range is matte. Every wax is wax and petrolatum with no silica, no starch and no clay — there is no ingredient in any of them that could take the shine off. That is why we cannot give you a textured crop, the cut most men are asking for right now.')
+        ? 'الكلاي واكس والبوماد اتعملوا خلاص، بس لسه منزلوش على الموقع — وهما الاتنين المطفيين. لحد ما ينزلوا، مفيش حاجة على الموقع بتدي شكل ناشف، وده اللي الفرنش كروب كله قايم عليه.'
+        : 'The clay wax and the pomade are made but not listed yet, and they are the two matte formats. Until they land, nothing on the shop gives a dry finish — and a dry finish is the whole basis of the textured crop.')
       : null,
+    ar
+      ? 'كريمات التصفيف وكريم الكيرلي وفوم الكيرلي والليڤ-إن كلهم تحت التنفيذ دلوقتي. دول اللي بيخدموا الكيرتن والكيرلي المظبوط.'
+      : 'The styling creams, the curl cream, the curl foam and the leave-in are all in production now. Those are the ones that serve the curtains and defined curls.',
     ar
       ? 'مفيش موس ولا منتج بيتحط قبل الاستشوار. الكويف بيبدأ من الاستشوار مش من العلبة، والحاجة اللي بتبني الارتفاع نفسه مش عندنا.'
       : 'No mousse and no pre-styling primer. A quiff starts at the dryer, not at the jar, and the product that builds the height is not one we make.',
@@ -109,8 +116,8 @@ export default async function HairStylesIndexView({ lang }) {
           <h1>{ar ? 'ستايلات الشعر' : 'Hair styles'}</h1>
           <p>
             {ar
-              ? 'اختار الشكل اللي عايزه، ونقولك بأنهي منتج توصله وإزاي بالظبط — وفي حالة واحدة نقولك إننا مش بنعمل اللي إنت محتاجه.'
-              : 'Pick the look you want and we will tell you which product gets you there and exactly how — and in one case, that we do not make what you need.'}
+              ? 'اختار الشكل اللي عايزه، ونقولك بأنهي منتج توصله وإزاي بالظبط — وفي حالتين نقولك إن المنتج المظبوط لسه منزلش على الموقع.'
+              : 'Pick the look you want and we will tell you which product gets you there and exactly how — and in two cases, that the right product is not on the shop yet.'}
           </p>
           <div className="phead-cta">
             <Link className="btn btn-red" href={L('/shop')}>
@@ -156,8 +163,8 @@ export default async function HairStylesIndexView({ lang }) {
                 warn - which is the one outcome an honesty notice cannot afford. */}
             <p>
               {ar
-                ? 'مفيش حاجة عندنا مطفية — كلها شمع وفازلين، من غير كلاي ولا سيليكا. يعني من الستة اللي تحت، واحد مش هنعرف نوصلك له وواحد هنوصلك لنصه. الاتنين مكتوب عليهم.'
-                : 'Nothing we make is matte — it is all wax and petrolatum, with no clay or silica. So of the six styles below, one we cannot get you and one only halfway. Both are marked.'}
+                ? 'اللي على الموقع دلوقتي كله واكس وجل، ومفيش فيه حاجة مطفية. يعني من الستة اللي تحت، اتنين هنوصلك لنصهم بس — الكروب والكيرتن. الاتنين مكتوب عليهم وليه.'
+                : 'Everything on the shop right now is wax and gel, and none of it is matte. So of the six styles below, two we can only get you halfway — the crop and the curtains. Both are marked, and both say why.'}
             </p>
           </aside>
           )}
@@ -217,12 +224,14 @@ export default async function HairStylesIndexView({ lang }) {
                           width="120" height="120" loading="lazy" />
                         <span>
                           <b className="hs-pick-lbl">
-                            {/* A look the range cannot serve is not offered an
-                                answer. It gets the closest thing that exists,
-                                named as exactly that — and below, no
-                                alternates, because there is no second-best for
-                                something we have already said we cannot do. */}
-                            {s.served === 'no'
+                            {/* A look the shop cannot serve properly is not
+                                offered an answer. It gets the closest thing
+                                that exists, named as exactly that — and below,
+                                no alternates, because there is no second-best
+                                for a look we have just graded ourselves down
+                                on. See the same pair in app/_views/hair-style.js
+                                for why this reads "not yes" and not "no". */}
+                            {s.served !== 'yes'
                               ? (ar ? 'أقرب حاجة عندنا' : 'The closest we have')
                               : (ar ? 'اللي هيوصلك له' : 'What gets you there')}
                           </b>
@@ -233,7 +242,7 @@ export default async function HairStylesIndexView({ lang }) {
                         </span>
                       </Link>
 
-                      {s.served !== 'no' && alts.length > 0 && (
+                      {s.served === 'yes' && alts.length > 0 && (
                         <p className="hs-alts">
                           <span>{ar ? 'ينفع كمان:' : 'Also works:'}</span>
                           {alts.map(a => (
@@ -312,11 +321,11 @@ export default async function HairStylesIndexView({ lang }) {
 
         {/* ---------------------------------------------------------- gaps */}
         <section className="hs-gaps">
-          <h2>{ar ? 'حاجات لسه مبنعملهاش' : 'What we do not make yet'}</h2>
+          <h2>{ar ? 'منتجات تحت التنفيذ' : 'In production now'}</h2>
           <p className="hs-lead">
             {ar
-              ? 'نفس الكلام المكتوب في صفحة أنواع الشعر، بس من ناحية تانية. الترشيحات اللي فوق هي أحسن حاجة موجودة عندنا فعلاً.'
-              : 'Same admission as the hair-types page, from the other end. The picks above are the best we have got.'}
+              ? 'نفس اللي مكتوب في صفحة أنواع الشعر، بس من ناحية الاستايل. الترشيحات اللي فوق هي أحسن حاجة على الموقع النهارده.'
+              : 'The same list as the hair-types page, read from the style end. The picks above are the best that is on the shop today.'}
           </p>
           <ul className="hs-gaplist">
             {gaps.map((g, i) => <li key={i}>{g}</li>)}

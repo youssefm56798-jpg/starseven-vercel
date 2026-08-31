@@ -16,7 +16,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { HAIR_STYLES, FINISH, bySlug, rankForStyle } from '../lib/hairstyles.js';
+import { HAIR_STYLES, FINISH, KIND_FINISH, finishOf, bySlug, rankForStyle } from '../lib/hairstyles.js';
 
 const ROOT = fileURLToPath(new URL('../', import.meta.url));
 const SLUGS = ['slick-back', 'low-taper-fade', 'defined-curls', 'curtains', 'quiff', 'textured-crop'];
@@ -77,15 +77,20 @@ for (const tile of HAIR_STYLES) {
   });
 }
 
-test('the range serves four styles properly, one partly and one not at all', () => {
+test('the shop serves four styles properly and two only partly', () => {
   // docs/hair-style-research.md §4. This is the verdict the views render: a
-  // tile that cannot be served is offered the closest thing under a label that
-  // says so, and is shown no alternates, because a look we have just admitted
-  // we cannot do has no second-best. Softening any of these three numbers is
-  // the whole feature quietly turning back into marketing.
+  // tile that is not fully served is offered the closest thing under a label
+  // that says so. Softening any of these numbers is the whole feature quietly
+  // turning back into marketing.
+  //
+  // The crop moved from 'no' to 'partly' when the clay wax was made. That is a
+  // fact about the factory rather than a softening, and it is the only reason
+  // this line may ever be relaxed: 'no' means the range has no route to the
+  // look at all, 'partly' means the route exists and the shop has not listed it
+  // yet. If a tile is ever moved between them, the reason belongs in the tile.
   const by = v => HAIR_STYLES.filter(s => s.served === v).map(s => s.slug);
-  assert.deepEqual(by('no'), ['textured-crop']);
-  assert.deepEqual(by('partly'), ['curtains']);
+  assert.deepEqual(by('no'), []);
+  assert.deepEqual(by('partly'), ['curtains', 'textured-crop']);
   assert.equal(by('yes').length, 4);
 });
 
@@ -140,7 +145,7 @@ const CATALOGUE = [
   { sku: 'S7-WAX-RED', kind: 'wax', hold_level: 4, hair_types: 'wavy,thick' },
   { sku: 'S7-WAX-PUR', kind: 'wax', hold_level: 3, hair_types: 'coily,curly,thick' },
   { sku: 'S7-WAX-BLU', kind: 'wax', hold_level: 3, hair_types: 'curly,coily,wavy' },
-  { sku: 'S7-WAX-BLK', kind: 'wax', hold_level: 3, hair_types: 'wavy,thick' },
+  { sku: 'S7-WAX-BLK', kind: 'wax', hold_level: 3, hair_types: 'white,wavy,thick' },
   { sku: 'S7-WAX-YEL', kind: 'wax', hold_level: 4, hair_types: 'thick,straight,wavy,fine' },
   { sku: 'S7-GEL-YEL', kind: 'gel', hold_level: 5, hair_types: 'straight' },
   { sku: 'S7-GEL-GRN', kind: 'gel', hold_level: 5, hair_types: 'straight' },
@@ -211,13 +216,30 @@ test('finish ratings sit on the scale the ranker reads', () => {
   }
 });
 
-test('nothing in the range is matte', () => {
-  // The brand fact the crop tile is entirely built on. There is no silica, no
-  // starch and no clay in any of these formulas, so a SKU rated matte here
-  // would be a claim the ingredient list contradicts — and it would turn the
-  // one tile that honestly refuses into a tile that recommends.
+test('none of the eight launch SKUs is matte', () => {
+  // There is no silica, no starch and no clay in any of these eight formulas,
+  // so a per-SKU matte rating here would be a claim the printed ingredient list
+  // contradicts. The range does have matte products now — the clay wax and the
+  // pomade — but they are rated by format in KIND_FINISH, precisely because
+  // this table is the panel on the jar and those jars have no panel on file.
   const matte = Object.entries(FINISH).filter(([, f]) => f.shine === 1).map(([sku]) => sku);
   assert.deepEqual(matte, []);
+});
+
+test('the two matte formats are rated matte, by format', () => {
+  // The crop tile asks for shine 1. Nothing could answer it while matte was
+  // unreachable; these two are what make it answerable, and they have to stay
+  // rated at the bottom of the scale or the tile silently goes back to leading
+  // with a wax that shines.
+  for (const kind of ['clay', 'pomade']) {
+    assert.equal(KIND_FINISH[kind].shine, 1, kind);
+    assert.equal(finishOf({ sku: 'S7-UNKNOWN', kind }).shine, 1, kind);
+  }
+  // A per-SKU rating still wins over the format default, so a clay the
+  // manufacturer publishes a real number for can be corrected without this
+  // table having to be special-cased.
+  assert.equal(finishOf({ sku: 'S7-WAX-RED', kind: 'clay' }).shine, 3);
+  assert.equal(finishOf({ sku: 'S7-NOPE', kind: 'wax' }), null);
 });
 
 test('the Shea wax is the only wax rated below high shine', () => {
@@ -249,7 +271,7 @@ const primaries = [
   ['defined-curls', 'S7-WAX-BLU', 'Premium Wax Argan, hold 3 on purpose'],
   ['curtains', 'S7-WAX-PUR', 'Premium Wax Shea, the only Medium-shine wax, holds the centre part'],
   ['quiff', 'S7-WAX-RED', 'Premium Wax Pro X, the only medium-flexibility product'],
-  ['textured-crop', 'S7-WAX-PUR', 'Premium Wax Shea, the least shiny thing we sell'],
+  ['textured-crop', 'S7-WAX-PUR', 'Premium Wax Shea, the least shiny thing on the shop'],
 ];
 
 for (const [slug, sku, why] of primaries) {
@@ -350,7 +372,7 @@ test('the crop tile is led by the least shiny product it can reach', () => {
   // bad answer has to lead it — a higher-shine wax at the top of this tile
   // would be the Black-is-matte error committed a second time.
   const ranked = rank('textured-crop', 8);
-  const shine = ranked.map(p => FINISH[p.sku].shine);
+  const shine = ranked.map(p => finishOf(p).shine);
   assert.equal(shine[0], Math.min(...shine), `led by shine ${shine[0]} of ${shine.join(', ')}`);
 });
 
@@ -372,17 +394,37 @@ test('the slick back is the only style a gel fronts, and it is the Blue', () => 
   assert.equal(leads.includes('S7-GEL-YEL'), false);
 });
 
-test('every tile leads with the SKU its own data names', () => {
-  for (const tile of HAIR_STYLES) {
+test('every tile that names a lead leads with it', () => {
+  for (const tile of HAIR_STYLES.filter(t => t.needs.lead)) {
     assert.equal(first(tile.slug), tile.needs.lead, tile.slug);
   }
 });
 
 test('every named lead is a product the seed actually stocks', () => {
   const skus = new Set(CATALOGUE.map(p => p.sku));
-  for (const tile of HAIR_STYLES) {
+  for (const tile of HAIR_STYLES.filter(t => t.needs.lead)) {
     assert.ok(skus.has(tile.needs.lead), `${tile.slug} leads with ${tile.needs.lead}, which is not in the catalogue`);
   }
+});
+
+test('a tile may name no lead, and only the crop does', () => {
+  // The crop is the one tile whose right answer is a format rather than a SKU:
+  // a clay, and no clay is on the shop to name. A lead pointing at a SKU that
+  // does not exist is a lead that can only ever be wrong, so the tile names
+  // none and lets the shine axis decide — which is also what lets a clay take
+  // the tile on the day it is switched on, with no code change.
+  const unled = HAIR_STYLES.filter(t => !t.needs.lead).map(t => t.slug);
+  assert.deepEqual(unled, ['textured-crop']);
+});
+
+test('a clay takes the crop tile from the wax the moment one exists', () => {
+  const withClay = [...CATALOGUE,
+    { sku: 'S7-CLAY-1', kind: 'clay', hold_level: 3, hair_types: 'fine,thick' }];
+  const ranked = rankForStyle(withClay, bySlug('textured-crop'), 8);
+  assert.equal(ranked[0]?.sku, 'S7-CLAY-1');
+  // And it does not gatecrash a tile that never asked for a matte finish.
+  assert.equal(rankForStyle(withClay, bySlug('defined-curls'), 8)
+    .some(p => p.sku === 'S7-CLAY-1'), false);
 });
 
 test('every product in the catalogue is reachable from some tile', () => {

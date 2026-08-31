@@ -80,8 +80,51 @@ export const CATEGORIES = [
       en: 'New Star Seven cream gel, 250ml: the barber’s pick — wet-look control with cream conditioning, built for daily use. Delivered across Egypt, cash on receipt.',
     },
     lead: {
-      ar: 'أخف شكل في التشكيلة وأسهله في التعامل. بيمشي مع كل أنواع الشعر، وبيرطّب وهو بيمسك.',
-      en: 'The lightest and most forgiving format we make. It works across every hair type, and it conditions while it holds.',
+      ar: 'كريم بيثبّت الشعر: قوامه خفيف زي الكريم، وبيدي لمعان بسيط مش لمعة جل. أخف شكل في التشكيلة وأسهله في التعامل، بيمشي مع كل أنواع الشعر، وبيرطّب وهو بيمسك.',
+      en: 'A cream that holds: light in the hand like a cream, and it leaves a soft shine rather than a gel gloss. The lightest and most forgiving format we make, working across every hair type and conditioning while it holds.',
+    },
+  },
+  {
+    // Two formats the range gained in Aug 2026, and the first two matte ones.
+    // They sit here rather than at the end because the chip row is read as a
+    // shelf and these belong next to the wax, not after the depilatory.
+    //
+    // No rows are seeded for either: the manufacturer catalogue had not arrived
+    // when they were added, so the client fills them from the admin. Until then
+    // liveCategories leaves both chips off the nav, the footer and the sitemap
+    // on their own — a category with nothing live is a page that 404s, and
+    // linking to it would cost a crawl and a customer.
+    slug: 'clay-wax', kind: 'clay',
+    crumb: { ar: 'كلاي واكس', en: 'Clay Wax' },
+    h1: { ar: 'كلاي واكس للشعر', en: 'Hair clay wax' },
+    title: {
+      ar: 'كلاي واكس للشعر — تثبيت قوي بشكل مطفي',
+      en: 'Hair clay wax — firm hold, matte finish',
+    },
+    desc: {
+      ar: 'كلاي واكس نيو ستار سفن: تثبيت قوي بخلاصة مطفية، بيدي حجم وتكستشر من غير لمعة. مظبوط للشعر الخفيف وللفرنش كروب. توصيل لكل مصر والدفع عند الاستلام.',
+      en: 'New Star Seven clay wax: firm hold with a matte finish, giving volume and texture without shine. Built for fine hair and for the textured crop. Delivered across Egypt, cash on receipt.',
+    },
+    lead: {
+      ar: 'الحاجة الوحيدة عندنا اللي بتخلي الشعر يبان ناشف. الكلاي بيدي حجم وتكستشر من غير لمعة — وده اللي الشعر الخفيف والكروب المكركب محتاجينه.',
+      en: 'The only thing we make that leaves hair looking dry. Clay gives volume and texture with no shine — which is exactly what fine hair and a choppy crop are asking for.',
+    },
+  },
+  {
+    slug: 'pomade', kind: 'pomade',
+    crumb: { ar: 'بوماد', en: 'Pomade' },
+    h1: { ar: 'بوماد للشعر', en: 'Hair pomade' },
+    title: {
+      ar: 'بوماد للشعر — تثبيت متوسط لعالي من غير لمعة',
+      en: 'Hair pomade — medium-high hold, no shine',
+    },
+    desc: {
+      ar: 'بوماد نيو ستار سفن: تثبيت متوسط لعالي بشكل مطفي، للسليك باك والفرق الجانبي على الشعر المتوسط والكثيف. توصيل لكل مصر والدفع عند الاستلام.',
+      en: 'New Star Seven pomade: medium-high hold with a matte finish, for slick-backs and side parts on medium to thick hair. Delivered across Egypt, cash on receipt.',
+    },
+    lead: {
+      ar: 'بوماد من غير لمعة — والفرق بينه وبين الجل واكس هو اللمعة بالظبط. لو عايز نفس الفكرة بس لامعة، الجل واكس هو ده.',
+      en: 'A pomade with no shine — and shine is the whole difference between this and the gel wax. If you want the same idea with a gloss on it, the gel wax is that product.',
     },
   },
   {

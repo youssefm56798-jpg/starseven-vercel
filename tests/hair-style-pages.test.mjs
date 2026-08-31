@@ -22,7 +22,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { HAIR_STYLES, bySlug } from '../lib/hairstyles.js';
-import { HAIR_TYPES } from '../lib/hairtypes.js';
+import { HAIR_TYPES, bySlug as typeBySlug } from '../lib/hairtypes.js';
 import {
   STYLE_SLUGS, ld, isLatinRun, runDir, clamp, styleLabel, finishCounts, styleGap,
   styleMeta, styleIndexMeta, styleFaq, howToLd, styleBreadcrumbLd, styleIndexLd,
@@ -112,13 +112,17 @@ test('finishCounts on an empty or missing catalogue is all zeros', () => {
   assert.deepEqual(finishCounts(undefined), ZERO);
 });
 
-test('matte is counted, because the index claims we make nothing matte', () => {
+test('matte is counted, because the index claims nothing on the shop is matte', () => {
   // The "nothing here is matte" line on /hair-styles is generated from this
   // number. If matte stopped being counted the claim would silently go back to
-  // hard-coded and would be false the day a clay is stocked — the same reason
-  // formatCounts counts cream on /hair-types.
+  // hard-coded and would be false the day a clay is switched on — the same
+  // reason formatCounts counts clay and pomade on /hair-types.
   assert.equal(finishCounts([{ sku: 'S7-WAX-PUR' }]).matte, 0);
   assert.equal(finishCounts([{ sku: 'S7-FAKE', kind: 'wax' }]).matte, 0);
+  // And the day one is stocked, the number moves on its own. This is the whole
+  // point of counting rather than typing: nobody has to remember this page.
+  assert.equal(finishCounts([{ sku: 'S7-NEW', kind: 'clay' }]).matte, 1);
+  assert.equal(finishCounts([{ sku: 'S7-NEW2', kind: 'pomade' }]).matte, 1);
 });
 
 /* ---------------------------------------------------------- range gaps */
@@ -142,12 +146,16 @@ test('tiles the range genuinely serves admit nothing', () => {
   }
 });
 
-test('an English gap note reads as a denial, not a promise', () => {
+test('an English gap note names a product the shop cannot sell today', () => {
+  // It used to have to read as a flat denial. Three of the four notes have
+  // since been overtaken by products the factory actually makes, so the claim
+  // this guards is narrower and truer: the note must say the thing is not
+  // available here yet, in words a reader cannot mistake for an offer.
   for (const slug of ADMITTING) {
     const note = styleGap(slug, 'en');
     assert.ok(
-      /do not make|not in the range|what we make is/i.test(note),
-      `${slug}: "${note}" must state the absence outright`,
+      /do not make|not in the range|still in production|not on the shop/i.test(note),
+      `${slug}: "${note}" must state that it is not available yet`,
     );
   }
 });
@@ -165,14 +173,19 @@ test('an Arabic gap note is written in Arabic and states the absence', () => {
   }
 });
 
-test('the crop tile blames the same missing product as /hair-types', () => {
-  // The crop and the fine-hair tile both want a clay or matte paste that does
-  // not exist. If either note is ever softened they will contradict
-  // lib/hairtypes.js, which tells fine hair outright that what it wants is a
-  // clay or a matte paste and that we do not sell one.
-  assert.match(styleGap('textured-crop', 'en'), /clay|matte/i);
-  assert.match(styleGap('textured-crop', 'ar'), /كلاي|مطفي|مطفية/);
-  assert.match(typeLib.gapNote('fine', 'en'), /clay|matte/i);
+test('the crop tile and the fine tile name the same product', () => {
+  // The crop and fine hair both want the clay, and the two finders have to
+  // agree about it or one page is selling what the other is declining. Both
+  // notes now say the same thing — the clay is made and not listed — and both
+  // tiles name it in their own copy as well, because the note is the aside and
+  // the copy is what a customer actually reads.
+  assert.match(styleGap('textured-crop', 'en'), /clay/i);
+  assert.match(styleGap('textured-crop', 'ar'), /كلاي/);
+  assert.match(typeLib.gapNote('fine', 'en'), /clay/i);
+  assert.match(typeLib.gapNote('fine', 'ar'), /كلاي/);
+  assert.match(bySlug('textured-crop').en.why, /clay/i);
+  assert.match(typeBySlug('fine').en.answer, /clay/i);
+  assert.match(typeBySlug('fine').ar.answer, /كلاي/);
 });
 
 test('styleGap defaults to Arabic for anything that is not "en"', () => {
@@ -411,16 +424,16 @@ test('the nav and the footer both link the style finder', async () => {
     'the nav item cannot mark itself active, so nothing lights up on /hair-styles.');
 });
 
-test('a style the range cannot serve is never shown a runner-up', async () => {
-  // This is the whole argument of the crop tile, and it lives only in the view:
-  // rankForStyle still returns three matches for that tile, and the view is the
-  // one thing that refuses to print two of them and relabels the third as the
-  // nearest thing rather than the answer. Delete either check and the page goes
-  // back to selling a look it has just finished admitting it cannot deliver.
+test('a style the shop cannot serve properly is never shown a runner-up', async () => {
+  // This is the whole argument of the crop and curtains tiles, and it lives
+  // only in the view: rankForStyle still returns three matches, and the view is
+  // the one thing that refuses to print two of them and relabels the third as
+  // the nearest thing rather than the answer. Delete either check and the page
+  // goes back to selling a look it has just finished grading itself down on.
   const src = await source('app/_views/hair-style.js');
-  assert.match(src, /tile\.served !== 'no' && alts\.length > 0/,
+  assert.match(src, /tile\.served === 'yes' && alts\.length > 0/,
     'the alternates block no longer checks served, so the crop tile lists runners-up.');
-  assert.match(src, /tile\.served === 'no'/,
+  assert.match(src, /tile\.served !== 'yes'/,
     'the pick badge no longer checks served, so the closest thing is sold as the answer.');
 });
 
@@ -431,7 +444,7 @@ test('no claim about matte outlives a matte product being stocked', async () => 
   // exactly the change the gate exists to catch, which is the day a clay is
   // stocked and "nothing we make is matte" stops being true.
   const src = await source('app/_views/hair-styles-index.js');
-  const claims = ['Nothing in the range is matte', 'Nothing we make is matte'];
+  const claims = ['they are the two matte formats', 'none of it is matte'];
   for (const claim of claims) {
     assert.ok(src.includes(claim), `the index no longer says "${claim}"`);
   }

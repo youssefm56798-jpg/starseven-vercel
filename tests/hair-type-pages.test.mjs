@@ -20,7 +20,7 @@ import {
   typeMeta, indexMeta, typeFaq, articleLd, breadcrumbLd, indexLd,
 } from '../app/hair-types/lib.js';
 
-const SLUGS = ['straight', 'wavy', 'curly', 'coily', 'fine', 'thick'];
+const SLUGS = ['straight', 'wavy', 'curly', 'coily', 'fine', 'thick', 'white'];
 // lib/config.js falls back to this when NEXT_PUBLIC_SITE_URL is unset,
 // which is the case in tests.
 const BASE = 'http://localhost:3000';
@@ -30,7 +30,7 @@ const SITE = 'https://example.test';
 
 /* ------------------------------------------------------------------ slugs */
 
-test('the route builds exactly the six tiles, in tile order', () => {
+test('the route builds exactly the seven tiles, in tile order', () => {
   assert.deepEqual(HAIR_SLUGS, SLUGS);
 });
 
@@ -112,13 +112,14 @@ test('clamp survives nullish input', () => {
 
 /* ------------------------------------------------------- format counts */
 
-const ZERO = { wax: 0, gel: 0, cream: 0, gelwax: 0, total: 0 };
+const ZERO = { wax: 0, gel: 0, cream: 0, gelwax: 0, clay: 0, pomade: 0, total: 0 };
 
 test('formatCounts counts each kind', () => {
   const rows = [{ kind: 'wax' }, { kind: 'wax' }, { kind: 'gel' },
-                { kind: 'cream' }, { kind: 'gelwax' }, { kind: 'cologne' }];
+                { kind: 'cream' }, { kind: 'gelwax' }, { kind: 'cologne' },
+                { kind: 'clay' }, { kind: 'pomade' }, { kind: 'pomade' }];
   assert.deepEqual(formatCounts(rows),
-    { wax: 2, gel: 1, cream: 1, gelwax: 1, total: 6 });
+    { wax: 2, gel: 1, cream: 1, gelwax: 1, clay: 1, pomade: 2, total: 9 });
 });
 
 test('formatCounts on an empty or missing catalogue is all zeros', () => {
@@ -127,17 +128,21 @@ test('formatCounts on an empty or missing catalogue is all zeros', () => {
   assert.deepEqual(formatCounts(undefined), ZERO);
 });
 
-test('cream is counted, because the page claims we do not make one', () => {
-  // The "no cream" line on /hair-types is generated from this number. If cream
-  // stopped being counted the claim would silently go back to hard-coded and
-  // would be false the day a cream gel is priced.
-  assert.equal(formatCounts([{ kind: 'cream' }]).cream, 1);
-  assert.equal(formatCounts([{ kind: 'wax' }]).cream, 0);
+test('every format the table has a row for is counted', () => {
+  // The "we make it?" column on /hair-types is generated from these numbers. A
+  // format that stopped being counted would send its cell back to a hard-coded
+  // answer, and a hard-coded answer is wrong the day the shop changes. Clay and
+  // pomade are the live case: both read "no" today and must flip themselves the
+  // moment the client switches one on.
+  for (const kind of ['cream', 'clay', 'pomade', 'gelwax']) {
+    assert.equal(formatCounts([{ kind }])[kind], 1, kind);
+    assert.equal(formatCounts([{ kind: 'wax' }])[kind], 0, kind);
+  }
 });
 
 /* ---------------------------------------------------------- range gaps */
 
-test('the three tiles the research flags carry a gap note', () => {
+test('the three tiles still waiting on a product carry a gap note', () => {
   for (const slug of ['fine', 'curly', 'coily']) {
     for (const lang of LANGS) {
       const note = gapNote(slug, lang);
@@ -148,17 +153,21 @@ test('the three tiles the research flags carry a gap note', () => {
 });
 
 test('tiles with a product built for them admit nothing', () => {
-  for (const slug of ['straight', 'wavy', 'thick']) {
+  for (const slug of ['straight', 'wavy', 'thick', 'white']) {
     for (const lang of LANGS) assert.equal(gapNote(slug, lang), null);
   }
 });
 
-test('an English gap note reads as a denial, not a promise', () => {
+test('an English gap note names a product that is not on the shop', () => {
+  // It used to have to read as a flat denial. Two of the three notes have since
+  // been overtaken by products the factory actually makes, so the claim the
+  // test guards is narrower and truer: the note must say the thing is not
+  // available here yet, in words a reader cannot mistake for an offer.
   for (const slug of ['fine', 'curly', 'coily']) {
     const note = gapNote(slug, 'en');
     assert.ok(
-      /do not make|not in the range|what we make is/i.test(note),
-      `${slug}: "${note}" must state the absence outright`,
+      /do not make|not in the range|still in production|not on the shop/i.test(note),
+      `${slug}: "${note}" must state that it is not available yet`,
     );
   }
 });
@@ -175,7 +184,7 @@ test('an Arabic gap note is written in Arabic and states the absence', () => {
 });
 
 test('gapNote defaults to Arabic for anything that is not "en"', () => {
-  assert.equal(gapNote('fine', undefined), gapNote('fine', 'ar'));
+  assert.equal(gapNote('curly', undefined), gapNote('curly', 'ar'));
 });
 
 /* ----------------------------------------------------------- metadata */
@@ -240,7 +249,7 @@ test('the two languages do not share a title', () => {
   assert.notEqual(indexMeta('ar').title, indexMeta('en').title);
 });
 
-test('titles are unique across the six type pages', () => {
+test('titles are unique across every type page', () => {
   for (const lang of LANGS) {
     const titles = HAIR_TYPES.map(t => typeMeta(t, lang).title);
     assert.equal(new Set(titles).size, titles.length, lang);
@@ -323,14 +332,17 @@ test('breadcrumbs are two deep on the index and three on a type page', () => {
   assert.equal(one.itemListElement[2].name, bySlug('fine').en.name);
 });
 
-test('the index ItemList links all six type pages, in order', () => {
+test('the index ItemList links every type page, in order', () => {
   const j = indexLd({ lang: 'en', siteUrl: SITE });
   assert.equal(j['@type'], 'CollectionPage');
   assert.deepEqual(
     j.mainEntity.itemListElement.map(i => i.url),
     SLUGS.map(s => `${SITE}/hair-types/${s}`),
   );
-  assert.deepEqual(j.mainEntity.itemListElement.map(i => i.position), [1, 2, 3, 4, 5, 6]);
+  assert.deepEqual(
+    j.mainEntity.itemListElement.map(i => i.position),
+    SLUGS.map((_, i) => i + 1),
+  );
 });
 
 test('every JSON-LD block this route emits is serialisable and script-safe', () => {

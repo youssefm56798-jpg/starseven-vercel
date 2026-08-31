@@ -36,8 +36,8 @@ test('every category has a distinct slug and a distinct kind column', () => {
 test('the kind column is a value the database CHECK allows', () => {
   // Mirrors the CHECK in db/schema.sql. A category whose kind is not in this
   // set inserts nothing and shows an empty page.
-  const ALLOWED = new Set(['wax', 'gel', 'gelwax', 'cream', 'spray',
-                           'cologne', 'shampoo', 'depilatory']);
+  const ALLOWED = new Set(['wax', 'gel', 'gelwax', 'cream', 'clay', 'pomade',
+                           'spray', 'cologne', 'shampoo', 'depilatory']);
   for (const c of CATEGORIES) {
     assert.ok(ALLOWED.has(c.kind), `${c.slug} maps to unknown kind ${c.kind}`);
   }

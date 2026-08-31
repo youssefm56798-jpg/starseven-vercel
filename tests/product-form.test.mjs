@@ -74,7 +74,7 @@ test('both names are required', () => {
 test('an unknown kind is refused rather than silently defaulted', () => {
   // Defaulting would put a product in a category the owner did not pick, and
   // the shop pages would then quietly not show it.
-  for (const bad of ['clay', 'WAX', '', 'wax; drop', undefined]) {
+  for (const bad of ['paste', 'WAX', '', 'wax; drop', undefined]) {
     assert.equal(created({ kind: bad }).error, 'product_bad_kind', String(bad));
   }
 });
@@ -193,7 +193,7 @@ test('order is the meaning, so it is preserved exactly', () => {
 });
 
 test('there is one slot per tile and no more', () => {
-  assert.equal(HAIR_SLOTS, 6);
+  assert.equal(HAIR_SLOTS, 7);
 });
 
 /* ------------------------------------------------------------ edit vs create */

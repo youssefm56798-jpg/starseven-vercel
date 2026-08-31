@@ -173,6 +173,9 @@
 .ht-table td { color: var(--grey); font-weight: 600; }
 .ht-yes { color: var(--green-ui); font-weight: 900; white-space: nowrap; }
 .ht-no { color: var(--grey); font-weight: 800; }
+/* Made, but not listed. Neither the green of a format you can add to a cart
+   nor the grey of one that does not exist — the amber says wait. */
+.ht-soon { color: #B07407; font-weight: 800; white-space: nowrap; }
 
 /* ---------------------------------------------------------------- gaps */
 

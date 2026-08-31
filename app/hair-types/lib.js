@@ -12,7 +12,7 @@
 import { HAIR_TYPES } from '../../lib/hairtypes.js';
 import { alternatesForLang } from '../../lib/urls.js';
 
-/** The six slugs, in tile order. The route's static params come from here. */
+/** Every slug, in tile order. The route's static params come from here. */
 export const HAIR_SLUGS = HAIR_TYPES.map(t => t.slug);
 
 /**
@@ -69,29 +69,48 @@ export function formatCounts(rows) {
   // point of honesty to a plain falsehood the day a cream gel was priced.
   return {
     wax: of('wax'), gel: of('gel'), cream: of('cream'), gelwax: of('gelwax'),
+    // The two newest formats, counted for the same reason as the two above
+    // them: the formats table on /hair-types says out loud which of the five
+    // shelf formats this brand actually makes, and until these arrived the
+    // answer for both was a hard-coded "no". A hard-coded yes would be the
+    // same mistake wearing the opposite sign.
+    clay: of('clay'), pomade: of('pomade'),
     total: list.length,
   };
 }
 
 /* ------------------------------------------------------------------ gaps ---
- * docs/hair-type-research.md closes on three formats the range does not
- * contain. Saying so on the tile that feels the gap is the only honest way to
- * present a six-tile finder backed by five waxes and three gels: the tile
- * still gets the best answer that exists, and the customer is told it is the
- * best that exists rather than the thing built for them. */
+ * docs/hair-type-research.md closes on the formats the range does not contain.
+ * Saying so on the tile that feels the gap is the only honest way to present a
+ * seven-tile finder: the tile still gets the best answer that exists, and the
+ * customer is told it is the best that exists rather than the thing built for
+ * them.
+ *
+ * All three notes have been rewritten because all three stopped being true as
+ * written. The fine-hair note said the range had no clay, which was the honest
+ * answer while it did not — the clay wax exists now, so the tile leads with it
+ * and the note explains that the jar shown underneath is a stand-in until the
+ * clay is listed. The curly note said there was no cream, which the cream gel
+ * ended.
+ *
+ * What is left is named as coming rather than as missing, because that is what
+ * it is: the clay is made and unlisted, and the leave-in, the curl cream and
+ * the curl foam are in production. The distinction matters to the reader in
+ * exactly one way, and it is the way that decides what they do next — a hole
+ * means buy the compromise, pending means it may be worth waiting. */
 
 const GAPS = {
   fine: {
-    ar: 'الشعر الخفيف اللي عايز حجم محتاج كلاي أو معجون مطفي. إحنا مبنعملهمش. كل الواكس عندنا شمع وفازلين وكله بيلمع، فاللي تحت هو أقل واحد فيهم وحشة بكمية صغيرة — مش حاجة اتعملت ليك.',
-    en: 'Fine hair that wants volume needs a clay or a matte paste. We do not make one. Every wax here is wax and petrolatum and every one of them shines, so what is below is the least bad of them used sparingly — not something built for you.',
+    ar: 'ملحوظة بصراحة: الكلاي واكس اتعمل بس لسه منزلش على الموقع، فالجرّة اللي فوق مش هي. لحد ما ينزل، أقل واكس لامع بكمية صغيرة على شعر ناشف هو أقرب حاجة — وهي أقرب حاجة، مش الحاجة المتعملة للحالة دي.',
+    en: 'Said plainly: the clay wax is made but not on the shop yet, so the jar above is not it. Until it lands, the least shiny wax we sell, used sparingly on dry hair, is the closest you can get — and closest is all it is.',
   },
   curly: {
-    ar: 'ملحوظة بصراحة: مفيش عندنا كريم. الكريم أخف شكل وأسهله في التعامل، وهو غالباً أنسب بداية لحد شعره كيرلي وشايف إن الواكس تقيل عليه. لسه مش في التشكيلة.',
-    en: 'Said plainly: we do not make a cream. Cream is the lightest, most forgiving format and is often the better starting point for curly hair that finds wax too much. It is not in the range yet.',
+    ar: 'ملحوظة بصراحة: كريم الكيرلي وفوم الكيرلي لسه تحت التنفيذ. اللي موجود دلوقتي — الواكس والكريم جل — بيعرّف الكيرلة ويمشّي الحال، بس المنتج المتعمل للكيرلي مخصوص لسه في الطريق.',
+    en: 'Said plainly: the curl cream and the curl foam are still in production. What exists now — the wax and the cream gel — defines curl and does the job, but the product built specifically for curly hair is still on its way.',
   },
   coily: {
-    ar: 'ملحوظة بصراحة: مفيش عندنا كريم ولا منتج ليڤ-إن يتحط قبل التصفيف — ودول اللي بيفرقوا فعلاً مع الشعر الأفرو. اللي عندنا واكس وجل بس.',
-    en: 'Said plainly: we do not make a cream or a leave-in pre-styler, and those are the products that matter most for coily hair. What we make is wax and gel.',
+    ar: 'ملحوظة بصراحة: الليڤ-إن لسه تحت التنفيذ، وده المنتج اللي بيتحط قبل التصفيف وبيفرق أكتر حاجة مع الشعر الأفرو. اللي عندنا دلوقتي بيقفل الرطوبة اللي في شعرك جوه — هو مش بيضيفها.',
+    en: 'Said plainly: the leave-in is still in production, and that is the pre-styler that matters most for coily hair. What we make now seals the moisture already in your hair in — it does not add any.',
   },
 };
 
@@ -124,8 +143,8 @@ export function indexMeta(lang) {
   return {
     title: ar ? 'أنواع الشعر — اعرف نوع شعرك ومنتجه' : 'Hair types — find yours, and its product',
     description: ar
-      ? 'ستة أنواع شعر، وأنهي واكس أو جل من نيو ستار سفن يناسب كل واحد فيهم — والمشكلة اللي بيحلها، واللي لازم تبعد عنه.'
-      : 'Six hair types, and which New Star Seven wax or gel suits each one — the problem it solves, and what to avoid.',
+      ? 'سبع حالات شعر، وأنهي منتج من نيو ستار سفن يناسب كل واحدة فيهم — والمشكلة اللي بيحلها، واللي لازم تبعد عنه.'
+      : 'Seven hair cases, and which New Star Seven product suits each one — the problem it solves, and what to avoid.',
     alternates: alternatesForLang('/hair-types', lang),
   };
 }

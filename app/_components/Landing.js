@@ -23,24 +23,33 @@ import { imageUrl } from '../../lib/product-image.js';
  */
 
 /**
- * How the finder's six tiles are grouped and what each one puts in its corner.
+ * How the finder's seven tiles are grouped and what each one puts in its corner.
  *
- * lib/hairtypes.js already says in its header that these six are not peers:
- * four are Andre Walker curl families and two are density states. Rendering
- * them as one row of six equal cards contradicted the data. These two groups
- * are that header, made visible.
+ * lib/hairtypes.js already says in its header that these are not peers: four
+ * are Andre Walker curl families, two are density states, and one is grey.
+ * Rendering them as one row of equal cards contradicted the data. These three
+ * groups are that header, made visible.
  *
  * The glyph is the tile's display mark. The four curl families already own a
  * number the market recognises, so the tile shows that number rather than an
- * icon of a squiggle; the two density tiles are not Walker types and carry the
- * density word instead. Latin in both language trees, which is the pattern the
- * hold cards already set with `en: 'GEL WAX'` in Anton on the Arabic page.
+ * icon of a squiggle; the tiles that are not Walker types carry a word instead.
+ * Latin in both language trees, which is the pattern the hold cards already set
+ * with `en: 'GEL WAX'` in Anton on the Arabic page.
  */
 const HAIR_GROUPS = [
   { key: 'curl', slugs: ['straight', 'wavy', 'curly', 'coily'] },
   { key: 'density', slugs: ['fine', 'thick'] },
+  // A third axis with one tile on it. Grey is neither a curl family nor a
+  // density, and filing it under either would repeat the mistake the two groups
+  // above were introduced to fix. It is also the one thing on this page a
+  // customer over forty is shopping for by name, so it gets its own row rather
+  // than being tucked into the end of another.
+  { key: 'colour', slugs: ['white'] },
 ];
-const HAIR_GLYPH = { straight: '1', wavy: '2', curly: '3', coily: '4', fine: 'LOW', thick: 'HIGH' };
+const HAIR_GLYPH = {
+  straight: '1', wavy: '2', curly: '3', coily: '4',
+  fine: 'LOW', thick: 'HIGH', white: 'GREY',
+};
 
 const T = {
   ar: {
@@ -62,9 +71,9 @@ const T = {
     hair_a: 'شعرك', hair_b: 'نوعه إيه؟',
     hair_p: 'مش كل شعر بياخد نفس المنتج. اختار نوع شعرك وهنقولك بالظبط أنهي واحد ليك — وليه.',
     hair_k: 'اختيارك', hair_pick: 'الاختيار الصح لشعرك', hair_alt: 'كمان يناسبك:',
-    hair_g: { curl: 'نمط الكيرلة', density: 'الكثافة' },
+    hair_g: { curl: 'نمط الكيرلة', density: 'الكثافة', colour: 'اللون' },
     style_a: 'عايز', style_b: 'شكل معيّن؟',
-    style_p: 'اختار الشكل اللي في دماغك، ونقولك بأنهي منتج توصله وإزاي — وفي حالة واحدة نقولك إننا مش بنعمل اللي إنت محتاجه.',
+    style_p: 'اختار الشكل اللي في دماغك، ونقولك بأنهي منتج توصله وإزاي — وفي حالتين نقولك إن المنتج المظبوط لسه منزلش على الموقع.',
     style_k: 'الستة استايلات', style_gets: 'بـ', style_close: 'أقرب حاجة:',
     style_all: 'كل الاستايلات بالخطوات ←',
     hold_a: 'اختار', hold_b: 'تثبيتك',
@@ -113,9 +122,9 @@ const T = {
     hair_a: 'WHAT’S YOUR', hair_b: 'HAIR TYPE?',
     hair_p: 'Not every head takes the same product. Pick your hair type and we’ll tell you exactly which one is yours — and why.',
     hair_k: 'Your type', hair_pick: 'The right one for you', hair_alt: 'Also works for you:',
-    hair_g: { curl: 'Curl pattern', density: 'Density' },
+    hair_g: { curl: 'Curl pattern', density: 'Density', colour: 'Colour' },
     style_a: 'OR PICK', style_b: 'THE LOOK',
-    style_p: 'Got a look in mind? Pick it and we’ll tell you which product gets you there and how — and in one case, that we don’t make what you need.',
+    style_p: 'Got a look in mind? Pick it and we’ll tell you which product gets you there and how — and in two cases, that the right product is not on the shop yet.',
     style_k: 'The six styles', style_gets: 'with', style_close: 'Closest:',
     style_all: 'All six, step by step →',
     hold_a: 'PICK', hold_b: 'YOUR HOLD',
@@ -407,12 +416,30 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
               <img src="/assets/wax-red.webp" alt="Star Seven Premium Wax Pro X" width="390" height="390" />
             </Link>
 
-            <Link className="float-jar j1" href={L(`/product/premium-gel-blue`)} aria-label="Premium Gel Blue">
-              <img src="/assets/gel-blue.webp" alt="Star Seven Premium Gel" width="140" height="140" />
-            </Link>
-            <Link className="float-jar j2" href={L(`/product/premium-wax-shea`)} aria-label="Premium Wax Shea Butter">
-              <img src="/assets/wax-purple.webp" alt="Star Seven Shea Wax" width="112" height="112" />
-            </Link>
+            {/* Three formats, not three colours of one format. The small jar
+                at the top used to be the Shea wax, which is the same tin as
+                the big red one in the middle — so the hero showed the range as
+                one product photographed twice. Each of these is a different
+                pack the customer can recognise on a shelf: the gel bottle, the
+                notched gel-wax tin, the wide cream-gel tub. They ride one
+                circle rather than sitting parked in two corners; see
+                .jar-orbit in app/landing.css for how each stays upright while
+                the ring under it turns. */}
+            <div className="jar-orbit ja1">
+              <Link className="float-jar" href={L(`/product/premium-gel-blue`)} aria-label="Premium Gel Blue">
+                <img src="/assets/gel-blue.webp" alt="Star Seven Premium Gel" width="140" height="140" />
+              </Link>
+            </div>
+            <div className="jar-orbit ja2">
+              <Link className="float-jar" href={L(`/product/gel-wax-140-jojoba`)} aria-label="Styling Gel Wax Jojoba">
+                <img src="/assets/catalog/gel-wax-140-jojoba.webp" alt="Star Seven Styling Gel Wax" width="132" height="132" />
+              </Link>
+            </div>
+            <div className="jar-orbit ja3">
+              <Link className="float-jar" href={L(`/product/cream-gel-250-argan`)} aria-label="Cream Gel Argan">
+                <img src="/assets/catalog/cream-gel-250-argan.webp" alt="Star Seven Cream Gel" width="120" height="120" />
+              </Link>
+            </div>
 
             <div className="hero-stamp" aria-hidden="true">
               <svg viewBox="0 0 100 100">
@@ -550,7 +577,12 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
             {HAIR_GROUPS.map(g => (
               <div className="hair-set" key={g.key}>
                 <div className="hair-lbl">{d.hair_g[g.key]}</div>
-                <div className={'hair-grid' + (g.key === 'density' ? ' density' : '')}>
+                {/* The wide two-up shape is for every axis that is not a curl
+                    family, not for the density row by name — the colour row
+                    needs the same treatment and would otherwise render as one
+                    tile in a four-column grid. */}
+                <div className={'hair-grid' + (g.key === 'curl' ? '' : ' density')
+                  + (g.slugs.length === 1 ? ' solo' : '')}>
                   {g.slugs
                     .map(slug => hairTypes.find(t => t.slug === slug))
                     .filter(Boolean)
@@ -585,7 +617,7 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
                           href={L(`/hair-types/${x.slug}`)}
                           className={
                             'htile' +
-                            (g.key === 'density' ? ' wide' : '') +
+                            (g.key === 'curl' ? '' : ' wide') +
                             (x.slug === tile.slug ? ' on' : '')
                           }
                           style={{ '--c': x.color, '--m': `url(/${x.icon})` }}
@@ -703,11 +735,11 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
               const c = s[lang] || s.ar;
               const label = ar ? s.label : s.labelEn;
               const pick = rankForStyle(rankable, s, 1)[0] || null;
-              // A look the range cannot serve gets its jar labelled as the
-              // nearest thing rather than as the answer. The verdict is on the
-              // tile itself, so the home strip and /hair-styles cannot disagree
-              // about which look we can actually deliver.
-              const gapTile = s.served === 'no';
+              // A look the shop cannot serve properly gets its jar labelled
+              // as the nearest thing rather than as the answer. The verdict is
+              // on the tile itself, so the home strip and /hair-styles cannot
+              // disagree about which look we can actually deliver.
+              const gapTile = s.served !== 'yes';
 
               return (
                 <Link

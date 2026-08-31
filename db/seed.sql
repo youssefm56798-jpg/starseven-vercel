@@ -46,7 +46,7 @@ VALUES
    'واكس بريميوم بلاك','Premium Wax Black',
    'بيغطي الشيب · 120 مل · أسود','Covers grey · 120ml · Black',
    'يغطي الشيب','Covers Grey',
-   45.00, NULL, '#55524A', 'assets/wax-black.webp', 120, 3, 'wavy,thick', 200, TRUE, 4),
+   45.00, NULL, '#55524A', 'assets/wax-black.webp', 120, 3, 'white,wavy,thick', 200, TRUE, 4),
 
   ('S7-WAX-YEL','premium-wax-pro','wax',
    'واكس بريميوم برو','Premium Wax Pro',
@@ -531,8 +531,8 @@ VALUES
 **ينفع أستعمل جل وواكس مع بعض؟**
 ينفع تحط جل على شعر مبلول وتسيبه ينشف، وبعدين تاخد كمية صغيرة جداً واكس لتحديد الأطراف. بس ابدأ بكمية أقل من المعتاد من الاتنين — دي أسرع طريقة لشعر تقيل ولبقايا بيضا من المنتج على الشعر.
 
-**عندكم طين (clay) أو بوميد بتثبيت مطفي؟**
-لأ. مفيش عندنا طين ولا بوميد ولا معجون مطفي، وكل الواكس عندنا بينهي بلمعة مش بمات. لو محتاج تثبيت خفيف مرن، أقرب حاجة هي الواكس بدرجة ٣ — الشيا أو الأرجان — بكمية صغيرة.
+**عندكم كلاي (طين) أو بوماد بتثبيت مطفي؟**
+أيوة، الاتنين اتعملوا وهما المطفيين في التشكيلة — بس لسه منزلوش على الموقع. لحد ما ينزلوا، كل الواكس اللي معروض دلوقتي بينهي بلمعة، وأقل واحد فيهم لمعة هو الشيا بدرجة تثبيت ٣ وبكمية صغيرة.
 
 **السعر والتوصيل؟**
 الواكس ٤٥ جنيه لـ١٢٠ مل، الجل ٤٠ جنيه لـ٢٥٠ مل. التوصيل ٣٠ جنيه، ومجاني فوق ٣٠٠ جنيه. الدفع عند الاستلام، والشحن جوه مصر بس. شوف [كل المنتجات](/shop) أو [تشكيلة الواكس](/shop/wax).',
@@ -645,8 +645,8 @@ VALUES
 **الكمية بتتغير لما الشعر يطول؟**
 أيوه. كل ما الشعر يطول، الكمية اللي بتوصل لآخر الخصلة بتقل، فهتحتاج تزوّد شوية. بس زوّد بالتدريج زي ما قلنا — حمصة زيادة، مش ضعف الكمية.
 
-**عندكم كريم أو طين (clay) أو بوميد؟**
-لأ. التشكيلة عندنا ٥ واكس ١٢٠ مل و٣ جل ٢٥٠ مل، وخلاص. لو محتاج طين أو كريم، مش هتلاقيه عندنا، وأحسن نقولها من الأول.
+**عندكم كريم أو كلاي (طين) أو بوماد؟**
+الكريم أيوة: [كريم جل ٢٥٠ مل](/shop/cream-gel) و[جل واكس ١٤٠ مل](/shop/gel-wax). الكلاي والبوماد اتعملوا كمان، بس لسه منزلوش على الموقع — فلو انت جاي مخصوص عشان واحد فيهم، استنى شوية أو كلمنا على واتساب.
 
 **الأسعار والتوصيل؟**
 الواكس ٤٥ جنيه، الجل ٤٠ جنيه. التوصيل ٣٠ جنيه، ومجاني فوق ٣٠٠ جنيه. الدفع كاش عند الاستلام، وداخل مصر بس. تقدر تشوف [التشكيلة كلها](/shop) والأسعار قبل ما تطلب.',
@@ -864,9 +864,9 @@ VALUES
 
 غيّر لدرجة تثبيت أعلى. الكمية الزيادة بتزود الوزن مش المسك، والشعر التقيل بيقع أسرع. الفرق بين واكس ٣ وواكس ٤ — أو بين الواكس والجل ٥ — أكبر بكتير من الفرق بين كمية وكميتين.
 
-**عندكم كريم أو طين (clay) أو بوميد؟**
+**عندكم كريم أو كلاي (طين) أو بوماد؟**
 
-طين وبوميد لأ، وده مش هيتغير قريب. الكريم أيوة: عندنا [كريم جل ٢٥٠ مل](/shop/cream-gel) و[جل واكس ١٤٠ مل](/shop/gel-wax) دلوقتي. بس لو اللي انت عايزه تحديداً هو التكستشر المطفي بتاع الطين، مفيش عندنا حاجة بتعمله — كل الواكس عندنا بينهي بلمعة، وبنفضل نقولها بدل ما نبيعلك حاجة على إنها حاجة تانية.
+الكريم أيوة: [كريم جل ٢٥٠ مل](/shop/cream-gel) و[جل واكس ١٤٠ مل](/shop/gel-wax). الكلاي واكس والبوماد اتعملوا برضه — وهما الاتنين المطفيين — بس لسه منزلوش على الموقع. يعني لو اللي انت وراه تحديداً هو التكستشر المطفي، اللي معروض دلوقتي كله بيلمع، وبنقولها بدل ما نبيعلك حاجة على إنها حاجة تانية.
 
 **إيه أقوى منتج عندكم في التثبيت؟**
 
@@ -917,7 +917,7 @@ Fine hair is the type that disappoints people most. Each strand is thinner, so t
 
 That is why the usual instinct backfires here. More product means flat by noon, and shiny product reads as greasy rather than styled.
 
-What works is the smallest amount you can get away with, worked through dry hair. We do not make a clay or a matte paste - every wax here is petrolatum and wax, and every one of them finishes with shine - so there is no product answer to the shine problem, only a quantity one. [Pro](/product/premium-wax-pro) at hold 4 is what we list for [fine](/hair-types/fine) hair: the higher number lets you use less, which is the whole trick.
+What works is the smallest amount you can get away with, worked through dry hair. The clay wax is the product answer to the shine problem and it is not on the shop yet, so until it lands there is only a quantity answer: every wax listed today is petrolatum and wax, and every one of them finishes with shine. [Pro](/product/premium-wax-pro) at hold 4 is what we list for [fine](/hair-types/fine) hair in the meantime, because the higher number lets you use less, which is the whole trick.
 
 ## Thick hair: it collapses under its own weight
 
@@ -985,7 +985,7 @@ Switch to a higher hold level. More product adds weight, not grip. The gap betwe
 
 **Do you sell cream, clay or pomade?**
 
-Cream, yes: there is a [cream gel](/shop/cream-gel) at 250ml and a [gel wax](/shop/gel-wax) at 140ml. Clay and pomade, no. And if what you want specifically is the matte texture a clay gives you, we make nothing that does it - every wax here finishes with shine. We would rather say so than sell you one thing as another.
+Cream, yes: there is a [cream gel](/shop/cream-gel) at 250ml and a [gel wax](/shop/gel-wax) at 140ml. The clay wax and the pomade are made too, and they are the two matte ones, but neither is on the shop yet. So if what you want specifically is the matte texture a clay gives you, nothing listed today does it - every wax here finishes with shine. We would rather say so than sell you one thing as another.
 
 **What is your strongest product?**
 
@@ -998,12 +998,12 @@ Cash on delivery, and we deliver inside Egypt only. Shipping is 30 EGP, free on 
    'published', now()),
   ('matte-or-shine', 'ar', 'matte-or-shine',
    'واكس مطفي ولا لامع للرجالة؟ اختار على حسب شكلك',
-   'الفرق بين المطفي (المات) واللمعة والويت لوك، ومين فيهم يناسبك — وليه إحنا مبنعملش منتج مطفي، وتعمل إيه بدل كده.',
+   'الفرق بين المطفي (المات) واللمعة والويت لوك، ومين فيهم يناسبك — والمطفي عندنا كلاي واكس وبوماد، ولسه منزلوش على الموقع.',
    'تصفيف الشعر للرجالة مش قرار واحد، ده قرارين. بتحط الواكس الصبح وتخرج، وبعد ساعتين تبص في المراية تلاقي شعرك بيلمع لمعة مالكش دعوة بيها — أو العكس تمامًا: عايز اللمعة دي بالظبط، وكل حاجة بتجربها بتطلع باهتة وشكلها ناشف.
 
 المشكلة مش في إيدك ولا في طريقة اللف. المشكلة إنك بتختار المنتج على أساس قوة التثبيت بس، وسايب نص القرار التاني: النهاية — مطفي ولا لامع. ودي الحاجة اللي بتحدد شكلك في الشارع أكتر من رقم التثبيت نفسه.
 
-ونقولها من دلوقتي عشان متضيعش وقتك: **إحنا مبنعملش منتج مطفي.** كل الواكس عندنا أساسه شمع وفازلين، ومفيش في أي تركيبة فيهم سيليكا ولا نشا ولا طين — ودول اللي بيعملوا المات. لو انت جاي مخصوص تشتري مات، الصفحة دي هتقولك تعمل إيه، مش هتبيعلك حاجة تانية باسمه.
+ونقولها من دلوقتي عشان متضيعش وقتك: **المطفي عندنا اسمه كلاي واكس وبوماد، والاتنين اتعملوا بس لسه منزلوش على الموقع.** كل اللي معروض دلوقتي واكس وجل، وأساسهم شمع وفازلين، ومفيش في أي تركيبة فيهم سيليكا ولا نشا ولا طين — ودول اللي بيعملوا المات. يعني لو انت جاي مخصوص تشتري مات النهارده، الصفحة دي هتقولك تعمل إيه لحد ما ينزلوا، مش هتبيعلك حاجة تانية باسمهم.
 
 ## مطفي يعني إيه ومين محتاجه
 
@@ -1018,7 +1018,7 @@ Cash on delivery, and we deliver inside Egypt only. Shipping is 30 EGP, free on 
 - اللي شعره بيتدهّن بدري واللمعة الزيادة بتفضحه
 - اللي بيصوّر نفسه كتير — الفلاش والنور القوي بيكبّروا أي لمعة
 
-لو انت من دول، اللي محتاجه هو **كلاي أو معجون مطفي** — وده مش موجود في التشكيلة. أقرب حاجة عندنا هي [واكس زبدة الشيا](/product/premium-wax-shea): لمعته أقل واحد في التشكيلة، وتثبيته ٣ من ٥ بمرونة عالية. بس هو لسه بيلمع — أقل، مش صفر.
+لو انت من دول، اللي محتاجه هو **الكلاي واكس** — وهو متعمل، بس لسه منزلش على الموقع. أقرب حاجة تقدر تشتريها النهارده هي [واكس زبدة الشيا](/product/premium-wax-shea): لمعته أقل واحد في المعروض، وتثبيته ٣ من ٥ بمرونة عالية. بس هو لسه بيلمع — أقل، مش صفر.
 
 ## اللمعة بتعمل إيه في شكل الشعر
 
@@ -1028,9 +1028,9 @@ Cash on delivery, and we deliver inside Egypt only. Shipping is 30 EGP, free on 
 
 وكل نوع شعر بيتفاعل مع القاعدة دي بشكل مختلف: الكثافة وشكل الكيرلة هما اللي بيقرروا اللمعة تبقى في صفك ولا ضدك. لو مش متأكد من نوع شعرك أو من المنتج المتظبط ليه، ابدأ من [أنواع الشعر](/hair-types) — كل نوع ليه صفحة بتحسم الاختيار، زي [الشعر الخفيف](/hair-types/fine) اللي ليه قواعد مختلفة تمامًا عن غيره.
 
-## تقلل اللمعة إزاي من غير منتج مطفي
+## تقلل اللمعة إزاي لحد ما الكلاي ينزل
 
-اللمعة جزء من التركيبة ومش هتشيلها، بس تقدر تنزّلها بشكل محسوس بتلات حاجات:
+اللمعة جزء من تركيبة الواكس ومش هتشيلها، بس تقدر تنزّلها بشكل محسوس بتلات حاجات:
 
 - **نص الكمية.** ده أكبر فرق ممكن تعمله. حتة قد الحمصة بدل قد البندقة.
 - **شعر ناشف تماماً.** المية بتزوّد اللمعة وبتخلي المنتج يقعد على السطح بدل ما يدخل.
@@ -1069,13 +1069,13 @@ Cash on delivery, and we deliver inside Egypt only. Shipping is 30 EGP, free on 
 
 يعني لو انت جاي على بلاك عشان المات، ده مش هو. ولو عندك شيب وعايز تغطيه وإنت بتصفف، ده بالظبط هو.
 
-## بصراحة: الطين والمعجون مش عندنا
+## بصراحة: الكلاي والبوماد اتعملوا، ولسه منزلوش
 
-كتير بيسأل: عندكم كلاي (طين) ولا بيست؟ الرد: لأ.
+كتير بيسأل: عندكم كلاي (طين) ولا بوماد؟ الرد: اتعملوا، بس لسه مش على الموقع.
 
-عندنا واكس وجل وجل واكس وكريم جل. مفيش كلاي، مفيش معجون مطفي، ومفيش بوميد. مش هنقولك إن الواكس ده "كلاي" عشان نبيع، ومش هنخترع اسم لمنتج مش موجود.
+المعروض دلوقتي واكس وجل وجل واكس وكريم جل، وكلهم بيلمعوا. الكلاي واكس والبوماد هما الاتنين المطفيين، وهما اللي هيدّوا الشكل الناشف اللي بتدور عليه — والاتنين في الطريق.
 
-واللي بيسأل على الكلاي، لما نسأله عايزه ليه، الرد اللي بيتكرر هو نفسه: عايز شكل مطفي وفيه تكستشر. لو ده اللي انت وراه فعلًا، إحنا مش بنعمله. اشتري كلاي من حد بيعمله — ده أحسن لك من إنك تشتري مننا حاجة هتزعلك.
+واللي بيسأل على الكلاي، لما نسأله عايزه ليه، الرد اللي بيتكرر هو نفسه: عايز شكل مطفي وفيه تكستشر. لو ده اللي انت وراه فعلًا، متشتريش واكس على أساس إنه هيعمله — إما تستنى الكلاي، وإما تجرّب الشيا بنص الكمية وانت عارف إنك بتقرّب من الشكل مش بتوصله. ومش هنقولك إن الواكس ده "كلاي" عشان نبيع.
 
 ## أسئلة بتتسأل كتير
 
@@ -1089,7 +1089,7 @@ Cash on delivery, and we deliver inside Egypt only. Shipping is 30 EGP, free on 
 
 **عندكم أي منتج مطفي خالص؟**
 
-لأ. ولا واحد. كل الواكس عندنا أساسه شمع وفازلين وبينهي بلمعة، ومفيش في التركيبة أي مادة بتعمل مات.
+فيه اتنين — الكلاي واكس والبوماد — بس لسه مش معروضين على الموقع. كل اللي معروض النهارده أساسه شمع وفازلين وبينهي بلمعة، ومفيش في تركيبته أي مادة بتعمل مات.
 
 **أقدر أحط واكس وجل مع بعض؟**
 
@@ -1097,7 +1097,7 @@ Cash on delivery, and we deliver inside Egypt only. Shipping is 30 EGP, free on 
 
 **شعري كثيف وعايز مطفي، أعمل إيه؟**
 
-مفيش عندنا مات لأي نوع شعر، فالكثيف مش استثناء. أقرب حاجة هي [الشيا](/product/premium-wax-shea) بكمية صغيرة على شعر ناشف — وهو متسجل على [الشعر الكثيف](/hair-types/thick) فعلاً.
+المات اللي جاي هو الكلاي واكس والبوماد، والبوماد بالذات متظبط للشعر المتوسط والكثيف. لحد ما ينزلوا، أقرب حاجة هي [الشيا](/product/premium-wax-shea) بكمية صغيرة على شعر ناشف — وهو متسجل على [الشعر الكثيف](/hair-types/thick) فعلاً.
 
 **الشحن والدفع بيتم إزاي؟**
 
@@ -1158,7 +1158,7 @@ The numbers run across the whole range, not inside each format, which is why the
 
 Two products can have the same hold level and look completely different in daylight, so pick the finish on purpose rather than by accident.
 
-- **Lowest shine** — [Shea Butter](/product/premium-wax-shea). Nothing in the range is matte, and we do not make a clay or a matte paste. This is the closest, and it is still a soft shine rather than none.
+- **Lowest shine** — [Shea Butter](/product/premium-wax-shea). Nothing listed today is matte: the clay wax and the pomade are, and neither is on the shop yet. This is the closest of what you can buy now, and it is still a soft shine rather than none.
 - **Natural finish** — [Pro X](/product/premium-wax-pro-x), built on the Wave & Groom formula.
 - **Nourishing** — [Argan](/product/premium-wax-argan).
 - **Covers grey** — [Black](/product/premium-wax-black). High shine, and the only colourant in it is CI 77266 black, so it leaves a glossy black tone as you work it in.
@@ -1177,9 +1177,9 @@ If you want to see everything side by side: [all the waxes](/shop/wax), [all the
 
 ## What we do not sell — and why we are telling you
 
-We sell five waxes and three gels. That is the entire catalogue. There is no cream, no clay, no pomade, no shampoo, no cologne.
+The shop lists wax, gel, gel wax and cream gel. The clay wax and the pomade are made but not listed yet, and there is no shampoo.
 
-If a grooming article tells you your hair needs a clay, we do not have one, and we would rather say that than sell you a wax with a clay-shaped description on it. A short range you can actually understand beats a long one you cannot. What the brand does and does not carry is set out on [the brand page](/brand).
+So if a grooming article tells you your hair needs a clay, you cannot buy one here today, and we would rather say that than sell you a wax with a clay-shaped description on it. A short range you can actually understand beats a long one you cannot. What the brand does and does not carry is set out on [the brand page](/brand).
 
 ## How to use it without wasting half the tub
 
@@ -1277,9 +1277,9 @@ Not by itself — greasy-looking is usually a finish question before it is a for
 
 **واحد: الجل فوق الواكس في الرقم، مش تحته.** الجل بينشف ويقفل الشكل، والواكس بيفضل ماشي مع إيدك — عشان كده الجل بياخد ٥ والواكس أقصاه ٤. الرقم الأعلى مش المنتج الأحسن، هو المنتج الأقل تسامح.
 
-**اتنين: مفيش عندنا منتج مطفي، ولا واحد.** كل الواكس عندنا أساسه شمع وفازلين وبينهي بلمعة. أقل لمعة في التشكيلة هي [زبدة الشيا](/product/premium-wax-shea)، وهي برضه مش مات. و[واكس بلاك](/product/premium-wax-black) — اللي كان مكتوب عليه مطفي عندنا لفترة وده كان غلط — لمعته عالية، وشغلانته الحقيقية إنه بيغطي الشيب.
+**اتنين: مفيش منتج مطفي معروض دلوقتي.** كل الواكس المعروض أساسه شمع وفازلين وبينهي بلمعة. أقل لمعة فيهم هي [زبدة الشيا](/product/premium-wax-shea)، وهي برضه مش مات. و[واكس بلاك](/product/premium-wax-black) — اللي كان مكتوب عليه مطفي عندنا لفترة وده كان غلط — لمعته عالية، وشغلانته الحقيقية إنه بيغطي الشيب.
 
-**تلاتة: مفيش طين (clay) ولا بوميد ولا معجون مطفي.** الكريم موجود دلوقتي — في [كريم جل](/shop/cream-gel) و[جل واكس](/shop/gel-wax) — بس الطين لأ. لو انت جاي تدوّر على طين، خلّيك عارف من دلوقتي إنه مش موجود هنا.
+**تلاتة: الكلاي والبوماد اتعملوا بس لسه منزلوش على الموقع.** الكريم موجود دلوقتي — في [كريم جل](/shop/cream-gel) و[جل واكس](/shop/gel-wax). فلو انت جاي تدوّر على كلاي، خلّيك عارف إنك مش هتقدر تشتريه من هنا النهارده.
 
 ## نوع شعرك هو اللي بيحسم في الآخر
 
@@ -2109,3 +2109,34 @@ UPDATE products SET ingredients = 'Microcrystalline wax – Bees wax – Petrola
 UPDATE products SET ingredients = 'Microcrystalline wax – Bees wax – Petrolatum – Paraffinum Liquidum – Propyl Paraben – BHT–Tocopheryl acetate – Lanolin – Parfume – butyrospermum parkii [butter] – isopropyl myristate – +/– CI 15850 – +/– CI 61565 – +/– CI 47005 – +/– CI 73015 – +/– CI 77266' WHERE sku = 'S7-WAX-PUR' AND ingredients = '';
 UPDATE products SET ingredients = 'Microcrystalline wax – Bees wax – Petrolatum – Paraffinum Liquidum – Propyl Paraben – BHT–Tocopheryl acetate – Lanolin – Parfum – isopropyl myristate – Nigella Sativa seed oil – +/– CI 77266' WHERE sku = 'S7-WAX-BLK' AND ingredients = '';
 UPDATE products SET ingredients = 'Microcrystalline wax – Bees wax – Petrolatum – Paraffinum Liquidum – Propyl Paraben – BHT – Tocopheryl acetate – Lanolin – Parfume – Argania Spinosa Kernel Oil – isopropyl myristate – +/– CI 15850 – +/– CI 61565 – +/– CI 47005 – +/– CI 73015 – +/– CI 77266' WHERE sku = 'S7-WAX-BLU' AND ingredients = '';
+
+-- ---------------------------------------------------------------------------
+--  Tag the black-coloured products for the grey-hair tile
+--
+--  /hair-types gained a seventh tile in Aug 2026: white and grey hair. It is
+--  not a curl family and not a density, and it is the single most common reason
+--  an Egyptian man over forty picks one jar over another. The range has always
+--  answered it - Premium Wax Black is a colour-depositing wax whose printed
+--  colourant is CI 77266 alone, and the gels come in a black - but nothing in
+--  the data said so, so the finder could not surface any of them.
+--
+--  rankProducts reads position in the CSV as priority, so white goes first on
+--  every one of these: grey coverage is what they are sold on, not a secondary
+--  use. The Black Seed wax and the Black Seed cream gel are deliberately NOT
+--  here - nigella oil is an ingredient, not a colourant, and treating a black
+--  seed as a black would be the same category error the site made when it sold
+--  this wax as matte.
+--
+--  Guarded so it runs once and leaves an admin edit alone: a row that already
+--  lists white is skipped, whatever else is in its list.
+-- ---------------------------------------------------------------------------
+--  One statement per SKU, each guarded on the exact list it is replacing,
+--  because that is the shape every other correction in this file takes and the
+--  shape the seed tests enforce. An IN list with a computed CASE would have
+--  been shorter and would have been the one UPDATE here nobody could read the
+--  before-and-after of.
+UPDATE products SET hair_types = 'white,wavy,thick' WHERE sku = 'S7-WAX-BLK' AND hair_types = 'wavy,thick';
+UPDATE products SET hair_types = 'white' WHERE sku = 'S7-G250-BLACK' AND hair_types = '';
+UPDATE products SET hair_types = 'white' WHERE sku = 'S7-SG250-BLACK' AND hair_types = '';
+UPDATE products SET hair_types = 'white' WHERE sku = 'S7-SG650-BLACK' AND hair_types = '';
+UPDATE products SET hair_types = 'white' WHERE sku = 'S7-SG850-BLACK' AND hair_types = '';

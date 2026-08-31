@@ -13,7 +13,7 @@
  * the editorial blocks written here trace line by line to
  * docs/hair-style-research.md §3 and §4.
  */
-import { HAIR_STYLES, FINISH } from '../../lib/hairstyles.js';
+import { HAIR_STYLES, FINISH, finishOf } from '../../lib/hairstyles.js';
 import { alternatesForLang } from '../../lib/urls.js';
 import { ld, isLatinRun, runDir, clamp } from '../hair-types/lib.js';
 
@@ -42,20 +42,24 @@ export function styleLabel(tile, lang) {
 /**
  * What finishes the live catalogue actually holds.
  *
- * The two honest claims on the index — that nothing here is matte, and that
- * there is no finisher to hold a quiff or a slick back overnight — are
- * generated from these numbers rather than typed. A hard-coded "we make nothing
+ * The two honest claims on the index — that nothing on the shop is matte, and
+ * that there is no finisher to hold a quiff or a slick back overnight — are
+ * generated from these numbers rather than typed. A hard-coded "nothing here is
  * matte" would be true today and would become a lie on the day a clay is
- * stocked, and a claim that quietly rots is worse than no claim at all. This is
- * the same reason formatCounts counts cream on /hair-types.
+ * listed, and a claim that quietly rots is worse than no claim at all. This is
+ * the same reason formatCounts counts clay and pomade on /hair-types.
  *
  * `matte` counts products the manufacturer rates at the bottom of the shine
- * scale. It is structurally zero right now — see the FINISH comment in
- * lib/hairstyles.js — and that is exactly the point of counting it.
+ * scale. It was structurally zero for as long as the range was wax and gel, and
+ * that was exactly the point of counting it: the number, not a sentence, is
+ * what the index reads. The clay wax and the pomade are rated matte by format
+ * in KIND_FINISH, so this turns non-zero on its own the day either is switched
+ * on in the admin, and the "nothing here is matte" line comes off the page with
+ * nobody having to remember it.
  */
 export function finishCounts(rows) {
   const list = Array.isArray(rows) ? rows : [];
-  const shineOf = p => (FINISH[p.sku] || {}).shine;
+  const shineOf = p => (finishOf(p) || {}).shine;
   return {
     total: list.length,
     matte: list.filter(p => shineOf(p) === 1).length,
@@ -66,31 +70,37 @@ export function finishCounts(rows) {
 }
 
 /* ------------------------------------------------------------------ gaps ---
- * docs/hair-style-research.md §4 closes on the products the range does not
- * contain: a clay or matte paste (the textured crop), a curl cream or leave-in
- * (defined curls), a mousse or pre-styling primer (the quiff), and a light
- * cream or sea-salt spray (curtains). Four of the six tiles feel one of these.
- * Saying so on the tile that feels it is the only honest way to present a style
- * finder backed by five waxes and three gels — the tile still gets the best
- * answer that exists, and the customer is told it is the best that exists
- * rather than the thing built for them.
+ * docs/hair-style-research.md §4 closes on the products the shop cannot yet put
+ * behind a tile: a clay (the textured crop), a curl cream or leave-in (defined
+ * curls), a mousse or pre-styling primer (the quiff), and a light styling cream
+ * (curtains). Four of the six tiles feel one of these. Saying so on the tile
+ * that feels it is the only honest way to present a style finder backed by five
+ * waxes and three gels — the tile still gets the best answer that exists, and
+ * the customer is told it is the best that exists rather than the thing built
+ * for them.
  *
- * This is the same admission /hair-types already makes on its fine tile, about
- * the same missing product. The two finders have to agree, and if these notes
- * are ever softened they will not. */
+ * Three of the four are now made or being made rather than absent, so they are
+ * worded as pending rather than as holes. The distinction matters to the reader
+ * in exactly one way and it is the way that decides what they do next: a hole
+ * means buy the compromise, pending means it is worth waiting.
+ *
+ * These notes and the ones in app/hair-types/lib.js describe the same shortfall
+ * from two directions — the crop tile and the fine tile are both waiting on the
+ * clay. The two finders have to agree, and if either set is edited without the
+ * other they will not. */
 
 const GAPS = {
   'textured-crop': {
-    ar: 'ده أوضح نقص في التشكيلة، وهو نفس النقص اللي بنقوله في صفحة أنواع الشعر عن الشعر الخفيف: مفيش كلاي ومفيش حاجة مطفية. لو الكروب هو استايلك، المنتج اللي إنت عايزه لسه مش عندنا.',
-    en: 'This is the biggest hole in the range, and it is the same one the hair-types page names for fine hair: no clay, nothing matte. If the crop is your look, we do not make your product yet.',
+    ar: 'الكلاي واكس هو منتج الكروب، والمصنع بيعمله — بس لسه منزلش على الموقع. لحد ما ينزل، الترشيح اللي فوق هو أقرب واكس عندنا، مش الحاجة المتعملة للشكل ده.',
+    en: 'The clay wax is the crop product, and the factory makes it — it is just not on the shop yet. Until it is, the pick above is the closest wax we sell, not the thing built for this look.',
   },
   curtains: {
-    ar: 'الكيرتن الأصح ليه كريم خفيف أو سبراي ملح بحر، وإحنا مش بنعمل لا ده ولا ده. واكس الشيا أقرب حاجة عندنا — خفيف وأقل واحد لامع في التشكيلة — بس هو واكس، مش الكريم الخفيف اللي الاستايل ده محتاجه فعلاً.',
-    en: 'A centre part is really built for a light cream or a sea-salt spray, and we do not make either. The Shea is the closest thing here — light, and the least shiny in the range — but it is a wax, not the light cream this look actually wants.',
+    ar: 'الكيرتن الأصح ليه كريم تصفيف خفيف، وكريمات التصفيف لسه تحت التنفيذ. واكس الشيا أقرب حاجة عندنا — خفيف وأقل واحد لامع في التشكيلة — بس هو واكس، مش الكريم الخفيف اللي الاستايل ده محتاجه فعلاً.',
+    en: 'A centre part is really built for a light styling cream, and the styling creams are still in production. The Shea is the closest thing here — light, and the least shiny in the range — but it is a wax, not the light cream this look actually wants.',
   },
   'defined-curls': {
-    ar: 'مفيش عندنا كريم كيرلي ولا ليڤ-إن، ودول اللي بيعملوا الترطيب الحقيقي. الواكس ده بيقفل الرطوبة اللي في شعرك جوه — هو مش بيضيف رطوبة. عشان كده لازم يتحط والشعر لسه مبلول، وإلا مفيش حاجة يقفل عليها.',
-    en: 'We do not make a curl cream or a leave-in, and those are what actually add moisture. This wax seals in the water already in your hair. It does not add any. So it goes on while the hair is still wet, or there is nothing for it to seal.',
+    ar: 'كريم الكيرلي وفوم الكيرلي والليڤ-إن لسه تحت التنفيذ، ودول اللي بيعملوا الترطيب الحقيقي. الواكس ده بيقفل الرطوبة اللي في شعرك جوه — هو مش بيضيف رطوبة. عشان كده لازم يتحط والشعر لسه مبلول، وإلا مفيش حاجة يقفل عليها.',
+    en: 'The curl cream, the curl foam and the leave-in are all still in production, and those are the products that actually add moisture. This wax seals in the water already in your hair. It does not add any. So it goes on while the hair is still wet, or there is nothing for it to seal.',
   },
   quiff: {
     ar: 'مفيش عندنا موس ولا منتج بيتحط قبل الاستشوار، ودي الحاجة اللي بتدي الارتفاع نفسه. يعني الاستايل ده معتمد على الاستشوار عندك أكتر ما هو معتمد على اللي في العلبة.',
