@@ -115,11 +115,15 @@ test('db/seed.sql is the seeds, the copy update, the article wave, the link fix,
   skip: existsSync(`${ROOT}db/seed.sql`) ? false : 'db/seed.sql not present',
 }, () => {
   const out = splitStatements(readFileSync(`${ROOT}db/seed.sql`, 'utf8'));
-  // 11 statements built the shop; 34 more correct and extend it. Both halves
+  // 12 statements built the shop; 34 more correct and extend it. Both halves
   // are counted so a statement appended without a test to go with it fails
   // here first. The last seven map the black-coloured products onto the grey
   // hair tile; the five before them set the ingredient lists for the waxes.
-  assert.equal(out.length, 45);
+  //
+  // 46, up from 45: a second bulk copy block was added at out[4] when the
+  // client sent a product catalogue. It is asserted below on the same terms as
+  // the first one.
+  assert.equal(out.length, 46);
   assert.ok(out[0].includes('INSERT INTO products') && out[0].includes('ON CONFLICT (sku)'));
   assert.ok(out[1].includes('INSERT INTO offers') && out[1].includes('ON CONFLICT (code)'));
   // Both article statements must target the (slug, lang) index. The old
@@ -144,10 +148,35 @@ test('db/seed.sql is the seeds, the copy update, the article wave, the link fix,
   // Eight products, each contributing one tuple to the VALUES list.
   assert.equal((copy.match(/'S7-[A-Z-]+'/g) || []).length, 8);
 
+  /*
+   * The catalogue copy, out[4]. Thirty products read off the PDF Ovanza sent,
+   * held to exactly the same rule as out[3]: every column guarded, so a re-run
+   * fills a blank and never overwrites wording set in the admin. A bulk UPDATE
+   * over thirty SKUs with no guard is precisely how the seed would start
+   * undoing the panel.
+   */
+  const catalogueCopy = out[4];
+  assert.ok(catalogueCopy.includes('UPDATE products p SET'));
+  for (const col of ['long_ar', 'long_en', 'howto_ar', 'howto_en', 'highlights_ar', 'highlights_en']) {
+    assert.ok(
+      catalogueCopy.includes(`${col}       = CASE WHEN p.${col}`) ||
+      catalogueCopy.includes(`${col}      = CASE WHEN p.${col}`) ||
+      catalogueCopy.includes(`${col} = CASE WHEN p.${col}`),
+      `${col} is not guarded in the catalogue copy block`
+    );
+  }
+  assert.equal((catalogueCopy.match(/^    \('S7-[A-Z0-9-]+',$/gm) || []).length, 30,
+    'the catalogue copy block should carry exactly 30 products');
+  // It must not touch price, stock or active. Copy is copy.
+  for (const col of ['price', 'stock', 'active']) {
+    assert.ok(!new RegExp(`\b${col}\s*=`).test(catalogueCopy),
+      `the catalogue copy block writes ${col}, which is not its job`);
+  }
+
   // The second article wave. This one DOES upsert on purpose — two of the eight
   // are rewrites of articles that already exist at 116 and 151 words, and the
   // new body is the entire point of the rewrite.
-  const articles = out[4];
+  const articles = out[5];
   assert.ok(articles.includes('INSERT INTO articles'));
   assert.ok(articles.includes('ON CONFLICT (slug, lang) DO UPDATE'),
     'the article wave must upsert, or the two rewrites never land');
@@ -164,7 +193,7 @@ test('db/seed.sql is the seeds, the copy update, the article wave, the link fix,
   // The link fix. The rows it edits were seeded ON CONFLICT DO NOTHING, so
   // they can only be changed by a statement like this one — and it has to stay
   // guarded, or it rewrites a body an admin has edited on every deploy.
-  const linkfix = out[5];
+  const linkfix = out[6];
   assert.ok(linkfix.includes('UPDATE articles'));
   assert.ok(linkfix.includes("replace(body, '](/#hair)'"),
     'the link fix must target the old home-page anchor');
@@ -178,7 +207,7 @@ test('db/seed.sql is the seeds, the copy update, the article wave, the link fix,
   // The rest of the range. It must stay DO NOTHING and it must stay inactive:
   // these rows carry price 0 because the manufacturer feed has no prices, and
   // a zero-price product that reached the storefront would be free.
-  const catalogue = out[6];
+  const catalogue = out[7];
   assert.ok(catalogue.includes('INSERT INTO products'));
   assert.ok(catalogue.includes('ON CONFLICT (sku) DO NOTHING'),
     'the catalogue seed must never overwrite a row the client has priced');
@@ -193,14 +222,14 @@ test('db/seed.sql is the seeds, the copy update, the article wave, the link fix,
   // The two pricing statements that follow. Both must stay guarded on
   // price = 0 AND active = false, so a row is priced once and a price the
   // client later sets in the admin is never overwritten by a redeploy.
-  for (const stmt of out.slice(7, 9)) {
+  for (const stmt of out.slice(8, 10)) {
     assert.match(stmt, /UPDATE products/);
     assert.match(stmt, /price = 0 AND active = FALSE/,
       'a pricing statement is unguarded and would overwrite an admin edit');
   }
 
   // And neither may reach a format whose size makes the copied price wrong.
-  const priced = out.slice(7, 9).join('\n');
+  const priced = out.slice(8, 10).join('\n');
   assert.ok(!/'spray'|'cologne'|'depilatory'/.test(priced),
     'a format with no priced sibling is being given a copied price');
   assert.ok(/size_ml = 250/.test(priced),
@@ -236,7 +265,18 @@ test('the corrections are guarded on the value they are replacing', {
   // the seed runs on every deploy, each one has to be a no-op the second time
   // and can never revert a value edited in the admin.
   const out = splitStatements(readFileSync(`${ROOT}db/seed.sql`, 'utf8'));
-  const corrections = out.slice(11);
+  /*
+   * 12, not 11: a second bulk copy block was added beside the first one when
+   * the client sent a product catalogue, and it sits in the base seed rather
+   * than among the corrections because that is what it is.
+   *
+   * This index is positional and it will move again the next time anything is
+   * added to the top of the file. That is a real weakness of this test and it
+   * is kept anyway - the thing it catches is a correction written as a bulk
+   * UPDATE with no SKU and no guard, which is how the seed starts overwriting
+   * the admin, and no cheaper check finds that.
+   */
+  const corrections = out.slice(12);
   assert.equal(corrections.length, 34);
 
   for (const stmt of corrections) {
@@ -288,7 +328,7 @@ test('the copy corrections cannot leave a number behind in the long-form text', 
   // prose is the failure mode this guards, because the prose is what the
   // customer actually reads.
   const out = splitStatements(readFileSync(`${ROOT}db/seed.sql`, 'utf8'));
-  const perSku = out.slice(11).filter(s => s.includes('long_en'));
+  const perSku = out.slice(12).filter(s => s.includes('long_en'));
   const copy = perSku.join('\n');
 
   for (const sku of ['S7-WAX-RED', 'S7-WAX-PUR', 'S7-WAX-BLU', 'S7-WAX-YEL',

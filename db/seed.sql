@@ -398,6 +398,632 @@ WHERE p.sku = v.sku;
 
 
 -- ---------------------------------------------------------------------------
+--  Product page copy from the client catalogue, 31 Aug
+--
+--  Ovanza sent a 28-page product catalogue as a PDF. The text in it is baked
+--  into the artwork rather than being selectable, so this was read off the
+--  pages by eye: product name, size, and the four to six benefit bullets each
+--  one carries.
+--
+--  Thirty products. Before this, forty-two of the fifty on the shop had an
+--  empty long_ar and rendered as a bare photograph with a price.
+--
+--  Same CASE WHEN empty guard as the block above: this fills a blank and never
+--  overwrites wording set in the admin. Blank the field in the panel to get
+--  this text back on the next deploy.
+--
+--  Two judgement calls worth naming.
+--
+--  The catalogue shows Styling Gel at 400ml. The shop sells it at 250, 650 and
+--  850 and has no 400 at all. The copy describes the formula and the hold, not
+--  the pack, so it is applied to all three sizes with only the size line in
+--  highlights differing. If the 400 is genuinely a different formula this is
+--  the block to correct.
+--
+--  The catalogue shows the black seed cream wax at 135ml. The shop sells it as
+--  S7-W125-BLACKS at 125ml. The size line here follows the shop, because that
+--  is the pack being posted to customers - but one of the two is wrong and it
+--  is worth asking which.
+--
+--  No prices and no ingredient lists are taken from the catalogue, because it
+--  carries neither.
+-- ---------------------------------------------------------------------------
+UPDATE products p SET
+  long_ar       = CASE WHEN p.long_ar       = '' THEN v.long_ar       ELSE p.long_ar       END,
+  long_en       = CASE WHEN p.long_en       = '' THEN v.long_en       ELSE p.long_en       END,
+  howto_ar      = CASE WHEN p.howto_ar      = '' THEN v.howto_ar      ELSE p.howto_ar      END,
+  howto_en      = CASE WHEN p.howto_en      = '' THEN v.howto_en      ELSE p.howto_en      END,
+  highlights_ar = CASE WHEN p.highlights_ar = '' THEN v.highlights_ar ELSE p.highlights_ar END,
+  highlights_en = CASE WHEN p.highlights_en = '' THEN v.highlights_en ELSE p.highlights_en END
+FROM (VALUES
+    ('S7-CG250-BEESWA',
+     'كريم جل بشمع العسل وشمع العسل. يمنح ثباتاً متوسطاً يدوم طوال اليوم مع كثافة ولمعان يدومان طويلاً.
+
+يحتوي على شمع العسل لترطيب وتقوية الشعر. التركيبة مائية، فبتتغسل بسهولة وتقدر تعيد تصفيف شعرك في أي وقت من غير ما تسيب بقايا.',
+     'A cream gel with beeswax and beeswax. Medium hold that lasts all day, with lasting thickness and shine.
+
+Beeswax to moisturise and strengthen the hair. The formula is water-based, so it washes out easily and you can restyle any time without residue.',
+     '',
+     '',
+     'ثبات متوسط يدوم طوال اليوم
+بشمع العسل وشمع العسل
+تركيبة مائية، سهلة الغسل وإعادة التصفيف.
+يمكن استخدامه على الشعر الجاف او المبلل.
+عبوة ٢٥٠ مل',
+     'Medium hold, all day
+Beeswax and beeswax
+Water-based, washes out easily
+Works on dry or damp hair
+250ml jar'),
+    ('S7-CG250-JOJOBA',
+     'كريم جل بشمع العسل وزيت الجوجوبا. يمنح ثباتاً متوسطاً يدوم طوال اليوم مع كثافة ولمعان يدومان طويلاً.
+
+يحتوي على شمع العسل وزيت الجوجوبا الذي يقلل تساقط الشعر. التركيبة مائية، فبتتغسل بسهولة وتقدر تعيد تصفيف شعرك في أي وقت من غير ما تسيب بقايا.',
+     'A cream gel with beeswax and jojoba oil. Medium hold that lasts all day, with lasting thickness and shine.
+
+Beeswax and jojoba oil, which reduces hair fall. The formula is water-based, so it washes out easily and you can restyle any time without residue.',
+     '',
+     '',
+     'ثبات متوسط يدوم طوال اليوم
+بشمع العسل وزيت الجوجوبا
+تركيبة مائية، سهلة الغسل وإعادة التصفيف.
+يمكن استخدامه على الشعر الجاف او المبلل.
+عبوة ٢٥٠ مل',
+     'Medium hold, all day
+Beeswax and jojoba oil
+Water-based, washes out easily
+Works on dry or damp hair
+250ml jar'),
+    ('S7-CG250-BLACKS',
+     'كريم جل بشمع العسل وحبة البركة السوداء. يمنح ثباتاً متوسطاً يدوم طوال اليوم مع كثافة ولمعان يدومان طويلاً.
+
+يحتوي على شمع العسل وزيت حبة البركة السوداء، ويغطي لون الشعر الابيض والشيب. التركيبة مائية، فبتتغسل بسهولة وتقدر تعيد تصفيف شعرك في أي وقت من غير ما تسيب بقايا.',
+     'A cream gel with beeswax and black seed oil. Medium hold that lasts all day, with lasting thickness and shine.
+
+Beeswax and black seed oil. Covers white hair and greys. The formula is water-based, so it washes out easily and you can restyle any time without residue.',
+     '',
+     '',
+     'ثبات متوسط يدوم طوال اليوم
+بشمع العسل وحبة البركة السوداء
+تركيبة مائية، سهلة الغسل وإعادة التصفيف.
+يمكن استخدامه على الشعر الجاف او المبلل.
+عبوة ٢٥٠ مل',
+     'Medium hold, all day
+Beeswax and black seed oil
+Water-based, washes out easily
+Works on dry or damp hair
+250ml jar'),
+    ('S7-CG250-OLIVE',
+     'كريم جل بشمع العسل وزيت الزيتون. يمنح ثباتاً متوسطاً يدوم طوال اليوم مع كثافة ولمعان يدومان طويلاً.
+
+يحتوي على شمع العسل وزيت الزيتون الذي يغذي الشعر ويمنع التساقط. التركيبة مائية، فبتتغسل بسهولة وتقدر تعيد تصفيف شعرك في أي وقت من غير ما تسيب بقايا.',
+     'A cream gel with beeswax and olive oil. Medium hold that lasts all day, with lasting thickness and shine.
+
+Beeswax and olive oil, which feeds the hair and prevents fall. The formula is water-based, so it washes out easily and you can restyle any time without residue.',
+     '',
+     '',
+     'ثبات متوسط يدوم طوال اليوم
+بشمع العسل وزيت الزيتون
+تركيبة مائية، سهلة الغسل وإعادة التصفيف.
+يمكن استخدامه على الشعر الجاف او المبلل.
+عبوة ٢٥٠ مل',
+     'Medium hold, all day
+Beeswax and olive oil
+Water-based, washes out easily
+Works on dry or damp hair
+250ml jar'),
+    ('S7-CG250-ARGAN',
+     'كريم جل بشمع العسل وزيت الارجان. يمنح ثباتاً متوسطاً يدوم طوال اليوم مع كثافة ولمعان يدومان طويلاً.
+
+يحتوي على شمع العسل وزيت الارجان الذي يمنع الجفاف ويحميه من عوامل الجو. التركيبة مائية، فبتتغسل بسهولة وتقدر تعيد تصفيف شعرك في أي وقت من غير ما تسيب بقايا.',
+     'A cream gel with beeswax and argan oil. Medium hold that lasts all day, with lasting thickness and shine.
+
+Beeswax and argan oil, which prevents dryness and shields from the weather. The formula is water-based, so it washes out easily and you can restyle any time without residue.',
+     '',
+     '',
+     'ثبات متوسط يدوم طوال اليوم
+بشمع العسل وزيت الارجان
+تركيبة مائية، سهلة الغسل وإعادة التصفيف.
+يمكن استخدامه على الشعر الجاف او المبلل.
+عبوة ٢٥٠ مل',
+     'Medium hold, all day
+Beeswax and argan oil
+Water-based, washes out easily
+Works on dry or damp hair
+250ml jar'),
+    ('S7-GW140-JOJOBA',
+     'جل واكس بـزيت الجوجوبا. يمنح الشعر شكل مبلل ولمعان طبيعي مع ثبات مرن تقدر تتحكم فيه في أي وقت.
+
+من فوائد زيت الجوجوبا انه يرطّب الشعر وفروة الرأس ويقلل من تساقط الشعر والتقصف ويعزز نمو الشعر الصحي.',
+     'A gel wax with jojoba oil. Gives a wet look and natural shine, with a flexible hold you can rework any time.
+
+Jojoba oil moisturises the hair and scalp, reduces fall and breakage, and supports healthy growth.',
+     '',
+     '',
+     'ثبات مرن — لمعان قوي
+بـزيت الجوجوبا
+حماية من عوامل الجو ومناسب لجميع أنواع الشعر.
+يمكن استخدامه على الشعر الجاف او المبلل.
+عبوة ١٤٠ مل',
+     'Flexible hold, strong shine
+Jojoba oil
+Suits every hair type
+Dry or damp hair
+140ml jar'),
+    ('S7-GW140-ARGAN',
+     'جل واكس بـزيت الارجان. يمنح الشعر شكل مبلل ولمعان طبيعي مع ثبات مرن تقدر تتحكم فيه في أي وقت.
+
+من فوائد زيت الارجان انه يرطب الشعر ويمنع الجفاف ويحميه من الحرارة وعوامل الجو، لانه يحتوي على فيتامين E الذي يغذي الشعر بعمق ويمنحه لمعاناً وحماية فائقة.',
+     'A gel wax with argan oil. Gives a wet look and natural shine, with a flexible hold you can rework any time.
+
+Argan oil moisturises, prevents dryness and shields from heat and weather. Its vitamin E feeds the hair deeply and gives it shine.',
+     '',
+     '',
+     'ثبات مرن — لمعان قوي
+بـزيت الارجان
+حماية من عوامل الجو ومناسب لجميع أنواع الشعر.
+يمكن استخدامه على الشعر الجاف او المبلل.
+عبوة ١٤٠ مل',
+     'Flexible hold, strong shine
+Argan oil
+Suits every hair type
+Dry or damp hair
+140ml jar'),
+    ('S7-GW140-ALOEVE',
+     'جل واكس بـالصبار. يمنح الشعر شكل مبلل ولمعان طبيعي مع ثبات مرن تقدر تتحكم فيه في أي وقت.
+
+من فوائد الصبار انه يعزز نمو الشعر ويرطبه، حيث يحتوي على إنزيمات طبيعية وفيتامينات تحفّز بصيلات الشعر وتساعد على نموه بشكل صحي وقوي وتمنع التقصف.',
+     'A gel wax with aloe vera. Gives a wet look and natural shine, with a flexible hold you can rework any time.
+
+Aloe vera supports growth and moisture. Its natural enzymes and vitamins stimulate the follicles and prevent breakage.',
+     '',
+     '',
+     'ثبات مرن — لمعان قوي
+بـالصبار
+حماية من عوامل الجو ومناسب لجميع أنواع الشعر.
+يمكن استخدامه على الشعر الجاف او المبلل.
+عبوة ١٤٠ مل',
+     'Flexible hold, strong shine
+Aloe vera
+Suits every hair type
+Dry or damp hair
+140ml jar'),
+    ('S7-GW140-ROSEMA',
+     'جل واكس بـزيت الروزماري. يمنح الشعر شكل مبلل ولمعان طبيعي مع ثبات مرن تقدر تتحكم فيه في أي وقت.
+
+من فوائد زيت الروزماري انه يُنشّط الدورة الدموية في فروة الرأس، مما يعزز تغذية بصيلات الشعر ويساعد على نمو شعر أقوى وأكثر كثافة ويقلل من تساقط الشعر.',
+     'A gel wax with rosemary oil. Gives a wet look and natural shine, with a flexible hold you can rework any time.
+
+Rosemary oil stimulates circulation in the scalp, feeding the follicles for stronger, thicker hair and less fall.',
+     '',
+     '',
+     'ثبات مرن — لمعان قوي
+بـزيت الروزماري
+حماية من عوامل الجو ومناسب لجميع أنواع الشعر.
+يمكن استخدامه على الشعر الجاف او المبلل.
+عبوة ١٤٠ مل',
+     'Flexible hold, strong shine
+Rosemary oil
+Suits every hair type
+Dry or damp hair
+140ml jar'),
+    ('S7-GW140-SHEA',
+     'جل واكس بـزبدة الشيا. يمنح الشعر شكل مبلل ولمعان طبيعي مع ثبات مرن تقدر تتحكم فيه في أي وقت.
+
+من فوائد زبدة الشيا انها تشكل طبقة عازلة تحمي الشعر من عوامل الجو والحرارة وتمنحه رطوبة وتغذية فائقة تمنع الجفاف والتقصف.',
+     'A gel wax with shea butter. Gives a wet look and natural shine, with a flexible hold you can rework any time.
+
+Shea butter forms a barrier against weather and heat, and gives deep moisture that prevents dryness and breakage.',
+     '',
+     '',
+     'ثبات مرن — لمعان قوي
+بـزبدة الشيا
+حماية من عوامل الجو ومناسب لجميع أنواع الشعر.
+يمكن استخدامه على الشعر الجاف او المبلل.
+عبوة ١٤٠ مل',
+     'Flexible hold, strong shine
+Shea butter
+Suits every hair type
+Dry or damp hair
+140ml jar'),
+    ('S7-GW140-COCONU',
+     'جل واكس بـزيت جوز الهند. يمنح الشعر شكل مبلل ولمعان طبيعي مع ثبات مرن تقدر تتحكم فيه في أي وقت.
+
+من فوائد جوز الهند انه يتغلغل في أعماق الشعر، مما يساعد على ترطيبه وتنعيمه وتقليل الهيشان ويعالج التقصف وتساقط الشعر.',
+     'A gel wax with coconut oil. Gives a wet look and natural shine, with a flexible hold you can rework any time.
+
+Coconut oil penetrates deep into the hair, moisturising and smoothing it, cutting frizz and treating breakage and fall.',
+     '',
+     '',
+     'ثبات مرن — لمعان قوي
+بـزيت جوز الهند
+حماية من عوامل الجو ومناسب لجميع أنواع الشعر.
+يمكن استخدامه على الشعر الجاف او المبلل.
+عبوة ١٤٠ مل',
+     'Flexible hold, strong shine
+Coconut oil
+Suits every hair type
+Dry or damp hair
+140ml jar'),
+    ('S7-W135-COCONU',
+     'كريم واكس للشعر بـزيت جوز الهند. يحتوي على زيت جوز الهند الذي يساعد على الترطيب والتنعيم وتقليل هيشان الشعر ويعطيه لمعاناً مثالياً وعطراً جميلاً.
+
+مرونة متوسطة ولمعان قوي، وسهل الاستخدام على كل أنواع الشعر.',
+     'A cream wax with coconut oil. Coconut oil moisturises and smooths, cuts frizz, and leaves a clean shine and scent.
+
+Medium flexibility with strong shine, and easy to use on any hair type.',
+     '',
+     '',
+     'مرونة متوسطة — لمعان قوي
+بـزيت جوز الهند
+يمنح حماية قوية من عوامل الجو ولا يترك أي بقايا.
+سهل الاستخدام ومناسب لجميع أنواع الشعر.
+عبوة ١٣٥ مل',
+     'Medium flex, strong shine
+Coconut oil
+Protects against the weather
+Leaves no residue
+135ml jar'),
+    ('S7-W135-SHEA',
+     'كريم واكس للشعر بـزبدة الشيا. يحتوي على زبدة الشيا التي تعالج وتغذي الشعر وتعطيه قوة وحيوية مثالية وملمساً رائعاً طول اليوم.
+
+مرونة متوسطة ولمعان قوي، وسهل الاستخدام على كل أنواع الشعر.',
+     'A cream wax with shea butter. Shea butter treats and feeds the hair, giving it strength and a good feel all day.
+
+Medium flexibility with strong shine, and easy to use on any hair type.',
+     '',
+     '',
+     'مرونة متوسطة — لمعان قوي
+بـزبدة الشيا
+يمنح حماية قوية من عوامل الجو ولا يترك أي بقايا.
+سهل الاستخدام ومناسب لجميع أنواع الشعر.
+عبوة ١٣٥ مل',
+     'Medium flex, strong shine
+Shea butter
+Protects against the weather
+Leaves no residue
+135ml jar'),
+    ('S7-W135-OLIVE',
+     'كريم واكس للشعر بـزيت الزيتون. يحتوي على زيت الزيتون الذي يعالج تساقط الشعر والتقصف ويغذيه أيضاً لشعر أكثر صحة وقوة.
+
+مرونة متوسطة ولمعان قوي، وسهل الاستخدام على كل أنواع الشعر.',
+     'A cream wax with olive oil. Olive oil treats hair fall and breakage and feeds the hair for more strength.
+
+Medium flexibility with strong shine, and easy to use on any hair type.',
+     '',
+     '',
+     'مرونة متوسطة — لمعان قوي
+بـزيت الزيتون
+يمنح حماية قوية من عوامل الجو ولا يترك أي بقايا.
+سهل الاستخدام ومناسب لجميع أنواع الشعر.
+عبوة ١٣٥ مل',
+     'Medium flex, strong shine
+Olive oil
+Protects against the weather
+Leaves no residue
+135ml jar'),
+    ('S7-W135-ARGAN',
+     'كريم واكس للشعر بـزيت الارجان. يحتوي على زيت الارجان الذي يعالج جفاف الشعر والتقصف ويغذيه لشعر أكثر صحة وقوة.
+
+مرونة متوسطة ولمعان قوي، وسهل الاستخدام على كل أنواع الشعر.',
+     'A cream wax with argan oil. Argan oil treats dryness and breakage and feeds the hair for more strength.
+
+Medium flexibility with strong shine, and easy to use on any hair type.',
+     '',
+     '',
+     'مرونة متوسطة — لمعان قوي
+بـزيت الارجان
+يمنح حماية قوية من عوامل الجو ولا يترك أي بقايا.
+سهل الاستخدام ومناسب لجميع أنواع الشعر.
+عبوة ١٣٥ مل',
+     'Medium flex, strong shine
+Argan oil
+Protects against the weather
+Leaves no residue
+135ml jar'),
+    ('S7-W125-BLACKS',
+     'كريم واكس للشعر بـزيت حبة البركة. يحتوي على زيت حبة البركة لتغذية الشعر وإضفاء لمعان أسود جذاب، ويغطي لون الشعر الابيض والشيب بطريقة سهلة وبسيطة بفضل تركيبته المتطورة.
+
+مرونة متوسطة ولمعان قوي، وسهل الاستخدام على كل أنواع الشعر.',
+     'A cream wax with black seed oil. Black seed oil feeds the hair and adds a deep black shine. Its formula covers white hair and greys.
+
+Medium flexibility with strong shine, and easy to use on any hair type.',
+     '',
+     '',
+     'مرونة متوسطة — لمعان قوي
+بـزيت حبة البركة
+يمنح حماية قوية من عوامل الجو ولا يترك أي بقايا.
+سهل الاستخدام ومناسب لجميع أنواع الشعر.
+عبوة ١٢٥ مل',
+     'Medium flex, strong shine
+Black seed oil
+Protects against the weather
+Leaves no residue
+125ml jar'),
+    ('S7-G250-WHITE',
+     'جل بريميوم أبيض. يمنح تغذية رائعة للشعر من الجذور ويحميه من تساقط الشعر بفضل تركيبته المتطورة مع فيتامين B5، وثبات قوي جداً يدوم حتى ٤٨ ساعة.
+
+يعطي حماية من عوامل الجو ومناسب لجميع أنواع الشعر، ولا يترك أي بقايا ولا يسبب القشرة.',
+     'Premium gel, white. Feeds the hair from the root and guards against fall, thanks to a formula built around vitamin B5. Very strong hold, up to 48 hours.
+
+Shields against the weather, suits every hair type, leaves no residue and does not cause flakes.',
+     '',
+     '',
+     'ثبات قوي جداً — لمعان قوي
+يدوم حتى ٤٨ ساعة
+بفيتامين B5
+مايسبش قشرة
+عبوة ٢٥٠ مل',
+     'Very strong hold, strong shine
+Lasts up to 48 hours
+With vitamin B5
+No flakes
+250ml jar'),
+    ('S7-G250-BLACK',
+     'جل بريميوم أسود. يمنح تغذية رائعة للشعر من الجذور ويحميه من تساقط الشعر بفضل تركيبته المتطورة مع فيتامين B5، وثبات قوي جداً يدوم حتى ٤٨ ساعة.
+
+ويغطي الشعر الابيض بفضل تركيبته المتطورة ولونه الاسود الذي يعطي لمعاناً وتغطية متوسطة للشعر الابيض.',
+     'Premium gel, black. Feeds the hair from the root and guards against fall, thanks to a formula built around vitamin B5. Very strong hold, up to 48 hours.
+
+Its black tint gives medium coverage over white hair alongside the shine.',
+     '',
+     '',
+     'ثبات قوي جداً — لمعان قوي
+يدوم حتى ٤٨ ساعة
+يغطي الشعر الابيض
+بفيتامين B5
+عبوة ٢٥٠ مل',
+     'Very strong hold, strong shine
+Lasts up to 48 hours
+Covers white hair
+With vitamin B5
+250ml jar'),
+    ('S7-SG250-WHITE',
+     'ستايلينج جل أبيض. تحكم مثالي وتثبيت قوي للشعر طوال اليوم حتى ٢٤ ساعة.
+
+يعطي حماية من عوامل الجو ومناسب لجميع أنواع الشعر، ولا يترك أي بقايا على الشعر ولا يسبب القشرة.',
+     'Styling gel, white. Firm control and strong hold all day, up to 24 hours.
+
+Shields against the weather, suits every hair type, leaves no residue and does not cause flakes.',
+     '',
+     '',
+     'ثبات قوي — لمعان قوي
+يدوم حتى ٢٤ ساعة
+مايسبش قشرة
+مناسب لكل أنواع الشعر
+عبوة 250 مل',
+     'Strong hold, strong shine
+Lasts up to 24 hours
+No flakes
+Suits every hair type
+250ml jar'),
+    ('S7-SG250-BLACK',
+     'ستايلينج جل أسود. تحكم مثالي وتثبيت قوي للشعر طوال اليوم حتى ٢٤ ساعة.
+
+يعطي حماية من عوامل الجو ومناسب لجميع أنواع الشعر، ولا يترك أي بقايا على الشعر ولا يسبب القشرة.
+
+ويغطي الشعر الابيض بفضل تركيبته المتطورة ولونه الاسود الذي يعطي تغطية متوسطة للشعر الابيض.',
+     'Styling gel, black. Firm control and strong hold all day, up to 24 hours.
+
+Shields against the weather, suits every hair type, leaves no residue and does not cause flakes.
+
+Its black tint also gives medium coverage over white hair.',
+     '',
+     '',
+     'ثبات قوي — لمعان قوي
+يدوم حتى ٢٤ ساعة
+مايسبش قشرة
+مناسب لكل أنواع الشعر
+عبوة 250 مل',
+     'Strong hold, strong shine
+Lasts up to 24 hours
+No flakes
+Suits every hair type
+250ml jar'),
+    ('S7-SG250-BLUE',
+     'ستايلينج جل أزرق. تحكم مثالي وتثبيت قوي للشعر طوال اليوم حتى ٢٤ ساعة.
+
+يعطي حماية من عوامل الجو ومناسب لجميع أنواع الشعر، ولا يترك أي بقايا على الشعر ولا يسبب القشرة.',
+     'Styling gel, blue. Firm control and strong hold all day, up to 24 hours.
+
+Shields against the weather, suits every hair type, leaves no residue and does not cause flakes.',
+     '',
+     '',
+     'ثبات قوي — لمعان متوسط
+يدوم حتى ٢٤ ساعة
+مايسبش قشرة
+مناسب لكل أنواع الشعر
+عبوة 250 مل',
+     'Strong hold, medium shine
+Lasts up to 24 hours
+No flakes
+Suits every hair type
+250ml jar'),
+    ('S7-SG250-YELLOW',
+     'ستايلينج جل أصفر. تحكم مثالي وتثبيت قوي للشعر طوال اليوم حتى ٢٤ ساعة.
+
+يعطي حماية من عوامل الجو ومناسب لجميع أنواع الشعر، ولا يترك أي بقايا على الشعر ولا يسبب القشرة.',
+     'Styling gel, yellow. Firm control and strong hold all day, up to 24 hours.
+
+Shields against the weather, suits every hair type, leaves no residue and does not cause flakes.',
+     '',
+     '',
+     'ثبات متوسط — لمعان متوسط
+يدوم حتى ٢٤ ساعة
+مايسبش قشرة
+مناسب لكل أنواع الشعر
+عبوة 250 مل',
+     'Medium hold, medium shine
+Lasts up to 24 hours
+No flakes
+Suits every hair type
+250ml jar'),
+    ('S7-SG650-WHITE',
+     'ستايلينج جل أبيض. تحكم مثالي وتثبيت قوي للشعر طوال اليوم حتى ٢٤ ساعة.
+
+يعطي حماية من عوامل الجو ومناسب لجميع أنواع الشعر، ولا يترك أي بقايا على الشعر ولا يسبب القشرة.',
+     'Styling gel, white. Firm control and strong hold all day, up to 24 hours.
+
+Shields against the weather, suits every hair type, leaves no residue and does not cause flakes.',
+     '',
+     '',
+     'ثبات قوي — لمعان قوي
+يدوم حتى ٢٤ ساعة
+مايسبش قشرة
+مناسب لكل أنواع الشعر
+عبوة 650 مل',
+     'Strong hold, strong shine
+Lasts up to 24 hours
+No flakes
+Suits every hair type
+650ml jar'),
+    ('S7-SG650-BLACK',
+     'ستايلينج جل أسود. تحكم مثالي وتثبيت قوي للشعر طوال اليوم حتى ٢٤ ساعة.
+
+يعطي حماية من عوامل الجو ومناسب لجميع أنواع الشعر، ولا يترك أي بقايا على الشعر ولا يسبب القشرة.
+
+ويغطي الشعر الابيض بفضل تركيبته المتطورة ولونه الاسود الذي يعطي تغطية متوسطة للشعر الابيض.',
+     'Styling gel, black. Firm control and strong hold all day, up to 24 hours.
+
+Shields against the weather, suits every hair type, leaves no residue and does not cause flakes.
+
+Its black tint also gives medium coverage over white hair.',
+     '',
+     '',
+     'ثبات قوي — لمعان قوي
+يدوم حتى ٢٤ ساعة
+مايسبش قشرة
+مناسب لكل أنواع الشعر
+عبوة 650 مل',
+     'Strong hold, strong shine
+Lasts up to 24 hours
+No flakes
+Suits every hair type
+650ml jar'),
+    ('S7-SG650-BLUE',
+     'ستايلينج جل أزرق. تحكم مثالي وتثبيت قوي للشعر طوال اليوم حتى ٢٤ ساعة.
+
+يعطي حماية من عوامل الجو ومناسب لجميع أنواع الشعر، ولا يترك أي بقايا على الشعر ولا يسبب القشرة.',
+     'Styling gel, blue. Firm control and strong hold all day, up to 24 hours.
+
+Shields against the weather, suits every hair type, leaves no residue and does not cause flakes.',
+     '',
+     '',
+     'ثبات قوي — لمعان متوسط
+يدوم حتى ٢٤ ساعة
+مايسبش قشرة
+مناسب لكل أنواع الشعر
+عبوة 650 مل',
+     'Strong hold, medium shine
+Lasts up to 24 hours
+No flakes
+Suits every hair type
+650ml jar'),
+    ('S7-SG650-YELLOW',
+     'ستايلينج جل أصفر. تحكم مثالي وتثبيت قوي للشعر طوال اليوم حتى ٢٤ ساعة.
+
+يعطي حماية من عوامل الجو ومناسب لجميع أنواع الشعر، ولا يترك أي بقايا على الشعر ولا يسبب القشرة.',
+     'Styling gel, yellow. Firm control and strong hold all day, up to 24 hours.
+
+Shields against the weather, suits every hair type, leaves no residue and does not cause flakes.',
+     '',
+     '',
+     'ثبات متوسط — لمعان متوسط
+يدوم حتى ٢٤ ساعة
+مايسبش قشرة
+مناسب لكل أنواع الشعر
+عبوة 650 مل',
+     'Medium hold, medium shine
+Lasts up to 24 hours
+No flakes
+Suits every hair type
+650ml jar'),
+    ('S7-SG850-WHITE',
+     'ستايلينج جل أبيض. تحكم مثالي وتثبيت قوي للشعر طوال اليوم حتى ٢٤ ساعة.
+
+يعطي حماية من عوامل الجو ومناسب لجميع أنواع الشعر، ولا يترك أي بقايا على الشعر ولا يسبب القشرة.',
+     'Styling gel, white. Firm control and strong hold all day, up to 24 hours.
+
+Shields against the weather, suits every hair type, leaves no residue and does not cause flakes.',
+     '',
+     '',
+     'ثبات قوي — لمعان قوي
+يدوم حتى ٢٤ ساعة
+مايسبش قشرة
+مناسب لكل أنواع الشعر
+عبوة 850 مل',
+     'Strong hold, strong shine
+Lasts up to 24 hours
+No flakes
+Suits every hair type
+850ml jar'),
+    ('S7-SG850-BLACK',
+     'ستايلينج جل أسود. تحكم مثالي وتثبيت قوي للشعر طوال اليوم حتى ٢٤ ساعة.
+
+يعطي حماية من عوامل الجو ومناسب لجميع أنواع الشعر، ولا يترك أي بقايا على الشعر ولا يسبب القشرة.
+
+ويغطي الشعر الابيض بفضل تركيبته المتطورة ولونه الاسود الذي يعطي تغطية متوسطة للشعر الابيض.',
+     'Styling gel, black. Firm control and strong hold all day, up to 24 hours.
+
+Shields against the weather, suits every hair type, leaves no residue and does not cause flakes.
+
+Its black tint also gives medium coverage over white hair.',
+     '',
+     '',
+     'ثبات قوي — لمعان قوي
+يدوم حتى ٢٤ ساعة
+مايسبش قشرة
+مناسب لكل أنواع الشعر
+عبوة 850 مل',
+     'Strong hold, strong shine
+Lasts up to 24 hours
+No flakes
+Suits every hair type
+850ml jar'),
+    ('S7-SG850-BLUE',
+     'ستايلينج جل أزرق. تحكم مثالي وتثبيت قوي للشعر طوال اليوم حتى ٢٤ ساعة.
+
+يعطي حماية من عوامل الجو ومناسب لجميع أنواع الشعر، ولا يترك أي بقايا على الشعر ولا يسبب القشرة.',
+     'Styling gel, blue. Firm control and strong hold all day, up to 24 hours.
+
+Shields against the weather, suits every hair type, leaves no residue and does not cause flakes.',
+     '',
+     '',
+     'ثبات قوي — لمعان متوسط
+يدوم حتى ٢٤ ساعة
+مايسبش قشرة
+مناسب لكل أنواع الشعر
+عبوة 850 مل',
+     'Strong hold, medium shine
+Lasts up to 24 hours
+No flakes
+Suits every hair type
+850ml jar'),
+    ('S7-SG850-YELLOW',
+     'ستايلينج جل أصفر. تحكم مثالي وتثبيت قوي للشعر طوال اليوم حتى ٢٤ ساعة.
+
+يعطي حماية من عوامل الجو ومناسب لجميع أنواع الشعر، ولا يترك أي بقايا على الشعر ولا يسبب القشرة.',
+     'Styling gel, yellow. Firm control and strong hold all day, up to 24 hours.
+
+Shields against the weather, suits every hair type, leaves no residue and does not cause flakes.',
+     '',
+     '',
+     'ثبات متوسط — لمعان متوسط
+يدوم حتى ٢٤ ساعة
+مايسبش قشرة
+مناسب لكل أنواع الشعر
+عبوة 850 مل',
+     'Medium hold, medium shine
+Lasts up to 24 hours
+No flakes
+Suits every hair type
+850ml jar')
+) AS v(sku, long_ar, long_en, howto_ar, howto_en, highlights_ar, highlights_en)
+WHERE p.sku = v.sku;
+
+
+
+-- ---------------------------------------------------------------------------
 --  Articles, second wave (8)
 --
 --  Written against measured search demand, in Egyptian colloquial Arabic with
