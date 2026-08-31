@@ -4,6 +4,7 @@ import { sql, hasDb } from '../../lib/db.js';
 import { site } from '../../lib/config.js';
 import { currencyLabel, whole } from '../../lib/money.js';
 import { HAIR_STYLES, finishOf, rankForStyle } from '../../lib/hairstyles.js';
+import { sellable } from '../../lib/hairtypes.js';
 import { Dir, Nav, Footer, Crumb } from '../_components/Chrome.js';
 import {
   ld, styleLabel, finishCounts, styleGap, styleIndexLd, styleBreadcrumbLd,
@@ -178,7 +179,7 @@ export default async function HairStylesIndexView({ lang }) {
             {HAIR_STYLES.map(s => {
               const c = ar ? s.ar : s.en;
               const label = styleLabel(s, lang);
-              const matches = rankForStyle(products, s, 3);
+              const matches = rankForStyle(sellable(products), s, 3);
               const best = matches[0] || null;
               const alts = matches.slice(1);
               const gap = styleGap(s.slug, lang);

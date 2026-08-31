@@ -5,7 +5,7 @@ import { localePath } from '../../lib/urls.js';
 import Link from 'next/link';
 import { addToCart, readCart } from '../../lib/cart.js';
 import { openCart } from './CartDrawer.js';
-import { rankProducts } from '../../lib/hairtypes.js';
+import { rankProducts, sellable } from '../../lib/hairtypes.js';
 import { HAIR_STYLES, rankForStyle } from '../../lib/hairstyles.js';
 import { currencyLabel, whole, discountPercent } from '../../lib/money.js';
 import { runDir } from '../hair-types/lib.js';
@@ -317,7 +317,9 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
   // names the database uses rather than the shortened ones productPublic ships
   // to the browser. Mapping once means the style strip cannot end up ranking a
   // differently shaped list from the hair finder above it.
-  const rankable = products.map(p => ({
+  // sellable first: a finder may only name a jar somebody can buy, and the
+  // shop carries active rows at price 0 on purpose. See lib/hairtypes.js.
+  const rankable = sellable(products).map(p => ({
     ...p, hair_types: p.hair.join(','), hold_level: p.hold,
   }));
 

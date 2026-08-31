@@ -29,11 +29,14 @@ export async function POST(req) {
 
   const concern = str(body.concern, 24);
 
-  // Out-of-stock products are hidden here rather than filtered later, so the
-  // quiz never recommends something the customer cannot actually buy.
+  // Out-of-stock and unpriced products are hidden here rather than filtered
+  // later, so the quiz never recommends something the customer cannot actually
+  // buy. price > 0 is the same rule sellable() applies to the two finders: the
+  // shop carries active rows at price 0 on purpose and renders them as "ask for
+  // price", and an answer that quotes a jar at nothing is worse than no answer.
   const rows = await sql`
     SELECT * FROM products
-     WHERE active = true AND stock > 0
+     WHERE active = true AND stock > 0 AND price > 0
      ORDER BY sort ASC, id ASC`;
 
   const matches = rankProducts(rows, type.slug, 3);

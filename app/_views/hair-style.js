@@ -5,6 +5,7 @@ import { sql, hasDb } from '../../lib/db.js';
 import { site } from '../../lib/config.js';
 import { currencyLabel, whole } from '../../lib/money.js';
 import { HAIR_STYLES, bySlug, rankForStyle } from '../../lib/hairstyles.js';
+import { sellable } from '../../lib/hairtypes.js';
 import { faqJsonLd } from '../../lib/faq.js';
 import { Dir, Nav, Footer, Crumb } from '../_components/Chrome.js';
 import AddButton from '../_components/AddButton.js';
@@ -95,7 +96,7 @@ export default async function HairStyleView({ slug, lang }) {
 
   const [products, reads] = await Promise.all([loadProducts(), loadReads(lang)]);
   const siblings = HAIR_STYLES.filter(s => s.slug !== tile.slug);
-  const matches = rankForStyle(products, tile, 3);
+  const matches = rankForStyle(sellable(products), tile, 3);
   const best = matches[0] || null;
   const alts = matches.slice(1);
 

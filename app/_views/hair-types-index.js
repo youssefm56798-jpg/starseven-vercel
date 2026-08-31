@@ -3,7 +3,7 @@ import { localePath } from '../../lib/urls.js';
 import { sql, hasDb } from '../../lib/db.js';
 import { site } from '../../lib/config.js';
 import { currencyLabel, whole } from '../../lib/money.js';
-import { HAIR_TYPES, rankProducts } from '../../lib/hairtypes.js';
+import { HAIR_TYPES, rankProducts, sellable } from '../../lib/hairtypes.js';
 import { Dir, Nav, Footer, Crumb } from '../_components/Chrome.js';
 import {
   ld, typeRange, formatCounts, gapNote, indexLd, breadcrumbLd,
@@ -178,7 +178,7 @@ export default async function HairTypesIndexView({ lang }) {
             {HAIR_TYPES.map(t => {
               const c = ar ? t.ar : t.en;
               const range = typeRange(t, lang);
-              const matches = rankProducts(products, t.slug, 3);
+              const matches = rankProducts(sellable(products), t.slug, 3);
               const best = matches[0] || null;
               const alts = matches.slice(1);
               const gap = gapNote(t.slug, lang);

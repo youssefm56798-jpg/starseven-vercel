@@ -9,7 +9,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { HAIR_TYPES, bySlug, rankProducts } from '../lib/hairtypes.js';
+import { HAIR_TYPES, bySlug, rankProducts, sellable } from '../lib/hairtypes.js';
 
 const ROOT = fileURLToPath(new URL('../', import.meta.url));
 const SLUGS = ['straight', 'wavy', 'curly', 'coily', 'fine', 'thick', 'white'];
@@ -134,6 +134,58 @@ test('db/seed.sql still describes the catalogue these tests rank', () => {
   const seedPath = `${ROOT}db/seed.sql`;
   assert.ok(existsSync(seedPath), 'db/seed.sql is missing');
   assert.deepEqual(catalogueFromSeed(readFileSync(seedPath, 'utf8')), CATALOGUE);
+});
+
+/* ------------------------------------------------------------- sellable */
+
+test('a finder may never name a jar with no price on it', () => {
+  // The shop carries active rows at price 0 on purpose - the manufacturer feed
+  // arrived without prices - and renders those as "ask for price". A finder has
+  // no such affordance: it prints a number beside the jar and an Add to cart
+  // button under it, so an unpriced row reaching one offers a product for
+  // nothing. Every call site of rankProducts and rankForStyle goes through
+  // this, which is the only reason none of them has to remember.
+  const rows = [
+    { sku: 'A', price: 45 },
+    { sku: 'B', price: 0 },
+    { sku: 'C', price: '40.00' },
+    { sku: 'D', price: null },
+    { sku: 'E' },
+  ];
+  assert.deepEqual(sellable(rows).map(p => p.sku), ['A', 'C']);
+});
+
+test('sellable survives an empty or missing catalogue', () => {
+  assert.deepEqual(sellable([]), []);
+  assert.deepEqual(sellable(null), []);
+  assert.deepEqual(sellable(undefined), []);
+});
+
+test('every finder call site filters before it ranks', async () => {
+  // The guard is only a guard if nothing routes around it. These five are the
+  // whole set of places that rank the catalogue for a customer; the sixth,
+  // app/api/quiz/route.js, applies the same rule in SQL because it holds the
+  // rows itself.
+  const files = [
+    'app/_views/hair-type.js',
+    'app/_views/hair-types-index.js',
+    'app/_views/hair-style.js',
+    'app/_views/hair-styles-index.js',
+    'app/_components/Landing.js',
+  ];
+  for (const f of files) {
+    const src = readFileSync(`${ROOT}${f}`, 'utf8');
+    const calls = src.match(/rank(?:Products|ForStyle)\([^,)]+/g) || [];
+    assert.ok(calls.length > 0, `${f} no longer ranks anything`);
+    for (const call of calls) {
+      assert.match(call, /sellable\(|rankable/,
+        `${f}: ${call}...) ranks an unfiltered list, so an unpriced jar can be recommended`);
+    }
+  }
+
+  const quiz = readFileSync(`${ROOT}app/api/quiz/route.js`, 'utf8');
+  assert.match(quiz, /price > 0/,
+    'the quiz endpoint no longer excludes unpriced products in SQL');
 });
 
 /* --------------------------------------------------------------- ranking */

@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { sql, hasDb } from '../../lib/db.js';
 import { site } from '../../lib/config.js';
 import { currencyLabel, whole } from '../../lib/money.js';
-import { HAIR_TYPES, bySlug, rankProducts } from '../../lib/hairtypes.js';
+import { HAIR_TYPES, bySlug, rankProducts, sellable } from '../../lib/hairtypes.js';
 import { faqJsonLd } from '../../lib/faq.js';
 import { Dir, Nav, Footer, Crumb } from '../_components/Chrome.js';
 import AddButton from '../_components/AddButton.js';
@@ -99,7 +99,7 @@ export default async function HairTypeView({ slug, lang }) {
     loadReads(tile.slug, lang),
   ]);
   const siblings = HAIR_TYPES.filter(t => t.slug !== tile.slug);
-  const matches = rankProducts(products, tile.slug, 3);
+  const matches = rankProducts(sellable(products), tile.slug, 3);
   const best = matches[0] || null;
   const alts = matches.slice(1);
 

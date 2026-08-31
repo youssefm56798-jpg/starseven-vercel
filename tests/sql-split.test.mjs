@@ -115,11 +115,11 @@ test('db/seed.sql is the seeds, the copy update, the article wave, the link fix,
   skip: existsSync(`${ROOT}db/seed.sql`) ? false : 'db/seed.sql not present',
 }, () => {
   const out = splitStatements(readFileSync(`${ROOT}db/seed.sql`, 'utf8'));
-  // 11 statements built the shop; 32 more correct and extend it. Both halves
+  // 11 statements built the shop; 34 more correct and extend it. Both halves
   // are counted so a statement appended without a test to go with it fails
-  // here first. The last five map the black-coloured products onto the grey
+  // here first. The last seven map the black-coloured products onto the grey
   // hair tile; the five before them set the ingredient lists for the waxes.
-  assert.equal(out.length, 43);
+  assert.equal(out.length, 45);
   assert.ok(out[0].includes('INSERT INTO products') && out[0].includes('ON CONFLICT (sku)'));
   assert.ok(out[1].includes('INSERT INTO offers') && out[1].includes('ON CONFLICT (code)'));
   // Both article statements must target the (slug, lang) index. The old
@@ -237,7 +237,7 @@ test('the corrections are guarded on the value they are replacing', {
   // and can never revert a value edited in the admin.
   const out = splitStatements(readFileSync(`${ROOT}db/seed.sql`, 'utf8'));
   const corrections = out.slice(11);
-  assert.equal(corrections.length, 32);
+  assert.equal(corrections.length, 34);
 
   for (const stmt of corrections) {
     assert.match(stmt, /^UPDATE products/m, `not an UPDATE: ${stmt.slice(0, 60)}`);

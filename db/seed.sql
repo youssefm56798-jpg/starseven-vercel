@@ -2120,15 +2120,28 @@ UPDATE products SET ingredients = 'Microcrystalline wax – Bees wax – Petrola
 --  colourant is CI 77266 alone, and the gels come in a black - but nothing in
 --  the data said so, so the finder could not surface any of them.
 --
---  rankProducts reads position in the CSV as priority, so white goes first on
---  every one of these: grey coverage is what they are sold on, not a secondary
---  use. The Black Seed wax and the Black Seed cream gel are deliberately NOT
---  here - nigella oil is an ingredient, not a colourant, and treating a black
---  seed as a black would be the same category error the site made when it sold
---  this wax as matte.
+--  rankProducts reads position in the CSV as priority, and only the wax gets
+--  white first. Grey coverage is the whole of what that jar is sold on - the
+--  pack says Covers Grey and its only colourant is CI 77266 - whereas the black
+--  gels are gels that happen to come in black, so white is their second claim
+--  and straight hair, which is what a hold-5 gel is for, is their first. Left
+--  level the gels would take the tile on the hold tie-break and the one product
+--  actually built for grey would rank under them.
 --
---  Guarded so it runs once and leaves an admin edit alone: a row that already
---  lists white is skipped, whatever else is in its list.
+--  The 650ml and 850ml black gels are NOT tagged: both are still at price 0,
+--  and sellable() in lib/hairtypes.js keeps unpriced rows out of every finder
+--  anyway. Tagging them would be writing a row the guard exists to ignore.
+--
+--  The Black Seed wax and the Black Seed cream gel are deliberately NOT here -
+--  nigella oil is an ingredient, not a colourant, and treating a black seed as
+--  a black would be the same category error the site made when it sold this wax
+--  as matte.
+--
+--  Guarded on the exact value each one is replacing, so every statement is a
+--  no-op on the next deploy and none of them can overwrite a list edited in the
+--  admin. The two that read 'white' are corrections to the first version of
+--  this block, which shipped before the tie-break and the price guard were
+--  understood; they revert those two rows and then stop matching.
 -- ---------------------------------------------------------------------------
 --  One statement per SKU, each guarded on the exact list it is replacing,
 --  because that is the shape every other correction in this file takes and the
@@ -2136,7 +2149,9 @@ UPDATE products SET ingredients = 'Microcrystalline wax – Bees wax – Petrola
 --  been shorter and would have been the one UPDATE here nobody could read the
 --  before-and-after of.
 UPDATE products SET hair_types = 'white,wavy,thick' WHERE sku = 'S7-WAX-BLK' AND hair_types = 'wavy,thick';
-UPDATE products SET hair_types = 'white' WHERE sku = 'S7-G250-BLACK' AND hair_types = '';
-UPDATE products SET hair_types = 'white' WHERE sku = 'S7-SG250-BLACK' AND hair_types = '';
-UPDATE products SET hair_types = 'white' WHERE sku = 'S7-SG650-BLACK' AND hair_types = '';
-UPDATE products SET hair_types = 'white' WHERE sku = 'S7-SG850-BLACK' AND hair_types = '';
+UPDATE products SET hair_types = 'straight,white' WHERE sku = 'S7-G250-BLACK' AND hair_types = '';
+UPDATE products SET hair_types = 'straight,white' WHERE sku = 'S7-G250-BLACK' AND hair_types = 'white';
+UPDATE products SET hair_types = 'straight,white' WHERE sku = 'S7-SG250-BLACK' AND hair_types = '';
+UPDATE products SET hair_types = 'straight,white' WHERE sku = 'S7-SG250-BLACK' AND hair_types = 'white';
+UPDATE products SET hair_types = '' WHERE sku = 'S7-SG650-BLACK' AND hair_types = 'white';
+UPDATE products SET hair_types = '' WHERE sku = 'S7-SG850-BLACK' AND hair_types = 'white';
