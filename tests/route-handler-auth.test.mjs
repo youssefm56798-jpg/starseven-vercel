@@ -56,6 +56,10 @@ const ROUTES = walk(join(ROOT, 'app')).map(full => ({
  *               server-side against a stored digest - see lib/order-access.js.
  *               These are not unauthenticated, they are authenticated by
  *               something other than a session.
+ *   secret      a shared secret in an Authorization header, held by the
+ *               platform rather than by a person. There is one of these and it
+ *               is the cron sweep; it fails closed when the secret is unset,
+ *               which is asserted separately below.
  */
 const PUBLIC = {
   'app/api/products/route.js': 'open: the catalogue that the storefront renders',
@@ -68,6 +72,7 @@ const PUBLIC = {
   'app/api/order/find/route.js': 'token: mints one, and answers identically whether or not the pair matched',
   'app/api/order/cancel/route.js': 'token: orderFor(ref, t) re-checks the access token against the reference',
   'app/api/order/refund/route.js': 'token: orderFor(ref, t) re-checks the access token against the reference',
+  'app/api/cron/release/route.js': 'secret: Vercel Cron sends Authorization: Bearer $CRON_SECRET, compared in constant time - and the route refuses everything when CRON_SECRET is unset',
 };
 
 /**
@@ -124,6 +129,32 @@ test('an admin route handler checks the session before it touches the database',
     assert.ok(guard >= 0 && guard < read,
       `${r.file} queries the database before it checks who is calling`);
   }
+});
+
+test('the cron sweep refuses everything when no secret is configured', () => {
+  /*
+   * The one route whose caller is a machine rather than a person, and the one
+   * whose guard can be undone by DELETING an environment variable rather than
+   * by editing code — which is the kind of failure nobody gets a review for.
+   *
+   * Vercel Cron only sends the Authorization header when CRON_SECRET is set on
+   * the project. A route that read a missing header as "must be the scheduler,
+   * then" would be a public URL that cancels orders in bulk, and it would look
+   * exactly like a working one until somebody found it. So the absence of a
+   * secret has to mean no, including to the scheduler.
+   */
+  const file = 'app/api/cron/release/route.js';
+  const route = ROUTES.find(r => r.file === file);
+  assert.ok(route, `${file} has moved - this test needs updating, not deleting`);
+
+  assert.match(route.src, /process\.env\.CRON_SECRET/, 'the cron sweep does not read CRON_SECRET at all');
+  assert.match(route.src, /secret\.length\s*<\s*16/,
+    'the cron sweep no longer refuses an absent or trivially short CRON_SECRET');
+
+  // The comparison must not return on the first differing byte.
+  assert.match(route.src, /\|=/, 'the cron secret comparison is no longer constant time');
+  assert.doesNotMatch(route.src, /given\s*===?\s*secret/,
+    'the cron secret is compared with ===, which leaks its length and prefix in timing');
 });
 
 test('the CSV export is behind a permission, not merely behind a session', () => {

@@ -188,6 +188,66 @@ ALTER TABLE offers ADD COLUMN IF NOT EXISTS max_uses   INT;
 ALTER TABLE offers ADD COLUMN IF NOT EXISTS used_count INT NOT NULL DEFAULT 0;
 CREATE UNIQUE INDEX IF NOT EXISTS idx_offers_code ON offers (code) WHERE code <> '';
 
+-- How many times ONE customer may redeem this code. NULL means unlimited,
+-- which is what every code created before this column existed keeps, and what
+-- a broadcast code without a stated limit gets.
+--
+-- Distinct from max_uses, which is the total across everybody. A code can have
+-- both (a thousand redemptions, one each), either, or neither. "First order
+-- 15% off" is the case that needs this one and cannot be expressed with
+-- max_uses at all: before it, a single customer could put that code on every
+-- order they ever placed, for ever, and the shop had no record that they had.
+ALTER TABLE offers ADD COLUMN IF NOT EXISTS per_customer INT;
+
+-- ---------------------------------------------------------------------------
+--  Who redeemed which code
+--
+--  offers.used_count is a counter, and a counter cannot answer the question the
+--  shop actually asks when a code looks like it is being abused: WHO used it.
+--  This is the row per redemption behind that number, written inside the same
+--  transaction as the order so the two can never disagree.
+--
+--  It is also what enforces offers.per_customer. The guard is in
+--  app/api/order/route.js and the mechanism is the unique index below - see
+--  there for why a slot number rather than a plain count.
+--
+--  Identity is the PHONE, not the email, and that is a deliberate choice about
+--  what "one customer" means on a shop that takes cash at the door. An email
+--  address is free and unlimited, so a cap keyed on one is a cap on nothing.
+--  A phone number is what the shop RINGS to confirm the order, so a redemption
+--  from a number that does not answer is a redemption that never becomes a
+--  delivery. It is not unforgeable - nothing here is - but it is the identifier
+--  that costs an abuser something. The email is stored beside it because it is
+--  what an admin searches by, and because a pair of them is a much better
+--  record than either alone.
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS offer_redemptions (
+  id         INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  code       TEXT NOT NULL,
+  order_id   INT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+  phone      TEXT NOT NULL DEFAULT '',
+  email      TEXT NOT NULL DEFAULT '',
+  -- The ordinal of this redemption for this (code, phone), or NULL when the
+  -- code has no per-customer cap. NULL is not "slot zero": a unique index
+  -- treats two NULLs as different, so uncapped codes are recorded here without
+  -- being constrained by the index below, which is exactly what is wanted.
+  slot       INT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- The enforcement. Two checkouts racing for the last slot of a capped code both
+-- compute the same slot number, and Postgres makes the second one WAIT on the
+-- first and then refuse it - the same property the order_attempts key relies on.
+-- Without this the cap is a check-then-insert and can be beaten by pressing
+-- Confirm twice on two phones at once.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_redemptions_slot
+  ON offer_redemptions (code, phone, slot);
+
+-- For the admin looking up a person rather than a code.
+CREATE INDEX IF NOT EXISTS idx_redemptions_email ON offer_redemptions (code, email);
+-- For the cancel path, which gives a redemption back by order.
+CREATE INDEX IF NOT EXISTS idx_redemptions_order ON offer_redemptions (order_id);
+
 CREATE TABLE IF NOT EXISTS articles (
   id            INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   -- Unique per (slug, lang), not globally: an article and its translation are
@@ -431,6 +491,40 @@ ALTER TABLE orders ADD COLUMN IF NOT EXISTS expected_from DATE;
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS expected_to   DATE;
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS courier       TEXT NOT NULL DEFAULT '';
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS tracking_ref  TEXT NOT NULL DEFAULT '';
+
+-- ---------------------------------------------------------------------------
+--  What the driver actually came back with
+--
+--  Every other number on this table is what the shop ASKED for. `total` is
+--  computed from the products table at checkout, recomputed on every edit, and
+--  printed on the waybill — and until these two columns existed it was also,
+--  silently, the number the shop assumed it had received. Nothing recorded what
+--  was really handed over.
+--
+--  On a shop that takes cash at the door that is the whole of the money risk.
+--  The checkout arithmetic cannot be moved from a browser — prices, discounts
+--  and shipping are all recomputed server-side and the request is not consulted
+--  about any of them — so an attacker cannot make an order say the wrong
+--  amount. What they can do, and what a courier or a member of staff can do
+--  much more easily, is collect the right amount and remit less of it. There
+--  was no field in this database that would disagree.
+--
+--  collected_amount is NULL until somebody settles the order, which is the
+--  honest state: "nobody has said" is different from "zero was collected", and
+--  a delivered order with nothing recorded is exactly what the report on the
+--  admin Orders screen lists. settled_at stamps when it was recorded, so a
+--  figure typed a week late is visibly late.
+--
+--  Deliberately not a status, and deliberately not part of the status move.
+--  `delivered` says the goods arrived; this says the cash was reconciled, and
+--  they happen at different moments — the driver settles up at the end of a
+--  round, not at the door. Folding them together would mean either refusing to
+--  mark an order delivered until somebody had a figure, or blanking the figure
+--  every time the status was saved. See app/admin/(panel)/orders/[id]/page.js,
+--  where saveDispatch is separate from saveStatus for the same reason.
+-- ---------------------------------------------------------------------------
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS collected_amount NUMERIC(10,2);
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS settled_at       TIMESTAMPTZ;
 
 CREATE TABLE IF NOT EXISTS quiz_results (
   id          INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

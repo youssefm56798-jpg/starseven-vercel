@@ -58,6 +58,15 @@ export const APP_ROLE = 's7_app';
 const RW = ['SELECT', 'INSERT', 'UPDATE', 'DELETE'];
 const RWU = ['SELECT', 'INSERT', 'UPDATE'];
 const APPEND = ['SELECT', 'INSERT'];
+/**
+ * Written once and taken back whole, never edited in place. Exactly one table
+ * has this shape: a coupon redemption is a fact that either happened or was
+ * undone by a cancellation, and there is no such thing as amending one.
+ * Withholding UPDATE means a redemption cannot be quietly reassigned to a
+ * different customer, which is the one edit that would make the per-customer
+ * cap meaningless while leaving the row count looking right.
+ */
+const APPEND_UNDO = ['SELECT', 'INSERT', 'DELETE'];
 const READ = ['SELECT'];
 
 export const GRANTS = {
@@ -66,6 +75,7 @@ export const GRANTS = {
   admin_recovery_codes: RW,
   articles: READ,
   email_log: APPEND,
+  offer_redemptions: APPEND_UNDO,
   offers: RW,
   order_attempts: APPEND,
   order_events: APPEND,

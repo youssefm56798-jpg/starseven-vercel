@@ -15,7 +15,7 @@ import { discountFor, cartTotals } from '../../../lib/pricing.js';
 import { normalizePhone } from '../../../lib/phone.js';
 import { sendMail, tplOrder, tplOrderAdmin } from '../../../lib/mail.js';
 import { newAccessToken, sha256, orderUrl } from '../../../lib/order-access.js';
-import { site, mail, limits } from '../../../lib/config.js';
+import { site, mail, limits, maxOrderLines } from '../../../lib/config.js';
 import { str, trapped, isEmail, tooMany, tooBig } from '../_lib/shared.js';
 import { isServed } from '../../../lib/delivery-eta.js';
 
@@ -99,6 +99,21 @@ export async function POST(req) {
     );
   }
 
+  /*
+   * A second bucket, on the number rather than on the network.
+   *
+   * Placed here, after normalizePhone, so the key is the canonical form: 010…,
+   * +2010… and 0020 10… are one customer and must land in one bucket rather
+   * than three. See limits.orderPhone in lib/config.js for what this is and is
+   * not worth — it stops the naive flood and the runaway retry, and it is not
+   * the answer to a distributed one.
+   *
+   * After the IP limit rather than before it, so a single attacker still spends
+   * their network allowance first and the cheaper check is the one that runs on
+   * every request.
+   */
+  if (!(await rateOk('order-phone', phone, ...limits.orderPhone))) return tooMany(lang);
+
   const address = str(body.address, 255);
   if (address.length < 8) {
     return fail(
@@ -150,6 +165,33 @@ export async function POST(req) {
     want.set(sku, Math.min(20, (want.get(sku) || 0) + qty));
   }
   if (!want.size) return emptyCart();
+
+  /*
+   * A ceiling on how many DIFFERENT products one order may name.
+   *
+   * The quantity per line was always capped at twenty. The number of lines was
+   * not capped at all, and the two are not the same protection: a request
+   * naming every SKU in the catalogue at twenty each passed every check in this
+   * file and emptied the shop in one transaction. It fitted inside the 128 KB
+   * body limit with room to spare, and each accepted line added two more
+   * statements to the write batch.
+   *
+   * Counted AFTER the merge, so a customer is not refused for a cart that
+   * happens to list the same jar on several lines — that is one product, and
+   * the map above has already made it one.
+   *
+   * Refused rather than truncated. Silently dropping lines would confirm an
+   * order that is not the one the customer pressed Confirm on, and on a shop
+   * that collects cash at the door the first they would hear of it is the
+   * driver arriving with the wrong box.
+   */
+  if (want.size > maxOrderLines) {
+    return fail(
+      ar ? `أقصى عدد منتجات مختلفة في الأوردر ${maxOrderLines}. قسّمه على أوردرين أو كلّمنا واتساب.`
+         : `An order can hold at most ${maxOrderLines} different products. Split it in two, or message us on WhatsApp.`,
+      422, { field: 'items' },
+    );
+  }
 
   // One query for the whole basket. Prices come from here and nowhere else.
   const found = await sql`
@@ -222,11 +264,19 @@ export async function POST(req) {
 
   let discount = 0;
   let couponCode = '';
+  /**
+   * The per-customer cap this code carries, or null for none.
+   *
+   * Hoisted out of the block below because the write batch needs it and the
+   * block is where it is read. Null is the historical behaviour and what every
+   * code created before the column existed still has.
+   */
+  let couponPerCustomer = null;
   const coupon = str(body.coupon, 64).toUpperCase();
 
   if (coupon) {
     const offers = await sql`
-      SELECT discount_type, discount_value, min_total, max_uses, used_count
+      SELECT discount_type, discount_value, min_total, max_uses, used_count, per_customer
         FROM offers
        WHERE code = ${coupon}
          AND active = true
@@ -254,6 +304,44 @@ export async function POST(req) {
         ar ? 'كود الخصم ده خلص.' : 'That discount code has been fully used.',
         422, { field: 'coupon' },
       );
+    }
+
+    /*
+     * The per-customer cap.
+     *
+     * A different question from max_uses above, and one that counter could
+     * never answer: max_uses is the total across everybody, so a code with no
+     * total cap could be put on every order one person ever placed, and a code
+     * capped at a thousand could be spent a thousand times by the same person.
+     * "15% off your first order" is not expressible without this.
+     *
+     * Counted on the phone number, not the email. An address is free and
+     * unlimited, so a cap keyed on one caps nothing; the number is what the
+     * shop rings to confirm a cash-on-delivery order, so a redemption from a
+     * number that does not answer never becomes a delivery. db/schema.sql
+     * carries the full argument.
+     *
+     * This is the courteous check — the guard inside the write transaction is
+     * what enforces it, because two checkouts can pass this line at once. And
+     * it asks the idempotency key first for the same reason the stock and
+     * max_uses checks do: on a single-use code, a duplicate submit reads a
+     * redemption that its OWN first request wrote, and telling that customer
+     * they have already used the code would be true and useless.
+     */
+    couponPerCustomer = off.per_customer == null ? null : Number(off.per_customer);
+    if (couponPerCustomer !== null) {
+      const [seen] = await sql`
+        SELECT count(*)::int AS n
+          FROM offer_redemptions
+         WHERE code = ${coupon} AND phone = ${phone}`;
+
+      if (Number(seen?.n || 0) >= couponPerCustomer) {
+        return (await replayed()) ?? fail(
+          ar ? 'الكود ده اتستخدم على الرقم ده قبل كده.'
+             : 'That code has already been used on this number.',
+          422, { field: 'coupon' },
+        );
+      }
     }
 
     const min = Number(off.min_total) || 0;

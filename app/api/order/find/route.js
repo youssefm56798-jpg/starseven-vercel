@@ -91,7 +91,7 @@ export async function POST(req) {
   const ref = str(body.ref, 32).toUpperCase();
   if (!REF.test(ref)) {
     return fail(
-      ar ? 'رقم الأوردر شكله كده: S7-2708-1234' : 'An order number looks like this: S7-2708-1234',
+      ar ? 'رقم الأوردر شكله كده: S7-2708-12345' : 'An order number looks like this: S7-2708-12345',
       422, { field: 'ref' },
     );
   }
