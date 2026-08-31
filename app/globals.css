@@ -152,7 +152,16 @@ button{font:inherit;cursor:pointer}
    lands at 4.41 and misses. The chip keeps its identity and becomes legible. */
 .card .chip{align-self:flex-start;background:color-mix(in srgb,var(--c) 40%,var(--ink));color:#fff;
   font-size:11px;font-weight:900;padding:4px 12px;border-radius:99px}
-.card img{height:160px;width:auto;margin:16px auto 12px;object-fit:contain;
+/* A square slot for a square photograph.
+   This was height:160px + width:auto, which is right until the card is narrower
+   than 160px. Then the global img{max-width:100%} clamps the WIDTH while the
+   pinned height stays at 160, so on a 390px phone the slot came out 131x160 for
+   an 800x800 jar. object-fit:contain stopped the jar distorting, but it drew it
+   at 131x131 inside a slot 29px taller - wasting the space and leaving every jar
+   in the grid sitting at a different height from its neighbour. aspect-ratio
+   makes the slot follow the picture instead of fighting it. */
+.card img{width:100%;max-width:160px;aspect-ratio:1;height:auto;
+  margin:16px auto 12px;object-fit:contain;
   filter:drop-shadow(0 14px 16px rgba(18,16,11,.2))}
 .card h2{font-size:16.5px;font-weight:900;line-height:1.35}
 .card .sub{color:var(--grey);font-size:12.5px;font-weight:600;margin-bottom:12px}
