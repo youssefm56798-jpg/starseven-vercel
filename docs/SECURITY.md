@@ -13,8 +13,12 @@ This describes the Next.js / Neon Postgres application in this repository.
 | Threat | Defence | File |
 |---|---|---|
 | **SQL injection** | `@neondatabase/serverless` tagged templates. Every `${}` is a bound parameter — the driver never interpolates into SQL text. There is no string-built query in the codebase. | everywhere `sql\`` appears |
-| **Price / total tampering** | The browser sends `sku` and `qty` and nothing else. Prices, discounts and delivery are re-read from the database and recomputed server-side. Anything else in the payload is dropped by `cleanCartLines()`. | `lib/pricing.js`, `lib/credentials.js`, `app/api/order/route.js` |
-| **Quantity abuse** | Clamped 1–20 per line, floored to an integer, capped at 50 lines. Negative, `NaN`, `Infinity` and `1e9` all tested. | `lib/credentials.js`, `tests/credentials.test.mjs` |
+| **Price / total tampering** | The browser sends `sku`, `qty` and a coupon **code** and nothing else. Price, product name, product id, discount, delivery, subtotal and total are all read or recomputed from the database; the `subtotal`, `discount`, `shipping` and `total` keys are simply never read out of the request body. | `lib/pricing.js`, `app/api/order/route.js` |
+| **Quantity abuse** | Clamped 1–20 per line, floored to an integer, duplicate SKUs merged **before** the cap so two lines cannot each pass it, and at most 20 distinct products per order. Negative, `NaN`, `Infinity` and `1e9` all tested. | `lib/config.js`, `app/api/order/route.js`, `tests/pricing.test.mjs` |
+| **Draining the catalogue with fake orders** | There is no payment step, so placing an order costs an attacker nothing and every order takes stock immediately. An unconfirmed order now holds its stock for `ORDER_HOLD_HOURS` and no longer: the scheduled sweep cancels it, which restocks and returns the coupon through the ordinary `transition()`. Plus a per-phone-number rate limit and the line cap above, which bound one attacker's reach rather than the total. | `app/api/cron/release/route.js`, `lib/config.js` |
+| **Order token leaking to analytics** | The `?t=` credential is redacted out of every URL before it reaches Vercel Web Analytics, Speed Insights or GA4. All three report a page view as a full `location.href`, so all three were being handed the token — Vercel's needs no configuration and had been doing it since the component was added. One redaction function, three call sites, no second copy. | `lib/analytics-url.js`, `app/_components/Telemetry.js` |
+| **Coupon abuse** | `offers.max_uses` caps redemptions across everybody; `offers.per_customer` caps them for one phone number, enforced by a unique index on the redemption slot so two simultaneous checkouts cannot both take the last one. `offer_redemptions` records who spent what, and a cancellation gives the redemption back. | `db/schema.sql`, `app/api/order/route.js` |
+| **Cash that never arrives** | The checkout arithmetic cannot be moved from a browser, so the money risk on this shop is at the other end: collect the right amount, remit less. `orders.collected_amount` records what the driver actually handed over and the Orders screen lists every delivered order that is unrecorded or does not match. It makes the gap visible; nothing in software can close it. | `app/admin/(panel)/orders/page.js`, `app/admin/(panel)/orders/[id]/page.js` |
 | **Stock races** | The order write is one transaction and the decrement is guarded by `WHERE stock >= ?`, so two customers cannot both take the last jar. | `app/api/order/route.js` |
 | **Stored XSS** | React escapes by default. The three places that use `dangerouslySetInnerHTML` are: article Markdown, which escapes first and then re-enables a whitelist; and JSON-LD, which is serialised then has `<` replaced with `<` so a `</script>` in a product name cannot break out. | `lib/markdown.js`, the `ld()` helper in each page |
 | **CSRF** | An `Origin` / `Sec-Fetch-Site` check plus a required `application/json` content type, which a cross-site form post cannot set without a preflight this API never answers. | `lib/credentials.js`, `app/api/order/refund/route.js` |
@@ -222,6 +226,30 @@ session and a CSRF token.
       confirmation, the status notices and the `/order/find` resend are the
       only ways a link ever reaches a customer, and none of them is stored.
 - [ ] Confirm `robots.txt` in production disallows `/order` and `/checkout`.
+- [ ] **`DATABASE_URL_APP` set** to the restricted role. Without it the running
+      site connects as the database **owner** — a role that owns every table,
+      can run DDL and carries `BYPASSRLS` — so anything that ever reaches SQL
+      execution through the web server can drop the orders table. The fallback
+      to `DATABASE_URL` exists so a fresh clone and a preview deployment work
+      with no setup, and it is a rollback anybody can perform by deleting one
+      variable; it is not a production configuration. `lib/db.js` logs a
+      SECURITY warning on every cold start while it is missing, and
+      `npm run verify:grants` proves the role can still do everything the code
+      needs. Create it with `db/grants.mjs`; the steps are in
+      [`DEPLOY.md`](DEPLOY.md).
+- [ ] **`CRON_SECRET` set**, and the sweep confirmed running in Vercel →
+      Settings → Cron Jobs. Vercel only sends the `Authorization` header when
+      this is set, and `/api/cron/release` refuses everything without it — so an
+      unset secret does not open the endpoint, it silently stops stock ever
+      being released. Check the Cron Jobs tab shows a recent successful run,
+      not just that the variable exists.
+- [ ] `ORDER_HOLD_HOURS` sanity-checked **against how this shop actually
+      works**. It is the number of hours an order nobody has confirmed keeps
+      holding its stock, and past it the order is cancelled and the customer
+      emailed. 72 is chosen to clear a Thursday-evening order that is not rung
+      until Saturday. If the shop ever goes quiet for longer than that — a
+      holiday, Ramadan hours — raise it first, or real orders will be cancelled
+      on their own. Setting it to 0 turns the sweep off.
 
 ---
 

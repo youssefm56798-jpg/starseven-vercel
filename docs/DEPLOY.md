@@ -34,7 +34,7 @@ Copy `.env.example` and fill it in. Every variable must exist in **Production**,
 | Variable | What it is |
 |---|---|
 | `DATABASE_URL` | Set by the Neon integration. Don't edit by hand. This is the **owner** role: it can run DDL, which the migration needs. |
-| `DATABASE_URL_APP` | Optional but recommended. The **restricted** role the running site connects as. See below. Absent, the site falls back to `DATABASE_URL`. |
+| `DATABASE_URL_APP` | **Set this in production.** The **restricted** role the running site connects as; see below. Absent, the site falls back to `DATABASE_URL` — the owner, which can drop any table — and logs a SECURITY warning on every cold start. The fallback exists so a fresh clone and a preview deployment work with no setup, and so the hardening can be rolled back by deleting one variable. It is not a production configuration. |
 | `NEXT_PUBLIC_SITE_URL` | The live origin, no trailing slash. Used for canonical URLs, `sitemap.xml` and `robots.txt`. Getting this wrong hurts SEO more than anything else on this list. |
 | `NEXT_PUBLIC_WHATSAPP` | Support number in international format, no `+`. |
 | `SHIPPING_FEE` | Delivery fee in EGP. |
@@ -45,6 +45,8 @@ Copy `.env.example` and fill it in. Every variable must exist in **Production**,
 | `ORDER_NOTIFY_TO` | Where the team's new-order alert goes. Use a shared company inbox, not a personal one. |
 | `SESSION_SECRET` | Signs the admin login cookie. Generate with `node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"`. Changing it logs every admin out. |
 | `ADMIN_SETUP_KEY` | Used **once** to create the first admin login, then delete the variable. |
+| `ORDER_HOLD_HOURS` | How long an order nobody has confirmed keeps holding its stock. Past it, the nightly sweep cancels the order, puts the stock back and emails the customer. This is what stops fake cash-on-delivery orders draining the catalogue permanently — there is no payment step to stop them being placed. Default `72`, which clears a Thursday-evening order rung on Saturday. Raise it before a holiday. `0` turns the sweep off. |
+| `CRON_SECRET` | Authorises that sweep. Vercel Cron sends it as `Authorization: Bearer <this>`, but **only when it is set** — so leaving it unset does not open the endpoint, it silently stops stock being released. Generate with `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"`. |
 | `BLOB_READ_WRITE_TOKEN` | Set for you when a Blob store is connected. Optional — see below. |
 
 ### The restricted runtime role
