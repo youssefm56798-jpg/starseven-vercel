@@ -30,7 +30,7 @@ import { imageUrl } from '../../lib/product-image.js';
 /**
  * The catalogue, or an empty list.
  *
- * This page's job is the editorial content; the product picks are the payoff,
+ * This page’s job is the editorial content; the product picks are the payoff,
  * not the page. A database that is missing or unhappy therefore degrades to a
  * guide with no jars on it rather than a 500 — the seven tiles, the reasoning
  * and the honest limits all still render.
@@ -113,16 +113,16 @@ export default async function HairTypesIndexView({ lang }) {
   const gaps = [
     ar
       ? 'ليڤ-إن — المنتج اللي بيتحط على الشعر المبلول وبيفضل فيه، وأكتر حاجة بتفرق مع الشعر الأفرو والخشن.'
-      : 'A leave-in — the one that goes on wet hair and stays there. The single biggest difference-maker for coily and coarse hair.',
+      : 'A leave-in, the one that goes on wet hair and stays there. It makes more difference to coily and coarse hair than anything else we could add.',
     ar
       ? 'كريم كيرلي — للترطيب وتعريف الكيرلة مع بعض، من غير ما يفرد الكيرلة.'
-      : 'A curl cream — moisture and curl definition at the same time, without flattening the curl.',
+      : 'A curl cream, for moisture and definition at the same time, without flattening the curl.',
     ar
       ? 'فوم كيرلي — بيدي حجم وتعريف للكيرلي من غير وزن.'
-      : 'A curl foam — volume and definition for curly hair with none of the weight.',
+      : 'A curl foam, for volume and definition on curly hair without the weight.',
     ar
       ? 'كريمات تصفيف — أخف تثبيت في التشكيلة، لليومي ولحد لسه بيجرب.'
-      : 'Styling creams — the lightest hold in the line, for daily use and for anyone still finding their product.',
+      : 'Styling creams: the lightest hold in the line, for daily use and for anyone still working out what suits them.',
   ];
 
   return (
@@ -141,7 +141,7 @@ export default async function HairTypesIndexView({ lang }) {
           <p>
             {ar
               ? 'مش كل شعر بياخد نفس المنتج. اعرف نوع شعرك، واعرف أنهي واكس أو جل هيمسك معاك — وليه، ومن إيه تبعد.'
-              : 'Not every head takes the same product. Find your type, then the wax or gel that actually holds on it — and why, and what to avoid.'}
+              : 'Not every head takes the same product. Find your type, then the wax or gel that actually holds on it, and what to keep away from.'}
           </p>
           <div className="phead-cta">
             <Link className="btn btn-red" href={L('/shop')}>
@@ -171,16 +171,16 @@ export default async function HairTypesIndexView({ lang }) {
               <p>
                 {ar
                   ? 'وزن المنتج لازم يقابل كثافة الشعرة.'
-                  : 'The weight of the product has to match the density of the hair.'}
+                  : 'Product weight has to match hair density.'}
               </p>
               <dl>
                 <div>
                   <dt>{ar ? 'زيت خفيف' : 'Light oil'}</dt>
-                  <dd>{ar ? 'بيدخل جوه الشعرة ويلمّع من غير ما يتقّل — للناعم والكيرلي' : 'Goes into the strand and adds shine without dragging — fine and curly'}</dd>
+                  <dd>{ar ? 'بيدخل جوه الشعرة ويلمّع من غير ما يتقّل — للناعم والكيرلي' : 'Goes into the strand and adds shine without dragging. Fine and curly hair.'}</dd>
                 </div>
                 <div>
                   <dt>{ar ? 'زبدة تقيلة' : 'Heavy butter'}</dt>
-                  <dd>{ar ? 'بتقعد فوق وبتقفل الرطوبة — للخشن والكثيف، وبتوقّع الخفيف' : 'Sits on top and seals moisture in — coarse and thick, and it flattens fine hair'}</dd>
+                  <dd>{ar ? 'بتقعد فوق وبتقفل الرطوبة — للخشن والكثيف، وبتوقّع الخفيف' : 'Sits on top and seals moisture in. Coarse and thick hair, and it flattens fine.'}</dd>
                 </div>
               </dl>
             </div>
@@ -195,11 +195,11 @@ export default async function HairTypesIndexView({ lang }) {
               <dl>
                 <div>
                   <dt>{ar ? 'جل' : 'Gel'}</dt>
-                  <dd>{ar ? 'أعلى تثبيت ولمعة مبلولة — بينشف على الشكل ومش هتعدّله' : 'Highest hold, wet finish — it sets hard and there is no restyling'}</dd>
+                  <dd>{ar ? 'أعلى تثبيت ولمعة مبلولة — بينشف على الشكل ومش هتعدّله' : 'Highest hold, wet finish. It sets hard and there’s no restyling.'}</dd>
                 </div>
                 <div>
                   <dt>{ar ? 'واكس' : 'Wax'}</dt>
-                  <dd>{ar ? 'تثبيت متوسط لعالي ولمعة طبيعية — تكستشر تعدّله طول اليوم' : 'Medium-high hold, natural finish — texture you can rework all day'}</dd>
+                  <dd>{ar ? 'تثبيت متوسط لعالي ولمعة طبيعية — تكستشر تعدّله طول اليوم' : 'Medium-high hold, natural finish. Texture you can rework all day.'}</dd>
                 </div>
               </dl>
             </div>
@@ -208,7 +208,7 @@ export default async function HairTypesIndexView({ lang }) {
           <p className="ht-why-note">
             {ar
               ? 'عشان كده نفس المنتج ينفع مع واحد ويبوّظ شكل التاني — مش مسألة ذوق.'
-              : 'That is why one product suits one man and ruins the next — it is not a matter of taste.'}
+              : 'It’s why one product suits one man and ruins the next, and why this isn’t a matter of taste.'}
           </p>
         </section>
 
@@ -240,12 +240,12 @@ export default async function HairTypesIndexView({ lang }) {
                     </div>
                   </div>
 
-                  {/* One line, not three paragraphs. The card's job is
+                  {/* One line, not three paragraphs. The card’s job is
                       recognise-yourself then here-is-the-jar, and `why` is the
                       sentence that joins the two. The problem, the full answer
-                      and the avoid line are the type page's copy - printing all
+                      and the avoid line are the type page’s copy - printing all
                       three here made a wall seven cards tall and published that
-                      page's text a second time at a second URL. */}
+                      page’s text a second time at a second URL. */}
                   <p className="ht-ans">{c.why}</p>
 
                   {best ? (
@@ -298,7 +298,7 @@ export default async function HairTypesIndexView({ lang }) {
           <p className="ht-lead">
             {ar
               ? 'قبل ما تختار نوع شعرك، دي الأشكال اللي بتتباع في السوق وبتعمل إيه فعلاً — وأنهي واحد فيهم تقدر تشتريه من هنا النهارده وأنهي واحد لسه في الطريق.'
-              : 'Before you pick a type, here is what each format on the market actually does — and which of them you can buy here today, and which is still on its way.'}
+              : 'What every format on the shelf actually does, and which of them you can buy here today.'}
           </p>
 
           <div className="ht-tablewrap">
@@ -339,7 +339,7 @@ export default async function HairTypesIndexView({ lang }) {
           <p className="ht-lead">
             {ar
               ? 'دي المنتجات اللي تحت الإنتاج دلوقتي وهتنزل قريب. لسه مش على الموقع، فالترشيح اللي فوق هو أحسن اختيار من اللي موجود فعلاً النهارده.'
-              : 'These are in production now and land soon. They are not on the shop yet, so the picks above are the best answer that exists here today.'}
+              : 'These are in production now and land soon. None of them is on the shop yet, so the picks above are the best answer we have today.'}
           </p>
           <ul className="ht-gaplist">
             {gaps.map((g, i) => <li key={i}>{g}</li>)}

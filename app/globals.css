@@ -61,9 +61,13 @@ button{font:inherit;cursor:pointer}
 .nav-links a{color:var(--grey);transition:.2s;display:inline-flex;align-items:center;gap:5px;
   padding:8px 12px;border-radius:99px}
 .nav-links a:hover{color:var(--ink);background:var(--paper-2)}
+/* The active item is ink against grey, and that is the whole marker. It also
+   carried a red bar underneath, which put a second, louder signal on the one
+   item in the row that does not need selling - the page you are already on -
+   and read as a stray underline hanging off the pill.
+   aria-current in Chrome.js is what the colour cannot do: state, for a reader
+   who never sees the colour. */
 .nav-links a.on{color:var(--ink)}
-.nav-links a.on::after{content:"";position:absolute;bottom:-2px;inset-inline-start:12px;width:18px;height:2.5px;
-  background:var(--red-ui);border-radius:2px}
 .nav-item.has-sub > a svg{width:13px;height:13px;transition:transform .2s}
 .nav-item.has-sub:hover > a svg,.nav-item.has-sub:focus-within > a svg{transform:rotate(180deg)}
 

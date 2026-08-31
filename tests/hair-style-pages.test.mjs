@@ -154,7 +154,7 @@ test('an English gap note names a product the shop cannot sell today', () => {
   for (const slug of ADMITTING) {
     const note = styleGap(slug, 'en');
     assert.ok(
-      /do not make|not in the range|still in production|not on the shop/i.test(note),
+      /do not|don.t|not in the range|still in production|on the shop yet/i.test(note),
       `${slug}: "${note}" must state that it is not available yet`,
     );
   }
@@ -444,7 +444,7 @@ test('no claim about matte outlives a matte product being stocked', async () => 
   // exactly the change the gate exists to catch, which is the day a clay is
   // stocked and "nothing we make is matte" stops being true.
   const src = await source('app/_views/hair-styles-index.js');
-  const claims = ['they are the two matte formats', 'none of it is matte'];
+  const claims = ['the two matte formats', 'none of it is matte'];
   for (const claim of claims) {
     assert.ok(src.includes(claim), `the index no longer says "${claim}"`);
   }

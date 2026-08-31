@@ -7,7 +7,7 @@ import { alternatesForLang } from '../../lib/urls.js';
  * React components; a node:test file cannot load it, and the thing worth
  * guarding here is the copy and the addresses, not the markup.
  *
- * A category's URL slug is deliberately not the same string as its `kind`
+ * A category’s URL slug is deliberately not the same string as its `kind`
  * column. The column is a short internal enum ('gelwax', 'cream'); the URL is
  * what a person types and what Google indexes, so it spells the product out
  * ('/shop/gel-wax', '/shop/cream-gel'). Keeping the two apart means the
@@ -30,7 +30,7 @@ export const CATEGORIES = [
     },
     lead: {
       ar: 'الواكس بيدي تكستشر وتثبيت من غير ما يلزّق الشعر ولا يعمل قشرة. كل لون تركيبة مختلفة وتثبيت مختلف: برو وبرو إكس أقوى واحد فيهم، والشيا والأرجان والبلاك أمرن ومرجّعين للشكل.',
-      en: 'Wax gives texture and hold without gluing hair down or going crunchy. Every colour is a different formula and a different hold: Pro and Pro X are the strongest here, Shea, Argan and Black the more flexible ones.',
+      en: 'Wax gives texture and hold without gluing hair down or going crunchy. Every colour is a different formula and a different hold. Pro and Pro X are the strongest here; Shea, Argan and Black are the ones that stay workable.',
     },
   },
   {
@@ -47,7 +47,7 @@ export const CATEGORIES = [
     },
     lead: {
       ar: 'الجل هو أعلى تثبيت عندنا، وأنسب حاجة للشعر الناعم المفرود اللي مش بيمسك شكل — وللاستايل المحدد اللي عايزه يفضل مكانه.',
-      en: 'Gel is the highest hold we make, and the right answer for straight hair that refuses to hold a shape — or any style you want to stay exactly where you put it.',
+      en: 'Gel is the highest hold we make. It’s the right answer for straight hair that refuses to hold a shape, and for any style you want to stay exactly where you put it.',
     },
   },
   {
@@ -81,7 +81,7 @@ export const CATEGORIES = [
     },
     lead: {
       ar: 'كريم بيثبّت الشعر: قوامه خفيف زي الكريم، وبيدي لمعان بسيط مش لمعة جل. أخف شكل في التشكيلة وأسهله في التعامل، بيمشي مع كل أنواع الشعر، وبيرطّب وهو بيمسك.',
-      en: 'A cream that holds: light in the hand like a cream, and it leaves a soft shine rather than a gel gloss. The lightest and most forgiving format we make, working across every hair type and conditioning while it holds.',
+      en: 'A cream that holds. Light in the hand like a cream, and it leaves a soft shine rather than a gel gloss. It’s the most forgiving thing we make, it works on every hair type, and it conditions while it holds.',
     },
   },
   {
@@ -107,7 +107,7 @@ export const CATEGORIES = [
     },
     lead: {
       ar: 'الحاجة الوحيدة عندنا اللي بتخلي الشعر يبان ناشف. الكلاي بيدي حجم وتكستشر من غير لمعة — وده اللي الشعر الخفيف والكروب المكركب محتاجينه.',
-      en: 'The only thing we make that leaves hair looking dry. Clay gives volume and texture with no shine — which is exactly what fine hair and a choppy crop are asking for.',
+      en: 'The only thing we make that leaves hair looking dry. Clay gives volume and texture without the shine, which is exactly what fine hair and a choppy crop are asking for.',
     },
   },
   {
@@ -124,7 +124,7 @@ export const CATEGORIES = [
     },
     lead: {
       ar: 'بوماد من غير لمعة — والفرق بينه وبين الجل واكس هو اللمعة بالظبط. لو عايز نفس الفكرة بس لامعة، الجل واكس هو ده.',
-      en: 'A pomade with no shine — and shine is the whole difference between this and the gel wax. If you want the same idea with a gloss on it, the gel wax is that product.',
+      en: 'A pomade with no shine, and shine is the whole difference between this and the gel wax. If you want the same idea with a gloss on it, the gel wax is that product.',
     },
   },
   {
@@ -141,7 +141,7 @@ export const CATEGORIES = [
     },
     lead: {
       ar: 'مش بديل للواكس ولا الجل — ده اللي بييجي بعدهم. رشة في الآخر بتخلي الشكل ثابت لآخر اليوم.',
-      en: 'Not a replacement for wax or gel — the step after them. A pass at the end and the shape stays where you left it.',
+      en: 'Not a replacement for wax or gel. It’s the step after them: one pass at the end and the shape stays where you left it.',
     },
   },
   {
@@ -175,7 +175,7 @@ export const CATEGORIES = [
     },
     lead: {
       ar: 'دي تشكيلة إزالة الشعر — حاجة تانية خالص عن واكس التصفيف اللي فوق.',
-      en: 'This is the hair-removal range — a different thing entirely from the styling wax above.',
+      en: 'This is the hair-removal range, a different thing entirely from the styling wax above.',
     },
   },
 ];

@@ -114,7 +114,8 @@ export async function Nav({ lang = 'ar', path = '' }) {
             hidden below 900px, where /shop's own chips do the same job. */}
         <div className="nav-links">
           <div className="nav-item has-sub">
-            <Link href={L('/shop')} className={path.startsWith('shop') ? 'on' : ''}>
+            <Link href={L('/shop')} className={path.startsWith('shop') ? 'on' : ''}
+              aria-current={path.startsWith('shop') ? 'page' : undefined}>
               {ar ? 'المنتجات' : 'Shop'}
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden="true">
                 <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
@@ -150,7 +151,8 @@ export async function Nav({ lang = 'ar', path = '' }) {
           </div>
 
           <div className="nav-item">
-            <Link href={L('/hair-types')} className={path.startsWith('hair-types') ? 'on' : ''}>
+            <Link href={L('/hair-types')} className={path.startsWith('hair-types') ? 'on' : ''}
+              aria-current={path.startsWith('hair-types') ? 'page' : undefined}>
               {ar ? 'نوع شعرك' : 'Hair types'}
             </Link>
           </div>
@@ -161,13 +163,15 @@ export async function Nav({ lang = 'ar', path = '' }) {
               check is startsWith on the path string, and "hair-styles" does not
               start with "hair-types". */}
           <div className="nav-item">
-            <Link href={L('/hair-styles')} className={path.startsWith('hair-styles') ? 'on' : ''}>
+            <Link href={L('/hair-styles')} className={path.startsWith('hair-styles') ? 'on' : ''}
+              aria-current={path.startsWith('hair-styles') ? 'page' : undefined}>
               {ar ? 'ستايلك' : 'Hair styles'}
             </Link>
           </div>
 
           <div className="nav-item">
-            <Link href={L('/blog')} className={path.startsWith('blog') || path.startsWith('article') ? 'on' : ''}>
+            <Link href={L('/blog')} className={path.startsWith('blog') || path.startsWith('article') ? 'on' : ''}
+              aria-current={path.startsWith('blog') || path.startsWith('article') ? 'page' : undefined}>
               {ar ? 'مقالات' : 'Articles'}
             </Link>
           </div>

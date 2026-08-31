@@ -29,7 +29,7 @@ import { imageUrl } from '../../lib/product-image.js';
 /**
  * The catalogue, or an empty list.
  *
- * This page's job is the editorial content; the product picks are the payoff,
+ * This page’s job is the editorial content; the product picks are the payoff,
  * not the page. A database that is missing or unhappy therefore degrades to a
  * guide with no jars on it rather than a 500 — the six tiles, the steps and the
  * honest limits all still render.
@@ -51,7 +51,7 @@ export default async function HairStylesIndexView({ lang }) {
   const counts = finishCounts(products);
 
   // The two-axis table is built from the live catalogue and from the
-  // manufacturer's published finish ratings, so it can only ever describe
+  // manufacturer’s published finish ratings, so it can only ever describe
   // products that are actually on sale. A product the client switches off
   // leaves the table on the next revalidate rather than sitting in it as a
   // recommendation nobody can buy.
@@ -63,7 +63,7 @@ export default async function HairStylesIndexView({ lang }) {
   // finishOf rather than FINISH, so a clay or a pomade the client switches on
   // appears in this table on the same rules as the eight SKUs with a
   // photographed panel. Anything with no rating at all is still left out - the
-  // table's whole claim is that every row in it carries a published finish.
+  // table’s whole claim is that every row in it carries a published finish.
   const grid = products
     .filter(p => finishOf(p))
     .map(p => {
@@ -87,14 +87,14 @@ export default async function HairStylesIndexView({ lang }) {
     counts.matte === 0
       ? (ar
         ? 'الكلاي واكس والبوماد اتعملوا خلاص، بس لسه منزلوش على الموقع — وهما الاتنين المطفيين. لحد ما ينزلوا، مفيش حاجة على الموقع بتدي شكل ناشف، وده اللي الفرنش كروب كله قايم عليه.'
-        : 'The clay wax and the pomade are made but not listed yet, and they are the two matte formats. Until they land, nothing on the shop gives a dry finish — and a dry finish is the whole basis of the textured crop.')
+        : 'The clay wax and the pomade are made but not listed yet, and they’re the two matte formats. Until they land, nothing on the shop gives a dry finish, which is the whole basis of the textured crop.')
       : null,
     ar
       ? 'كريمات التصفيف وكريم الكيرلي وفوم الكيرلي والليڤ-إن كلهم تحت التنفيذ دلوقتي. دول اللي بيخدموا الكيرتن والكيرلي المظبوط.'
       : 'The styling creams, the curl cream, the curl foam and the leave-in are all in production now. Those are the ones that serve the curtains and defined curls.',
     ar
       ? 'مفيش موس ولا منتج بيتحط قبل الاستشوار. الكويف بيبدأ من الاستشوار مش من العلبة، والحاجة اللي بتبني الارتفاع نفسه مش عندنا.'
-      : 'No mousse and no pre-styling primer. A quiff starts at the dryer, not at the jar, and the product that builds the height is not one we make.',
+      : 'No mousse and no pre-styling primer. A quiff starts at the dryer rather than at the jar, and the product that builds that height isn’t one we make.',
     counts.spray === 0
       ? (ar
         ? 'ومفيش سبراي شعر شغال دلوقتي. ده اللي بيقفل الكويف والسلك باك في آخر الخطوة، ولسه مش متسعّر.'
@@ -118,7 +118,7 @@ export default async function HairStylesIndexView({ lang }) {
           <p>
             {ar
               ? 'اختار الشكل اللي عايزه، ونقولك بأنهي منتج توصله وإزاي بالظبط — وفي حالتين نقولك إن المنتج المظبوط لسه منزلش على الموقع.'
-              : 'Pick the look you want and we will tell you which product gets you there and exactly how — and in two cases, that the right product is not on the shop yet.'}
+              : 'Pick the look you want and we’ll tell you which product gets you there, and exactly how. In two cases we’ll tell you the right product isn’t on the shop yet.'}
           </p>
           <div className="phead-cta">
             <Link className="btn btn-red" href={L('/shop')}>
@@ -150,7 +150,7 @@ export default async function HairStylesIndexView({ lang }) {
               <dl>
                 <div>
                   <dt>{ar ? '٥ · جل' : '5 · Gel'}</dt>
-                  <dd>{ar ? 'أعلى تثبيت في التشكيلة — بينشف على الشكل' : 'The highest hold in the range — it sets on the shape'}</dd>
+                  <dd>{ar ? 'أعلى تثبيت في التشكيلة — بينشف على الشكل' : 'The highest hold in the range. It sets on the shape.'}</dd>
                 </div>
                 <div>
                   <dt>{ar ? '٤ · برو إكس وبرو' : '4 · Pro X and Pro'}</dt>
@@ -158,7 +158,7 @@ export default async function HairStylesIndexView({ lang }) {
                 </div>
                 <div>
                   <dt>{ar ? '٣ · شيا وأرجان وبلاك' : '3 · Shea, Argan, Black'}</dt>
-                  <dd>{ar ? 'متوسط ومرن — تعدّله في أي وقت' : 'Medium and flexible — rework it whenever'}</dd>
+                  <dd>{ar ? 'متوسط ومرن — تعدّله في أي وقت' : 'Medium and flexible. Rework it whenever.'}</dd>
                 </div>
               </dl>
             </div>
@@ -183,7 +183,7 @@ export default async function HairStylesIndexView({ lang }) {
                       but what it says about availability has to follow the
                       catalogue rather than this file. */}
                   <dd>{counts.matte === 0
-                    ? (ar ? 'الكلاي والبوماد — لسه مش على الموقع' : 'The clay wax and the pomade — not on the shop yet')
+                    ? (ar ? 'الكلاي والبوماد — لسه مش على الموقع' : 'The clay wax and the pomade, neither on the shop yet')
                     : (ar ? 'الكلاي والبوماد' : 'The clay wax and the pomade')}</dd>
                 </div>
               </dl>
@@ -193,7 +193,7 @@ export default async function HairStylesIndexView({ lang }) {
           <p className="hs-why-note">
             {ar
               ? 'التثبيت سلّم واحد من ١ لـ ٥ على التشكيلة كلها، واللمعة تصنيف المصنع نفسه لكل منتج — مش تقديرنا. الجدول اللي تحت هو التشكيلة كلها على المحورين.'
-              : 'Hold is one scale from 1 to 5 across the whole range, and the shine ratings are the manufacturer’s own, per product — not our estimate. The table below is the whole range on both axes.'}
+              : 'Hold is one scale from 1 to 5 across the whole range. The shine ratings are the manufacturer’s own, per product, rather than our estimate. The table below is the whole range on both axes.'}
           </p>
 
           {/* Gated on the same count the generated gap line above is gated on,
@@ -216,7 +216,7 @@ export default async function HairStylesIndexView({ lang }) {
             <p>
               {ar
                 ? 'اللي على الموقع دلوقتي كله واكس وجل، ومفيش فيه حاجة مطفية. يعني من الستة اللي تحت، اتنين هنوصلك لنصهم بس — الكروب والكيرتن. الاتنين مكتوب عليهم وليه.'
-                : 'Everything on the shop right now is wax and gel, and none of it is matte. So of the six styles below, two we can only get you halfway — the crop and the curtains. Both are marked, and both say why.'}
+                : 'Everything on the shop right now is wax and gel, and none of it is matte. So of the six styles below, there are two we can only get you halfway: the crop and the curtains. Both are marked, and both say why.'}
             </p>
           </aside>
           )}
@@ -260,7 +260,7 @@ export default async function HairStylesIndexView({ lang }) {
                   </div>
 
                   {/* look, why and avoid used to sit here as three more
-                      paragraphs, and all three are already on the style's own
+                      paragraphs, and all three are already on the style’s own
                       page - "The look", "Why this product", "What to avoid".
                       A card carrying twelve blocks and standing 1100px tall is
                       not a card, it is the page it links to, and two of them
@@ -377,7 +377,7 @@ export default async function HairStylesIndexView({ lang }) {
           <p className="hs-lead">
             {ar
               ? 'نفس اللي مكتوب في صفحة أنواع الشعر، بس من ناحية الاستايل. الترشيحات اللي فوق هي أحسن حاجة على الموقع النهارده.'
-              : 'The same list as the hair-types page, read from the style end. The picks above are the best that is on the shop today.'}
+              : 'The same list as the hair-types page, read from the style end. The picks above are the best that’s on the shop today.'}
           </p>
           <ul className="hs-gaplist">
             {gaps.map((g, i) => <li key={i}>{g}</li>)}

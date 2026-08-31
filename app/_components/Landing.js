@@ -23,14 +23,14 @@ import { imageUrl } from '../../lib/product-image.js';
  */
 
 /**
- * How the finder's seven tiles are grouped and what each one puts in its corner.
+ * How the finder’s seven tiles are grouped and what each one puts in its corner.
  *
  * lib/hairtypes.js already says in its header that these are not peers: four
  * are Andre Walker curl families, two are density states, and one is grey.
  * Rendering them as one row of equal cards contradicted the data. These three
  * groups are that header, made visible.
  *
- * The glyph is the tile's display mark. The four curl families already own a
+ * The glyph is the tile’s display mark. The four curl families already own a
  * number the market recognises, so the tile shows that number rather than an
  * icon of a squiggle; the tiles that are not Walker types carry a word instead.
  * Latin in both language trees, which is the pattern the hold cards already set
@@ -109,22 +109,22 @@ const T = {
     h1: ['HOLD', 'YOUR STYLE', 'ALL DAY'],
     hero_sub_a: 'Premium hair wax & gel made in Egypt. ',
     hero_sub_b: 'Mega hold from morning till midnight',
-    hero_sub_c: ' — no flakes, no grease. Salon styling without the salon chair.',
+    hero_sub_c: '. No flakes, no grease. Salon styling without the salon chair.',
     hero_cta1: 'Shop the line', hero_cta2: 'Find your hair type',
     tag_note: 'Delivery + cash on receipt', egp: 'EGP',
     shop_a: 'PICK', shop_b: 'YOUR COLOR',
-    shop_p: 'Every colour is a different formula, and a different hold — from a wax you can rework all day to a gel that sets the shape and will not quit halfway through it.',
+    shop_p: 'Every colour is a different formula and a different hold, from a wax you can rework all day to a gel that sets the shape and won’t quit on you halfway through it.',
     tabs: [['all', 'All'], ['wax', 'Wax'], ['gel', 'Gel']],
     moreTabs: [['gel-wax', 'Gel Wax'], ['cream-gel', 'Cream Gel']],
     shop_all: 'See the whole range →',
     buy: 'Add to cart', added: 'Added ✓', details: 'Details',
     sold: 'Sold out', empty_grid: 'Products are on the way.',
     hair_a: 'WHAT’S YOUR', hair_b: 'HAIR TYPE?',
-    hair_p: 'Not every head takes the same product. Pick your hair type and we’ll tell you exactly which one is yours — and why.',
+    hair_p: 'Not every head takes the same product. Pick your hair type and we’ll tell you exactly which one is yours, and why.',
     hair_k: 'Your type', hair_pick: 'The right one for you', hair_alt: 'Also works for you:',
     hair_g: { curl: 'Curl pattern', density: 'Density', colour: 'Colour' },
     style_a: 'OR PICK', style_b: 'THE LOOK',
-    style_p: 'Got a look in mind? Pick it and we’ll tell you which product gets you there and how — and in two cases, that the right product is not on the shop yet.',
+    style_p: 'Got a look in mind? Pick it and we’ll tell you which product gets you there and how. In two cases we’ll tell you the right product isn’t on the shop yet.',
     style_k: 'The six styles', style_gets: 'with', style_close: 'Closest:',
     style_all: 'All six, step by step →',
     hold_a: 'PICK', hold_b: 'YOUR HOLD',
@@ -140,13 +140,13 @@ const T = {
       { en: 'WAX CARE', h: 'Nourishing Wax', lvl: 3, p: 'Medium hold that stays flexible, with conditioning — shea butter, argan and black. Rework your hair at any point in the day.', go: 'See the products →', pick: 'wax:3', c: 'var(--green)' },
     ],
     or_h: 'Order in', or_h_red: 'one minute',
-    or_p: 'No account, no maze. Pick your product, add it to the cart, and finish checkout — cash on delivery.',
+    or_p: 'No account and no maze. Pick your product, add it to the cart, finish checkout. You pay cash when it arrives.',
     os: ['Pick your product & add to cart', 'Enter your name & address at checkout', 'Receive & pay at your door'],
     or_cta: 'Start shopping',
     bb_h: 'The quality', bb_h_red: 'barbers', bb_h2: 'trust',
     bb_p: 'The same grade of product barbers work with — delivered to your door.',
     px_k: 'Star of the line ★ Pro X', px_h: 'The red that', px_h_red: 'means it',
-    px_p: 'Pro X wax — the Wave & Groom formula with a strong hold, the strongest wax in the line. Your hair stays exactly where you set it in the morning, until you are back home.',
+    px_p: 'Pro X wax, built on the Wave & Groom formula and the strongest wax in the line. Your hair stays exactly where you set it in the morning, right up until you’re back home.',
     px_s: ['Hold strength', 'Jar size', 'In the formula'],
     cart_t: 'Your cart', cart_close: 'Close',
     cart_empty: 'Your cart is empty', cart_empty_p: 'Add a product to start your order.',
@@ -266,7 +266,7 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
   // rather than a per-format one, which makes a bare band far too coarse to
   // stand behind a tile. 'hold:3' is not "the nourishing waxes" — it is every
   // gel wax, every cream gel and the whole 135ml wax shelf as well, a dozen
-  // products the tile's own copy never mentions. Naming the format alongside
+  // products the tile’s own copy never mentions. Naming the format alongside
   // the band is the only way a tile can say "the softer end of the wax" and
   // then show exactly that.
   //
@@ -357,8 +357,8 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
   /*
    * Take the visitor to the answer, once the answer actually exists in the DOM.
    *
-   * Centred rather than top-aligned: `start` puts the panel's own top at the
-   * viewport's top, and the nav is sticky at top:0 with a 66px body - so the
+   * Centred rather than top-aligned: `start` puts the panel’s own top at the
+   * viewport’s top, and the nav is sticky at top:0 with a 66px body - so the
    * heading this scroll exists to deliver landed underneath it. A panel taller
    * than the viewport cannot be centred without pushing that heading off the
    * top edge instead, so that case keeps `start` and leans on the
@@ -399,7 +399,7 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
             <div className="hero-ctas">
               {/* The shop, not the shortlist. This pointed at #shop, which is the
                   eight-product strip further down this same page - so the
-                  brand's primary call to action never left the home page and
+                  brand’s primary call to action never left the home page and
                   never reached the other 55 products. */}
               <Link className="btn btn-red" href={L('/shop')}>{d.hero_cta1}</Link>
               <a className="btn btn-line" href="#hair">{d.hero_cta2}</a>
@@ -543,7 +543,7 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
               {/* The hold badge reads STRONG, not MEGA. Ovanza rate Pro X
                   Strong, which is why the jar lost its "Mega Hold" chip in the
                   database — and a badge here saying otherwise would contradict
-                  the chip and the 4-of-5 meter on the product's own page. Mega
+                  the chip and the 4-of-5 meter on the product’s own page. Mega
                   is still fair for the range, where the gels sit above this;
                   it is no longer fair for this jar. */}
               <div className="spec">
@@ -609,9 +609,9 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
                         // looks like any other link to /hair-types/<slug>.
                         //
                         // --m carries the drawing to the CSS as a mask rather
-                        // than an <img>, so the mark takes the tile's own
+                        // than an <img>, so the mark takes the tile’s own
                         // currentColor and inverts with the selected state.
-                        // --c is the type's accent, which the answer panel
+                        // --c is the type’s accent, which the answer panel
                         // below is tinted with as well: the same colour on the
                         // tile you pressed and the panel that opened.
                         <Link
@@ -815,8 +815,8 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
               // sets the filter and scrolls back to the grid; the fourth is a
               // link, because the home shortlist carries no gel wax. All four
               // render the identical .hcard markup and all four end on the same
-              // "See the products" line, and the section's own lead promises
-              // "Tap the one that fits and we'll show you its products" — so the
+              // "See the products" line, and the section’s own lead promises
+              // "Tap the one that fits and we’ll show you its products" — so the
               // odd one out must not answer with a wipe.
               return h.href ? (
                 <Link className="hcard" key={h.en} style={{ '--c': h.c }} href={L(h.href)}

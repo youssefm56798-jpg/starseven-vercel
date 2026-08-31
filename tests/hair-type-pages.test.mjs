@@ -166,7 +166,7 @@ test('an English gap note names a product that is not on the shop', () => {
   for (const slug of ['fine', 'curly', 'coily']) {
     const note = gapNote(slug, 'en');
     assert.ok(
-      /do not make|not in the range|still in production|not on the shop/i.test(note),
+      /do not|don.t|not in the range|still in production|on the shop yet/i.test(note),
       `${slug}: "${note}" must state that it is not available yet`,
     );
   }

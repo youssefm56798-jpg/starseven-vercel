@@ -12,7 +12,7 @@
 import { HAIR_TYPES } from '../../lib/hairtypes.js';
 import { alternatesForLang } from '../../lib/urls.js';
 
-/** Every slug, in tile order. The route's static params come from here. */
+/** Every slug, in tile order. The route’s static params come from here. */
 export const HAIR_SLUGS = HAIR_TYPES.map(t => t.slug);
 
 /**
@@ -102,15 +102,15 @@ export function formatCounts(rows) {
 const GAPS = {
   fine: {
     ar: 'الكلاي واكس اتعمل بس لسه مش على الموقع — فالجرّة اللي فوق أقرب حاجة، مش المتعملة ليك.',
-    en: 'The clay wax is made but not on the shop yet — so the jar above is the closest we sell, not the one built for you.',
+    en: 'The clay wax is made but it isn’t on the shop yet, so the jar above is the closest we sell rather than the one built for you.',
   },
   curly: {
     ar: 'كريم الكيرلي وفوم الكيرلي لسه تحت التنفيذ. الواكس بيعرّف الكيرلة، بس مش هو المنتج المتعمل ليها.',
-    en: 'The curl cream and the curl foam are still in production. The wax defines curl; it is not the product built for it.',
+    en: 'The curl cream and the curl foam are still in production. The wax defines curl, but it isn’t the product built for it.',
   },
   coily: {
     ar: 'الليڤ-إن لسه تحت التنفيذ. اللي عندنا بيقفل الرطوبة اللي في شعرك جوه — مش بيضيفها.',
-    en: 'The leave-in is still in production. What we sell seals the moisture already in your hair — it does not add any.',
+    en: 'The leave-in is still in production. What we sell seals in the moisture your hair already has. It doesn’t add any.',
   },
 };
 
@@ -159,7 +159,7 @@ export function indexMeta(lang) {
 /* ------------------------------------------------------------- JSON-LD --- */
 
 /**
- * Three questions per type page, built from the tile's own copy.
+ * Three questions per type page, built from the tile’s own copy.
  *
  * Nothing is generated: each answer is a field a human wrote in
  * lib/hairtypes.js, so the structured data and the visible page cannot drift.

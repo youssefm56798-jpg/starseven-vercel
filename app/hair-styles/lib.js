@@ -22,7 +22,7 @@ import { ld, isLatinRun, runDir, clamp } from '../hair-types/lib.js';
 // of the two finders first needed a given helper.
 export { ld, isLatinRun, runDir, clamp };
 
-/** The six slugs, in tile order. The route's static params come from here. */
+/** The six slugs, in tile order. The route’s static params come from here. */
 export const STYLE_SLUGS = HAIR_STYLES.map(s => s.slug);
 
 /**
@@ -92,19 +92,19 @@ export function finishCounts(rows) {
 const GAPS = {
   'textured-crop': {
     ar: 'الكلاي واكس هو منتج الكروب، والمصنع بيعمله — بس لسه مش على الموقع. الترشيح اللي فوق أقرب واكس، مش المتعمل للشكل ده.',
-    en: 'The clay wax is the crop product and the factory makes it — it is just not on the shop yet. The pick above is the closest wax, not the one built for this.',
+    en: 'The clay wax is the crop product and the factory makes it. It just isn’t on the shop yet, so the pick above is the closest wax rather than the one built for this.',
   },
   curtains: {
     ar: 'الكيرتن الأصح ليه كريم تصفيف خفيف، وكريمات التصفيف لسه تحت التنفيذ. الشيا أقرب حاجة — بس هو واكس.',
-    en: 'A centre part is really built for a light styling cream, and the styling creams are still in production. The Shea is the closest thing — but it is a wax.',
+    en: 'A centre part is really built for a light styling cream, and the styling creams are still in production. The Shea is the closest thing, but it’s a wax.',
   },
   'defined-curls': {
     ar: 'كريم الكيرلي وفوم الكيرلي والليڤ-إن لسه تحت التنفيذ. الواكس ده بيقفل الرطوبة اللي في شعرك — مش بيضيفها، فلازم يتحط والشعر مبلول.',
-    en: 'The curl cream, the curl foam and the leave-in are all still in production. This wax seals the water already in your hair rather than adding any, so it has to go on wet.',
+    en: 'The curl cream, the curl foam and the leave-in are all still in production. This wax seals in the water your hair already has rather than adding any, so it has to go on wet.',
   },
   quiff: {
     ar: 'مفيش عندنا موس ولا منتج بيتحط قبل الاستشوار، ودي الحاجة اللي بتدي الارتفاع. الاستايل ده على الاستشوار أكتر من العلبة.',
-    en: 'We do not make a mousse or a pre-styling primer, and that is what builds the height. This look leans on your dryer more than on the jar.',
+    en: 'We don’t make a mousse or a pre-styling primer, and that’s what builds the height. This look leans on your dryer more than on the jar.',
   },
 };
 
@@ -146,7 +146,7 @@ export function styleIndexMeta(lang) {
 /* ------------------------------------------------------------- JSON-LD --- */
 
 /**
- * Three questions per style page, built from the tile's own copy.
+ * Three questions per style page, built from the tile’s own copy.
  *
  * Nothing is generated: each answer is a field a human wrote in
  * lib/hairstyles.js, so the structured data and the visible page cannot drift.
