@@ -44,9 +44,19 @@
  * before the domain is ready; it is not a way to email a customer.
  */
 
+import { readFileSync, existsSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { applyEnv } from './env-file.mjs';
 
-applyEnv();
+// applyEnv takes the file's TEXT, not its path, and only fills keys that are
+// not already set - so .env.local wins over .env and a real environment wins
+// over both. Same two files, same order, as every other verify script.
+const HERE = join(dirname(fileURLToPath(import.meta.url)), '..');
+for (const f of ['.env.local', '.env']) {
+  const p = join(HERE, f);
+  if (existsSync(p)) applyEnv(readFileSync(p, 'utf8'));
+}
 
 const args = process.argv.slice(2);
 const doSend = args.includes('--send');
