@@ -1,4 +1,10 @@
 import bcrypt from 'bcryptjs';
+// Both of these are used by keyOk() below and neither was imported, so every
+// request to /admin/setup threw ReferenceError and rendered the 500 page. It
+// failed CLOSED - nobody could create an admin - which is why it went unnoticed:
+// the route is only reachable on a fresh deployment, and this one already had
+// its owner. Found by opening the page during a handover check.
+import { createHash, timingSafeEqual } from 'node:crypto';
 import { redirect } from 'next/navigation';
 import { csrfOk, csrfToken } from '../../../../lib/auth.js';
 import { sql } from '../../../../lib/db.js';
