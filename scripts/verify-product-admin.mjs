@@ -425,7 +425,17 @@ try {
 
     const back = await rowOf('S7-WAX-BLU');
     check('the next deploy brought it back', back !== null, true);
-    check('live, at a price nobody chose', [back?.active, Number(back?.price)], [true, 45]);
+    /*
+     * 80, which is what the seed now prices this line at.
+     *
+     * The number is the point of the check rather than incidental to it: a
+     * hard-deleted seeded product comes back on the next deploy at whatever the
+     * SEED says, not at whatever the owner had set before deleting it. 45 was
+     * the figure until the client price list of 1 September moved the 120ml
+     * premium waxes to 80; the assertion follows the seed because that is the
+     * value the property is about.
+     */
+    check('live, at a price nobody chose', [back?.active, Number(back?.price)], [true, 80]);
 
     // The same product, archived instead.
     const target = await rowOf('S7-WAX-PUR');
