@@ -23,7 +23,8 @@
     "verify:accounts": "node scripts/verify-admin-accounts.mjs",
     "verify:grants": "node scripts/verify-grants.mjs",
     "vercel-build": "node scripts/setup-db.mjs && next build",
-    "verify:retention": "node scripts/verify-retention.mjs"
+    "verify:retention": "node scripts/verify-retention.mjs",
+    "verify:mail": "node scripts/verify-order-mail.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.10.4",
