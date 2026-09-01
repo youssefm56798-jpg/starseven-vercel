@@ -73,6 +73,8 @@ const PUBLIC = {
   'app/api/order/cancel/route.js': 'token: orderFor(ref, t) re-checks the access token against the reference',
   'app/api/order/refund/route.js': 'token: orderFor(ref, t) re-checks the access token against the reference',
   'app/api/cron/release/route.js': 'secret: Vercel Cron sends Authorization: Bearer $CRON_SECRET, compared in constant time - and the route refuses everything when CRON_SECRET is unset',
+  'app/api/cron/prune/route.js': 'secret: the retention sweep, behind the same cronAuthorised() as the release sweep - constant-time Bearer compare against CRON_SECRET, refusing everything when it is unset.',
+  'app/api/whatsapp/webhook/route.js': 'signature: every POST carries X-Hub-Signature-256, an HMAC-SHA256 of the RAW body under WHATSAPP_APP_SECRET, verified in constant time before the body is parsed or a row is read - and refused outright when the secret is unset. The GET is Meta subscription handshake, gated on WHATSAPP_VERIFY_TOKEN.',
 };
 
 /**
@@ -143,18 +145,30 @@ test('the cron sweep refuses everything when no secret is configured', () => {
    * exactly like a working one until somebody found it. So the absence of a
    * secret has to mean no, including to the scheduler.
    */
-  const file = 'app/api/cron/release/route.js';
-  const route = ROUTES.find(r => r.file === file);
-  assert.ok(route, `${file} has moved - this test needs updating, not deleting`);
+  /*
+   * The check itself lives in lib/cron-auth.js now - it was lifted out of the
+   * release route when the retention sweep became the second scheduled one -
+   * so this asserts the shared module AND that every cron route goes through
+   * it. A third cron route that rolled its own Bearer compare is exactly the
+   * drift worth catching, and it would pass a test that only read one file.
+   */
+  const guard = readFileSync(join(ROOT, 'lib/cron-auth.js'), 'utf8');
 
-  assert.match(route.src, /process\.env\.CRON_SECRET/, 'the cron sweep does not read CRON_SECRET at all');
-  assert.match(route.src, /secret\.length\s*<\s*16/,
-    'the cron sweep no longer refuses an absent or trivially short CRON_SECRET');
+  assert.match(guard, /process\.env\.CRON_SECRET/, 'the cron guard does not read CRON_SECRET at all');
+  assert.match(guard, /secret\.length\s*<\s*16/,
+    'the cron guard no longer refuses an absent or trivially short CRON_SECRET');
 
   // The comparison must not return on the first differing byte.
-  assert.match(route.src, /\|=/, 'the cron secret comparison is no longer constant time');
-  assert.doesNotMatch(route.src, /given\s*===?\s*secret/,
+  assert.match(guard, /\|=/, 'the cron secret comparison is no longer constant time');
+  assert.doesNotMatch(guard, /given\s*===?\s*secret/,
     'the cron secret is compared with ===, which leaks its length and prefix in timing');
+
+  const crons = ROUTES.filter(r => r.file.startsWith('app/api/cron/'));
+  assert.ok(crons.length >= 2, `only found ${crons.length} cron routes - has the folder moved?`);
+  for (const r of crons) {
+    assert.match(r.src, /cronAuthorised\(/,
+      `${r.file} does not use the shared cron guard, so its Bearer check is its own`);
+  }
 });
 
 test('the CSV export is behind a permission, not merely behind a session', () => {

@@ -147,6 +147,44 @@ CREATE TABLE IF NOT EXISTS orders (
 );
 CREATE INDEX IF NOT EXISTS idx_orders_status ON orders (status, created_at DESC);
 
+-- ---------------------------------------------------------------------------
+--  The customer-facing order number
+--
+--  References used to be S7-DDMM-NNNNN: a prefix, the day and month, and five
+--  random digits. That is thirteen characters to read down a phone, on a shop
+--  whose main channel IS the phone, and customers regularly got it wrong.
+--
+--  So it is a plain counting number now — 10001, 10002 — displayed as #10001.
+--  Short, unambiguous, and a customer can say it out loud in one breath.
+--
+--  A SEQUENCE and not max(id)+1, and not random digits either:
+--
+--    * A sequence is atomic. Two checkouts at the same instant get two numbers
+--      with no locking, no retry and no collision. max(id)+1 is the classic
+--      race that quietly issues the same number twice under load.
+--    * It is read BEFORE the order is written. That matters here: the write is
+--      one non-interactive batch (the Neon HTTP driver has no interactive
+--      transaction), the item rows find their parent through `ref`, and the
+--      reply carrying the reference is built before the insert so the
+--      idempotency claim can store it. All of that needs the number in hand up
+--      front, which rules out deriving it from the id of the row itself.
+--    * nextval() does not roll back. A refused or failed checkout burns a
+--      number, so the sequence counts ATTEMPTS and the gaps are real. That is a
+--      feature, not a defect: it means the numbers are not an exact order
+--      counter for anybody subtracting two of them.
+--
+--  START WITH 10001 so the first order is not #1, which advertises a brand new
+--  shop. Change the number here BEFORE the first real order and never after:
+--  IF NOT EXISTS means this line does nothing on a database that already has
+--  the sequence, so editing it later is silently a no-op. To move it on a live
+--  database it is ALTER SEQUENCE order_ref_seq RESTART WITH n, by hand, and
+--  only ever upwards.
+--
+--  Orders placed before this keep their S7- references and every lookup still
+--  accepts both shapes — see normaliseRef() in lib/order-number.js.
+-- ---------------------------------------------------------------------------
+CREATE SEQUENCE IF NOT EXISTS order_ref_seq START WITH 10001 MINVALUE 10001;
+
 CREATE TABLE IF NOT EXISTS order_items (
   id         INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   order_id   INT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
@@ -526,6 +564,77 @@ ALTER TABLE orders ADD COLUMN IF NOT EXISTS tracking_ref  TEXT NOT NULL DEFAULT 
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS collected_amount NUMERIC(10,2);
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS settled_at       TIMESTAMPTZ;
 
+-- ---------------------------------------------------------------------------
+--  Proving the phone number is real
+--
+--  Placing an order on this shop costs nothing: no card, no deposit, and until
+--  now nothing at all was checked before the stock came off the shelf. That is
+--  what cash on delivery means, and it is why a script can take the whole
+--  catalogue to "out of stock" for the price of some HTTP requests.
+--
+--  So the shop asks. A WhatsApp message goes out seconds after checkout with
+--  two buttons, and ANY reply at all - a tap or typed text - proves the number
+--  is a live WhatsApp account that received the message. A fake number cannot
+--  do that. These three columns are the state of that conversation.
+--
+--    wa_message_id     the id Meta returns for the message we sent. Kept
+--                      because a reply names the message it replies to, which
+--                      is a much stronger link back to the order than the
+--                      button payload: it is unguessable, where an order number
+--                      is deliberately not.
+--    wa_delivered_at   Meta told us the message ARRIVED. This is what earns the
+--                      short hold - see ORDER_HOLD_HOURS in lib/config.js. An
+--                      order whose warning never reached the customer keeps the
+--                      long one, because cancelling somebody who was never told
+--                      is the unfairness the warning exists to prevent.
+--    phone_verified_at they answered. No timer touches the order again.
+--
+--  All three are NULL until the sending half is live, and that is deliberately
+--  the safe default: with nothing sent, nothing is delivered, so every order
+--  falls to the long hold and the shop behaves exactly as it did before.
+-- ---------------------------------------------------------------------------
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS wa_message_id     TEXT NOT NULL DEFAULT '';
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS wa_delivered_at   TIMESTAMPTZ;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS phone_verified_at TIMESTAMPTZ;
+
+-- The sweep asks "which new orders are past their hold", and the answer depends
+-- on all three of these. Partial, because a verified order is never swept and
+-- there is no reason to index rows the query will never look at.
+CREATE INDEX IF NOT EXISTS idx_orders_unverified
+  ON orders (created_at)
+  WHERE status = 'new' AND phone_verified_at IS NULL;
+
+-- Finding the order a reply belongs to, by the message it is replying to.
+CREATE INDEX IF NOT EXISTS idx_orders_wa_message
+  ON orders (wa_message_id) WHERE wa_message_id <> '';
+
+-- ---------------------------------------------------------------------------
+--  Webhook events already handled
+--
+--  Meta retries a webhook until it gets a 200, and retries are not rare - any
+--  slow response earns one. Without this, one tap of Confirm can arrive three
+--  times and be acted on three times.
+--
+--  The same problem the checkout solves with order_attempts, solved the same
+--  way: claim the id first, and let the unique key decide. A claim that matches
+--  nothing means somebody else already has it, and the handler stops.
+--
+--  Deleted after seven days. A retry lands within minutes; nothing needs a
+--  week-old id, and without a sweep this grows by a row per message for ever.
+--  db:setup runs on every deploy and is the only scheduler this stack has.
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS wa_events (
+  event_id   TEXT PRIMARY KEY,
+  kind       TEXT NOT NULL DEFAULT '',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_wa_events_age ON wa_events (created_at);
+-- Deploy-time only, and deliberately not part of /api/cron/prune: the runtime
+-- role has no DELETE here (db/grants.mjs) because a handler that could forget a
+-- webhook id could be made to act on the same reply twice. There is no personal
+-- data in the row to redact either - it is a Meta message id and nothing else.
+DELETE FROM wa_events WHERE created_at < now() - interval '7 days';
+
 CREATE TABLE IF NOT EXISTS quiz_results (
   id          INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   hair_type   TEXT NOT NULL,
@@ -536,6 +645,9 @@ CREATE TABLE IF NOT EXISTS quiz_results (
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS idx_quiz_hair ON quiz_results (hair_type, created_at DESC);
+-- /api/cron/prune blanks `ip` here after 30 days. The answer itself stays: it
+-- carries no name and no number, and it is the demand signal the quiz exists to
+-- collect. See lib/retention.js.
 
 CREATE TABLE IF NOT EXISTS email_log (
   id         INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -655,9 +767,13 @@ CREATE TABLE IF NOT EXISTS order_attempts (
 
 -- A retry lands within seconds and a browser replay within minutes. Nothing
 -- needs a key that is a month old, and without this the table grows by one row
--- per order forever. There is no scheduler on this stack, so the deploy is the
--- recurring job: db:setup runs the whole schema on every build, and this is a
--- no-op the moment the backlog is gone. The index is what keeps it cheap.
+-- per order forever. This line is the deploy-time half: db:setup runs the whole
+-- schema on every build, and it is a no-op the moment the backlog is gone. The
+-- index is what keeps it cheap.
+--
+-- The nightly half is /api/cron/prune, which cannot DELETE from this table (see
+-- db/grants.mjs) and instead empties the stored reply, which is the part with a
+-- reference and a phone number in it. Between deploys that is what covers it.
 CREATE INDEX IF NOT EXISTS idx_order_attempts_age ON order_attempts (created_at);
 DELETE FROM order_attempts WHERE created_at < now() - interval '30 days';
 -- ---------------------------------------------------------------------------
@@ -1010,6 +1126,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_admin_reset_hash ON admin_password_resets 
 -- Serves the invalidate-the-older-ones half of issuing a link.
 CREATE INDEX IF NOT EXISTS idx_admin_reset_admin ON admin_password_resets (admin_id, used_at);
 -- Nothing needs a reset row older than the longest life a token has, by a wide
--- margin. There is no scheduler on this stack, so the deploy is the recurring
--- job, exactly as it is for order_attempts above.
+-- margin. This is the deploy-time half, exactly as it is for order_attempts
+-- above; /api/cron/prune blanks requested_ip nightly on anything this line has
+-- not reached yet.
 DELETE FROM admin_password_resets WHERE created_at < now() - interval '30 days';

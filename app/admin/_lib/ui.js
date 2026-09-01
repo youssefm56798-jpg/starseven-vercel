@@ -146,6 +146,10 @@ const MESSAGES = {
   cash_short: ['ok', 'Cash recorded — it does not match the order total. The difference is on the order history.'],
   cash_bad: ['err', 'That is not an amount. Type what the driver handed over, in pounds.'],
   cash_locked: ['err', 'Cash can only be recorded on a delivered order.'],
+  // Bulk stock release. Worded as a count rather than "done", because the whole
+  // reason somebody pressed it is that they need to know the shelf is back.
+  stock_released: ['ok', 'Unconfirmed orders cancelled and their stock returned. Each customer has been emailed.'],
+  stock_nothing: ['ok', 'Nothing to release — no unconfirmed orders were old enough to cancel.'],
   pw_changed: ['ok', 'Password changed. Every other browser has been signed out.'],
   pw_wrong: ['err', 'That is not your current password.'],
   rate: ['err', 'Too many attempts. Wait a few minutes and try again.'],

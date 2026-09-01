@@ -5,6 +5,10 @@
     {
       "path": "/api/cron/release",
       "schedule": "0 4 * * *"
+    },
+    {
+      "path": "/api/cron/prune",
+      "schedule": "0 5 * * *"
     }
   ]
 }

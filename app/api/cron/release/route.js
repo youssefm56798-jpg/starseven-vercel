@@ -1,6 +1,7 @@
 import { sql } from '../../../../lib/db.js';
 import { ok, fail } from '../../../../lib/http.js';
-import { orderHoldHours } from '../../../../lib/config.js';
+import { orderHoldHours, orderWarnedHoldHours } from '../../../../lib/config.js';
+import { cronAuthorised } from '../../../../lib/cron-auth.js';
 import { transitionAndNotify } from '../../../../lib/order-notify.js';
 
 export const runtime = 'nodejs';
@@ -71,38 +72,15 @@ export const dynamic = 'force-dynamic';
  */
 const BATCH = 50;
 
-/**
- * Whether this request really came from the scheduler.
- *
- * Vercel Cron sends `Authorization: Bearer $CRON_SECRET` on every invocation,
- * but ONLY when CRON_SECRET is set on the project. With the variable unset it
- * sends no header at all — and an endpoint that treated a missing header as
- * "must be the scheduler then" would be a public URL that cancels orders.
- *
- * So this fails closed in both directions: no secret configured means nothing
- * is authorised, including the scheduler. A sweep that is not running is a
- * visible problem (stock stops coming back, and the reply below says why); a
- * sweep anybody can trigger is an invisible one.
- *
- * The comparison is length-checked first and then done character by character
- * over the whole string, so it does not return early on the first byte that
- * differs. A timing oracle on a secret this valuable is not worth saving three
- * lines over.
+/*
+ * The guard used to live here as a local `authorised()`. It moved to
+ * lib/cron-auth.js when /api/cron/prune became the second scheduled route:
+ * a constant-time comparison copied into two files is a comparison that can be
+ * "simplified" in one of them by somebody who never read the other.
  */
-function authorised(req) {
-  const secret = process.env.CRON_SECRET || '';
-  if (secret.length < 16) return false;
-
-  const given = (req.headers.get('authorization') || '').replace(/^Bearer\s+/i, '');
-  if (given.length !== secret.length) return false;
-
-  let diff = 0;
-  for (let i = 0; i < secret.length; i++) diff |= given.charCodeAt(i) ^ secret.charCodeAt(i);
-  return diff === 0;
-}
 
 export async function GET(req) {
-  if (!authorised(req)) return fail('forbidden', 403);
+  if (!cronAuthorised(req)) return fail('forbidden', 403);
 
   // Turned off. Answered as a success rather than an error: the scheduler is
   // behaving correctly and there is nothing wrong with a shop that has chosen
@@ -125,10 +103,18 @@ export async function GET(req) {
    * parameter.
    */
   const stale = await sql`
-    SELECT id, ref
+    SELECT id, ref, wa_delivered_at IS NOT NULL AS warned
       FROM orders
      WHERE status = 'new'
-       AND created_at < now() - (${String(orderHoldHours)} || ' hours')::interval
+       -- Answered the WhatsApp confirmation, so the number is real and no timer
+       -- touches this order again. It waits for a human, like every order did
+       -- before any of this existed.
+       AND phone_verified_at IS NULL
+       AND created_at < now() - (
+             CASE WHEN wa_delivered_at IS NOT NULL
+                  THEN ${String(orderWarnedHoldHours)}
+                  ELSE ${String(orderHoldHours)}
+             END || ' hours')::interval
      ORDER BY id ASC
      LIMIT ${BATCH + 1}`;
 
@@ -153,7 +139,10 @@ export async function GET(req) {
         orderId: order.id,
         to: 'cancelled',
         actor: 'system:hold-expired',
-        note: `Not confirmed within ${orderHoldHours}h — stock released automatically.`,
+        note: order.warned
+          ? `No answer to the WhatsApp confirmation within ${orderWarnedHoldHours}h `
+            + '— stock released automatically.'
+          : `Not confirmed within ${orderHoldHours}h — stock released automatically.`,
       });
       if (res.ok && res.changed) cancelled.push(order.ref);
     } catch (e) {
@@ -174,5 +163,6 @@ export async function GET(req) {
     // on differently from a boolean.
     remaining: more,
     holdHours: orderHoldHours,
+    warnedHoldHours: orderWarnedHoldHours,
   });
 }

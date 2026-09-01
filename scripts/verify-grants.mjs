@@ -150,6 +150,18 @@ try {
     await app`INSERT INTO order_events (order_id, kind, actor, note) VALUES (${o.id}, 'note', 'v', 'n')`;
     await app`UPDATE orders SET status = 'confirmed' WHERE id = ${o.id}`;
   });
+  /*
+   * The order number, which is the one grant that cannot be caught anywhere else.
+   *
+   * nextval() on a STANDALONE sequence needs USAGE granted explicitly. The
+   * sequence Postgres hides behind an identity column does not, which is why
+   * every other insert in this file passes without a single sequence grant in
+   * the matrix - and why this omission is invisible until production. The owner
+   * role used in development can do anything, so a missing grant here means the
+   * checkout works on every developer machine and every order fails on the one
+   * deployment that actually sets DATABASE_URL_APP.
+   */
+  await allowed('draw the next order number', () => app`SELECT nextval('order_ref_seq')`);
   await allowed('sign an admin in (read the admins table)', () => app`SELECT id FROM admins LIMIT 1`);
   await allowed('edit a product', () => app`UPDATE products SET stock = stock WHERE id = (SELECT id FROM products LIMIT 1)`);
 
@@ -166,6 +178,15 @@ try {
   await refused('DELETE from the mail log', () => app`DELETE FROM email_log`);
   await refused('rewrite an article', () => app`UPDATE articles SET title = 'x'`);
   await refused('write a setting nothing writes yet', () => app`UPDATE settings SET value = 'x'`);
+  /*
+   * setval() is UPDATE on a sequence, and it is withheld for a specific reason
+   * rather than for tidiness: winding the order numbering backwards would make
+   * the shop start reissuing references that already belong to real orders, and
+   * `orders.ref` is UNIQUE, so the first collision would begin refusing
+   * checkouts. The runtime may take the next number and may not choose it.
+   */
+  await refused('rewind the order numbering', () => app`SELECT setval('order_ref_seq', 1)`);
+  await refused('read how many orders the shop has taken', () => app`SELECT last_value FROM order_ref_seq`);
   // A raw string, not a tagged template: a role name is an identifier and
   // cannot be a bound parameter, which is exactly why the tagged form is safe
   // everywhere else in this codebase.
