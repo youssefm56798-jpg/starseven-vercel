@@ -4,6 +4,7 @@ import { ok, fail, readJson } from '../../../../lib/http.js';
 import { site, mail } from '../../../../lib/config.js';
 import { originAllowed } from '../../../../lib/credentials.js';
 import { orderFor } from '../../../../lib/order-access.js';
+import { formatRef } from '../../../../lib/order-number.js';
 import { canSelfCancel } from '../../../../lib/order-status.js';
 import { transitionAndNotify } from '../../../../lib/order-notify.js';
 import { sendMail } from '../../../../lib/mail.js';
@@ -98,12 +99,12 @@ export async function POST(req) {
     try {
       await sendMail({
         to: mail.notifyTo,
-        subject: `Cancelled by customer — ${order.ref}`,
+        subject: `Cancelled by customer — ${formatRef(order.ref)}`,
         // Every value escaped. order.name is the customer's own free text,
         // stored raw at checkout, and the sibling route learned this the hard
         // way: a name of "<a href=//evil>update your address</a>" renders as a
         // live link inside the shop's own inbox.
-        html: `<p><b>${esc(order.ref)}</b> — ${esc(order.name)} (${esc(order.phone)})</p>
+        html: `<p><b>${esc(formatRef(order.ref))}</b> — ${esc(order.name)} (${esc(order.phone)})</p>
                <p>Cancelled by the customer from the order page. Was: ${esc(res.from)}.</p>
                <p>Stock and any coupon use have been returned automatically.</p>
                <p><b>Reason:</b> ${esc(reason)}</p>`,

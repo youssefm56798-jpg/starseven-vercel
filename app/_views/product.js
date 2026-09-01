@@ -3,7 +3,8 @@ import { alternatesForLang, localePath, localeUrl } from '../../lib/urls.js';
 import { notFound } from 'next/navigation';
 import { sql } from '../../lib/db.js';
 import { site } from '../../lib/config.js';
-import { currencyLabel, whole, discountPercent } from '../../lib/money.js';
+import { currencyLabel, whole, discountPercent, hasDiscount } from '../../lib/money.js';
+import { buyState, ASK, BUY } from '../../lib/product-state.js';
 import { bySlug } from '../../lib/hairtypes.js';
 import { renderMarkdown } from '../../lib/markdown.js';
 import { productFaq, faqJsonLd } from '../../lib/faq.js';
@@ -97,6 +98,13 @@ export default async function ProductView({ slug, lang }) {
   // A price of zero is a product the client has not priced yet, not a free
   // one. It is listed so the range is complete, but it cannot be bought.
   const priced = Number(p.price) > 0;
+  /*
+   * Which call to action the page offers, decided in one place so the grid card
+   * and the quick view cannot drift from it. lib/product-state.js carries the
+   * reason out-of-stock is answered before unpriced: a product that is both
+   * would otherwise invite a WhatsApp about something the shop cannot supply.
+   */
+  const state = buyState(p);
 
   // The way back out of the page, and deliberately a real href rather than a
   // history.back(): most visitors arrive here cold from a search result or a
@@ -223,7 +231,7 @@ export default async function ProductView({ slug, lang }) {
               ) : (
                 <span className="p ask">{ar ? 'اسأل عن السعر' : 'Ask for the price'}</span>
               )}
-              {p.compare_at != null && (
+              {hasDiscount(p.price, p.compare_at) && (
                 <>
                   <bdi className="was">{whole(p.compare_at)}</bdi>
                   {/* dir="ltr": the minus sign is bidi-neutral and would drift
@@ -234,13 +242,13 @@ export default async function ProductView({ slug, lang }) {
             </div>
 
             <div className="pdp-buy">
-              {!priced ? (
+              {state === ASK ? (
                 <a className="btn btn-red" target="_blank" rel="noopener"
                   href={`https://wa.me/${site.whatsapp}?text=${encodeURIComponent(
                     ar ? `عايز أعرف سعر ${name}` : `What is the price of ${name}?`)}`}>
                   {ar ? 'اسأل على واتساب' : 'Ask on WhatsApp'}
                 </a>
-              ) : inStock ? (
+              ) : state === BUY ? (
                 <>
                   <AddButton
                     sku={p.sku}
@@ -447,7 +455,7 @@ export default async function ProductView({ slug, lang }) {
                       <div className="foot">
                         <div className="price">
                           <bdi>{whole(r.price)} <small>{currencyLabel(lang)}</small></bdi>
-                          {r.compare_at != null && <bdi className="was">{whole(r.compare_at)}</bdi>}
+                          {hasDiscount(r.price, r.compare_at) && <bdi className="was">{whole(r.compare_at)}</bdi>}
                         </div>
                         <AddButton sku={r.sku} label={ar ? 'ضيف للسلة' : 'Add'} name={ar ? r.name_ar : r.name_en} />
                       </div>

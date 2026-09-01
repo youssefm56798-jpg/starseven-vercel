@@ -45,7 +45,29 @@ export default async function order({ db, api, ip, check, checkThat, section, su
     ...over,
   });
 
-  const place = (json, who) => api('/api/order', { method: 'POST', ip: ip(who), json });
+  /*
+   * Post an order, having first forgotten what this phone number has ordered.
+   *
+   * The checkout has two limiters on it: ten an hour per /24, which the header
+   * note above budgets for by giving each group a fresh address, and six an
+   * hour per phone number. The second one cannot be budgeted for the same way,
+   * because `good()` sends one number and several groups deliberately depend on
+   * that — the reply message is asserted to name it, and the normalisation
+   * group sends four spellings that all have to arrive as the SAME number.
+   * Without this, everything after the sixth order in the whole file answers
+   * 429 and every assertion downstream reads as a route bug.
+   *
+   * So the phone bucket is cleared per request and the suite tests routes, not
+   * limits. The per-IP burst further down is untouched by this — it keys on the
+   * address, which is the limit that test is about — and the phone limiter gets
+   * its own group at the end rather than being proven by accident here.
+   */
+  const forgetPhone = () => db`DELETE FROM rate_limits WHERE bucket = 'order-phone'`;
+
+  const place = async (json, who) => {
+    await forgetPhone();
+    return api('/api/order', { method: 'POST', ip: ip(who), json });
+  };
 
   const orderRow = async ref =>
     (await db`SELECT * FROM orders WHERE ref = ${ref}`)[0] || null;
@@ -66,7 +88,7 @@ export default async function order({ db, api, ip, check, checkThat, section, su
 
   check('200', res.status, 200);
   checkThat('with a reference in the documented shape',
-    /^S7-\d{4}-\d{4}$/.test(res.json?.ref || ''), res.json?.ref);
+    /^\d{4,}$/.test(res.json?.ref || ''), res.json?.ref);
   check('and the money, computed here',
     [res.json?.subtotal, res.json?.discount, res.json?.shipping, res.json?.total],
     [100, 0, 30, 130]);
@@ -339,7 +361,7 @@ export default async function order({ db, api, ip, check, checkThat, section, su
 
   check('answers 200, like a real order', trap.status, 200);
   checkThat('with a reference indistinguishable from a real one',
-    /^S7-\d{4}-\d{4}$/.test(trap.json?.ref || ''), trap.json?.ref);
+    /^\d{4,}$/.test(trap.json?.ref || ''), trap.json?.ref);
   check('but nothing is written', await orderRow(trap.json.ref), null);
   check('and no stock moves', await stockOf(SKU.wax), stockAtTrap);
   await settle(1000);
@@ -409,18 +431,39 @@ export default async function order({ db, api, ip, check, checkThat, section, su
   });
   check('an oversized body is 413, before any validation', tooBig.status, 413);
 
-  // No cap on distinct SKUs in the body, unlike lib/credentials.js#cleanCartLines
-  // which the client filters a merged cart through (fifty lines, twenty each).
-  // Bounded in practice by the 128 KB body limit, so this is a note rather than
-  // a finding — but the two halves of the same rule do live in different files.
+  /*
+   * The line cap, which used to be the note under this check rather than a rule.
+   *
+   * The quantity per line was always capped at twenty; the number of LINES was
+   * not capped at all, and the two are not the same protection. On a shop with
+   * no payment step, one request naming every SKU in the catalogue at twenty
+   * each passed every check in the route and took the whole shop to "out of
+   * stock" in a single transaction — comfortably inside the 128 KB body limit,
+   * and cheap enough to repeat. The client had a cap; the endpoint that
+   * actually decrements stock did not, and only the client called it.
+   *
+   * Eighty-one lines is now refused outright rather than trimmed. Silently
+   * dropping the excess would confirm an order that is not the one the customer
+   * pressed Confirm on, and on a shop that collects cash at the door the first
+   * they would hear of it is the driver arriving with the wrong box.
+   */
   const wide = await place(good({
     items: [...Array.from({ length: 80 }, (_, i) => ({ sku: `RT-GHOST-${i}`, qty: 1 })),
       { sku: SKU.wax, qty: 1 }],
   }), 'ord-wide');
-  check('eighty unknown SKUs in one basket is handled, not fatal',
-    [wide.status, wide.json?.subtotal], [200, 100]);
-  note('the route caps quantity per line but not the number of lines;');
-  note('        cleanCartLines caps both, and only the client calls it');
+  check('eighty-one distinct SKUs in one basket is refused, not trimmed',
+    [wide.status, wide.json?.field], [422, 'items']);
+  checkThat('and the refusal says how many an order may hold',
+    (wide.json?.error || '').includes('20'), wide.json?.error);
+
+  // And the cap is a cap on DISTINCT products, not on lines in the request:
+  // a cart listing the same jar twenty times over is one product, and the
+  // merge in the route runs before the count so it is never refused for it.
+  const repeated = await place(good({
+    items: Array.from({ length: 40 }, () => ({ sku: SKU.wax, qty: 1 })),
+  }), 'ord-repeat');
+  check('while forty lines naming ONE product is a normal order',
+    [repeated.status, repeated.json?.subtotal], [200, 2000]);
 
   /* ---------------------------------------------------------- concurrency */
 
@@ -433,6 +476,11 @@ export default async function order({ db, api, ip, check, checkThat, section, su
   const scarceStock = await stockOf(SKU.scarce);
   check('one unit on the shelf', scarceStock, 1);
 
+  // Every request in this group carries the same phone number, and the
+  // per-phone limiter would refuse the tail of it — which is the one thing
+  // this group must not be measuring. Cleared here so what the burst proves
+  // is the guard inside the write transaction and nothing else.
+  await forgetPhone();
   const raceIp = ip('ord-race-stock');
   const rush = await Promise.all(Array.from({ length: 6 }, () =>
     api('/api/order', { method: 'POST', ip: raceIp, json: good({ items: [{ sku: SKU.scarce, qty: 1 }] }) })));
@@ -465,6 +513,11 @@ export default async function order({ db, api, ip, check, checkThat, section, su
   // that succeeds has to equal the stock exactly: one short would be lost
   // business, one over is a driver at a door with nothing to hand over.
   await db`UPDATE products SET stock = 3 WHERE sku = ${SKU.scarce}`;
+  // Every request in this group carries the same phone number, and the
+  // per-phone limiter would refuse the tail of it — which is the one thing
+  // this group must not be measuring. Cleared here so what the burst proves
+  // is the guard inside the write transaction and nothing else.
+  await forgetPhone();
   const threeIp = ip('ord-race-three');
   const eight = await Promise.all(Array.from({ length: 8 }, () =>
     api('/api/order', { method: 'POST', ip: threeIp, json: good({ items: [{ sku: SKU.scarce, qty: 1 }] }) })));
@@ -476,6 +529,11 @@ export default async function order({ db, api, ip, check, checkThat, section, su
   sub('five customers, one redemption of a capped code');
 
   check('the cap starts unspent', await usesOf(CODE.capOne), 0);
+  // Every request in this group carries the same phone number, and the
+  // per-phone limiter would refuse the tail of it — which is the one thing
+  // this group must not be measuring. Cleared here so what the burst proves
+  // is the guard inside the write transaction and nothing else.
+  await forgetPhone();
   const couponIp = ip('ord-race-coupon');
   const grab = await Promise.all(Array.from({ length: 5 }, () =>
     api('/api/order', {
@@ -507,13 +565,33 @@ export default async function order({ db, api, ip, check, checkThat, section, su
    * does not say which statement divided by zero — but the message could at
    * least be neutral, or the coupon guard could raise a different error.
    */
+  /*
+   * A loser lands in one of two places, and which one is a matter of timing.
+   *
+   * If it reads used_count BEFORE the winner commits, it reaches the write and
+   * fails on the guard inside the transaction: SQLSTATE 22012, answered as 409.
+   * If it reads AFTER, the courteous check at the top of the coupon block
+   * answers first with 422 and the accurate sentence. Both are correct, both
+   * leave no order behind, and neither is worth pinning to a fixed count — the
+   * split moves with how fast the database happens to be, so asserting four
+   * 409s was a test that measured the network.
+   *
+   * What IS worth pinning is the invariant: every loser is refused, none of
+   * them is a 500, and none of them left an order at a discount. The count of
+   * orders carrying the code is checked above and is one.
+   */
   const losers = grab.filter(r => r.status !== 200);
-  check('the four losers are 409s', losers.map(r => r.status), [409, 409, 409, 409]);
-  checkThat('but they are told the item sold out, which is not what happened',
-    losers.every(r => /sold out|خلص من المخزن/.test(r.json?.error || '')),
-    JSON.stringify(losers.map(r => r.json?.error)));
+  check('the four losers are all refused, none with a server error',
+    [losers.length, losers.every(r => r.status === 409 || r.status === 422)], [4, true]);
+
+  const wrongly = losers.filter(r => /sold out|خلص من المخزن/.test(r.json?.error || ''));
+  checkThat('and the ones refused by the guard are told the item sold out, which is not what happened',
+    wrongly.length === losers.filter(r => r.status === 409).length,
+    JSON.stringify(losers.map(r => [r.status, r.json?.error])));
   note('FINDING (minor): a lost race for a capped coupon reports "one of those items');
-  note('        just sold out" — both guards fail as 22012 and share one message.');
+  note('        just sold out" — the stock guard, the coupon-cap guard and the');
+  note('        per-customer guard all fail as 22012 and share one message. The');
+  note('        courteous check above answers accurately whenever it wins the race.');
 
   sub('the limiter under a burst');
 
@@ -533,6 +611,56 @@ export default async function order({ db, api, ip, check, checkThat, section, su
     seq.push((await api('/api/order', { method: 'POST', ip: seqIp, json: {} })).status);
   }
   check('and one at a time gives the same answer', seq.slice(9), [422, 429]);
+
+  sub('the limiter that is keyed on the phone, not the network');
+
+  /*
+   * The second bucket on this route, and the one every other group in this file
+   * clears out of its way. Proven here, once, on purpose.
+   *
+   * Six an hour per number. It is NOT a defence against a distributed flood —
+   * an attacker already rotating addresses rotates numbers in the same loop —
+   * and lib/config.js says so at length. What it stops is the naive script and
+   * the runaway retry, and what it must never do is refuse a second honest
+   * order from a household that ordered an hour ago.
+   *
+   * Each request carries a FRESH address, so the per-IP limit of ten cannot be
+   * what refuses the seventh. That is the whole design of this group: if the
+   * phone limiter were deleted tomorrow, every one of these would answer 200
+   * and this check would fail.
+   */
+  await forgetPhone();
+  const shared = '01099887766';
+  const byPhone = [];
+  for (let i = 0; i < 7; i++) {
+    const r = await api('/api/order', {
+      method: 'POST',
+      ip: ip(`ord-phone-limit-${i}`),
+      json: good({ phone: shared, items: [{ sku: SKU.bulk, qty: 1 }] }),
+    });
+    byPhone.push(r.status);
+  }
+  check('six orders on one number get through', byPhone.slice(0, 6), [200, 200, 200, 200, 200, 200]);
+  check('and the seventh is refused, from an address that has ordered once',
+    byPhone[6], 429);
+
+  // The refusal has to be the shared, bilingual 429 every other limit answers
+  // with. A message naming the phone number would tell an attacker which of
+  // their two knobs they had run out of.
+  const seventh = await api('/api/order', {
+    method: 'POST', ip: ip('ord-phone-limit-msg'),
+    json: good({ phone: shared, items: [{ sku: SKU.bulk, qty: 1 }] }),
+  });
+  checkThat('and says only that there were too many requests',
+    seventh.status === 429 && !(seventh.json?.error || '').includes(shared),
+    JSON.stringify([seventh.status, seventh.json?.error]));
+
+  // A different number is unaffected — the bucket is the number, not the shop.
+  const other = await api('/api/order', {
+    method: 'POST', ip: ip('ord-phone-other'),
+    json: good({ phone: '01055443322', items: [{ sku: SKU.bulk, qty: 1 }] }),
+  });
+  check('while a different number orders normally', other.status, 200);
 
   // Not tested, and worth saying why: the reference is four random digits
   // within a day, so a collision — the one thing the retry loop around the

@@ -275,9 +275,13 @@ test('the backup covers the tables a restore cannot rebuild from git', () => {
   // cannot regenerate. products is the one that looks skippable and is not —
   // the seed is ON CONFLICT DO NOTHING, so it restores the catalogue as it
   // shipped and declines to touch the prices the owner has edited since.
+  // offer_redemptions is the newest and the least obvious: offers.used_count
+  // survives without it, so a restore that dropped it would look correct while
+  // silently resetting every per-customer coupon cap in the shop to zero.
   assert.deepEqual(TABLE_NAMES, [
     'settings', 'admins', 'admin_recovery_codes', 'products', 'offers',
     'subscribers', 'orders', 'order_items', 'order_events', 'order_tokens',
+    'offer_redemptions',
   ]);
 });
 

@@ -1,8 +1,8 @@
 /**
- * The order reference, and the two checkout guards that bound how much one
- * request can take.
+ * The customer-facing order number, and the two checkout guards that bound how
+ * much one request can take.
  *
- * orderRef() is exercised directly — lib/http.js is pure and imports nothing.
+ * lib/order-number.js is pure and imports nothing, so it is exercised directly.
  * The route guards are checked as text, the same way tests/db-grants.test.mjs
  * and tests/route-handler-auth.test.mjs read their subjects: app/api/order/
  * route.js imports next/server and the database client, neither of which
@@ -11,79 +11,117 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { orderRef } from '../lib/http.js';
+import { formatRef, normaliseRef, isRef, fakeOrderRef } from '../lib/order-number.js';
 import { maxOrderLines, orderHoldHours, limits } from '../lib/config.js';
 
 const ROOT = new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1');
 const ORDER_ROUTE = readFileSync(`${ROOT}app/api/order/route.js`, 'utf8');
 
-/* ------------------------------------------------------------- the shape */
+/* ----------------------------------------------------------- how it reads */
 
-test('a reference is S7, the day and month, and five digits', () => {
-  assert.match(orderRef(), /^S7-\d{4}-\d{5}$/);
+test('a number is shown with a hash, an old reference unchanged', () => {
+  assert.equal(formatRef('10001'), '#10001');
+  assert.equal(formatRef(10001), '#10001');
+  // Orders placed before the change keep their reference and must not acquire a
+  // hash, which would make the printed value disagree with the stored one.
+  assert.equal(formatRef('S7-2708-12345'), 'S7-2708-12345');
+  assert.equal(formatRef(''), '');
+  assert.equal(formatRef(null), '');
 });
 
-test('the day and month are UTC, and are the ones the server is having', () => {
-  // Not a formatting nicety: the reference is minted on Vercel, which runs in
-  // UTC, and read by a customer in Cairo. What matters is that both halves come
-  // from the same clock, so a reference cannot be minted with yesterday's date
-  // and today's digits.
-  const now = new Date();
-  const dm = String(now.getUTCDate()).padStart(2, '0')
-    + String(now.getUTCMonth() + 1).padStart(2, '0');
-  assert.equal(orderRef().slice(3, 7), dm);
+test('what a customer types comes back as what the database stores', () => {
+  // All four are the same order. The hash is printed, so it gets pasted back.
+  for (const typed of ['10001', '#10001', ' #10001 ', '# 10001']) {
+    assert.equal(normaliseRef(typed), '10001', `${JSON.stringify(typed)} did not normalise`);
+  }
+  // The old shape is uppercased, because a customer types what they see.
+  assert.equal(normaliseRef('s7-2708-12345'), 'S7-2708-12345');
+  assert.equal(normaliseRef(null), '');
 });
 
-/* --------------------------------------------------------- the randomness */
+test('normalising is what makes a printed number findable', () => {
+  // The property that matters, stated as a round trip: anything this app shows
+  // a customer must survive being typed back in.
+  for (const stored of ['10001', '999999', 'S7-2708-12345']) {
+    assert.equal(normaliseRef(formatRef(stored)), stored);
+  }
+});
 
-test('references do not repeat the way a small or biased space would', () => {
+test('both shapes are recognised, and nothing else is', () => {
+  assert.ok(isRef('10001'));
+  assert.ok(isRef('S7-2708-12345'));
+  assert.ok(isRef('S7-2708-1234'), 'the four-digit era must still be accepted');
+
+  for (const junk of ['', '#10001', 'S7-2708', 'DROP TABLE', '10001; --', 'S7--1234', '1'.repeat(20)]) {
+    assert.equal(isRef(junk), false, `${JSON.stringify(junk)} was accepted as a reference`);
+  }
+});
+
+/* --------------------------------------------------------- the honeypot */
+
+test('the honeypot answer looks like a real number and comes from nowhere', () => {
   /*
-   * Five thousand draws out of a hundred thousand. This is a smoke test for the
-   * two ways the generator can go wrong and not look wrong: a space that is
-   * smaller than it claims, and a modulo bias that crowds the low end.
-   *
-   * The bound is deliberately loose. The birthday expectation for 5000 draws
-   * from 100000 is around 120 collisions, and the old four-digit generator
-   * would produce thousands — so anything under 400 distinguishes the two
-   * without ever failing on an unlucky run.
+   * A bot that fills the hidden field is answered exactly as a customer is, so
+   * the reply has to be number-shaped. It must NOT come from the sequence: that
+   * would let a bot advance the real numbering, and would tell it where the
+   * counter is - which is the shop's order volume.
    */
   const seen = new Set();
-  let collisions = 0;
-  for (let i = 0; i < 5000; i++) {
-    const digits = orderRef().slice(-5);
-    if (seen.has(digits)) collisions++;
-    seen.add(digits);
+  for (let i = 0; i < 500; i++) {
+    const ref = fakeOrderRef();
+    assert.match(ref, /^\d{5}$/);
+    seen.add(ref);
   }
-  assert.ok(collisions < 400, `${collisions} collisions in 5000 draws — the space is not 100000 wide`);
+  assert.ok(seen.size > 400, `only ${seen.size} distinct values in 500 - this is not random`);
+
+  const src = readFileSync(`${ROOT}lib/order-number.js`, 'utf8');
+  assert.doesNotMatch(src, /nextval/, 'lib/order-number.js reaches for the sequence');
+  assert.doesNotMatch(src, /from '\.\/db\.js'/,
+    'lib/order-number.js imports the database client, which drags Neon into the browser bundle');
 });
 
-test('the digits are spread across the whole range, not crowded into the low end', () => {
-  // What a modulo of a 16- or 32-bit value onto 100000 looks like from outside.
-  // Ten buckets, four thousand draws: an unbiased generator puts about 400 in
-  // each, and 150 is far enough below that to catch a real skew and far enough
-  // above zero never to fire on noise.
-  const buckets = new Array(10).fill(0);
-  for (let i = 0; i < 4000; i++) buckets[Math.floor(Number(orderRef().slice(-5)) / 10000)]++;
-
-  const low = Math.min(...buckets);
-  assert.ok(low > 150, `the thinnest tenth of the range held only ${low} of 4000: ${buckets.join(', ')}`);
+test('the honeypot does not draw from the sequence', () => {
+  // Asserted at the call site as well as in the module, because the mistake
+  // would be made here: replying to a bot with the next real number.
+  const at = ORDER_ROUTE.indexOf('trapped(body.hp)');
+  assert.ok(at > 0, 'the honeypot branch has moved');
+  assert.match(ORDER_ROUTE.slice(at, at + 200), /fakeOrderRef\(\)/);
 });
 
-test('the reference is not drawn from Math.random', () => {
+/* --------------------------------------------------------- the sequence */
+
+test('the order number comes from a sequence, drawn once', () => {
+  assert.match(ORDER_ROUTE, /nextval\('order_ref_seq'\)/,
+    'the checkout no longer draws its reference from the sequence');
+
+  // Once, not per attempt. A sequence cannot collide, so re-drawing inside the
+  // retry loop would burn numbers to no purpose.
+  const draws = ORDER_ROUTE.match(/nextval\('order_ref_seq'\)/g) || [];
+  assert.equal(draws.length, 1, 'the sequence is read more than once per checkout');
+
+  const draw = ORDER_ROUTE.indexOf("nextval('order_ref_seq')");
+  const loop = ORDER_ROUTE.indexOf('for (let attempt =');
+  assert.ok(loop > draw, 'the number is drawn inside the retry loop rather than before it');
+});
+
+test('the sequence carries a grant, or every order fails in production', () => {
   /*
-   * The property, asserted against the source rather than the output, because
-   * no sample of numbers can prove where they came from.
-   *
-   * Math.random() is a PRNG whose state is recoverable from a handful of
-   * outputs, so a customer who places three orders could predict the references
-   * given to the customers after them. Nothing in the app treats a reference as
-   * unguessable today — the credential is the token in lib/order-access.js —
-   * and this is what keeps that true for whatever is written next.
+   * The failure this exists for is invisible in development. nextval() on a
+   * STANDALONE sequence needs USAGE granted explicitly - an identity column's
+   * hidden sequence does not - and the owner role used locally can do anything.
+   * So the checkout works on every developer machine and every order fails on
+   * the deployment that actually sets DATABASE_URL_APP.
    */
-  const http = readFileSync(`${ROOT}lib/http.js`, 'utf8')
-    .replace(/\/\*[\s\S]*?\*\//g, ' ');
-  assert.doesNotMatch(http, /Math\.random/, 'lib/http.js is back on Math.random for a value that names an order');
-  assert.match(http, /crypto\.getRandomValues/);
+  const schema = readFileSync(`${ROOT}db/schema.sql`, 'utf8');
+  const sequences = [...schema.matchAll(/CREATE SEQUENCE (?:IF NOT EXISTS )?([a-z_]+)/gi)].map(m => m[1]);
+  assert.ok(sequences.includes('order_ref_seq'), 'order_ref_seq is not created by the schema');
+
+  const grants = readFileSync(`${ROOT}db/grants.mjs`, 'utf8');
+  for (const seq of sequences) {
+    assert.match(grants, new RegExp(`${seq}:`), `${seq} has no entry in SEQUENCE_GRANTS`);
+  }
+  assert.match(grants, /GRANT \$\{privs\.join\(', '\)\} ON SEQUENCE/,
+    'grantStatements no longer emits sequence grants');
 });
 
 /* ------------------------------------------------------ the checkout caps */

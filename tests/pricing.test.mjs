@@ -72,3 +72,24 @@ test('cart: money is rounded to two decimals', () => {
   const t = cartTotals(135, discountFor(135, pct10), FEE, FREE_OVER);
   assert.deepEqual(t, { subtotal: 135, discount: 13.5, shipping: 30, total: 151.5 });
 });
+
+/* ------------------------------------------------------- the basket ceiling */
+
+test('the browser and the server agree on the line cap', async () => {
+  /*
+   * lib/cart.js repeats the number instead of importing lib/config.js, because
+   * importing it into a client module would pull SHIPPING_FEE, the rate-limit
+   * table and everything else in that file into the browser bundle to read one
+   * integer. This is what stops the two spellings drifting — the same
+   * arrangement middleware.js and lib/auth.js use for the CSRF cookie name.
+   *
+   * Drift in either direction is a real bug, not a tidiness problem. If the
+   * browser's cap were the larger of the two, a customer could fill a basket
+   * the checkout then refuses after they had typed their address; if it were
+   * the smaller, the server's limit would be unreachable and untested.
+   */
+  const { MAX_LINES } = await import('../lib/cart.js');
+  const { maxOrderLines } = await import('../lib/config.js');
+  assert.equal(MAX_LINES, maxOrderLines,
+    'lib/cart.js and lib/config.js disagree about how many products a basket may hold');
+});

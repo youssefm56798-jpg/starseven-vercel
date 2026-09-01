@@ -47,8 +47,8 @@ export default function OrderFind({ lang }) {
 
         <p className="ord-lead">
           {ar
-            ? 'اكتب الإيميل اللي طلبت بيه ورقم الأوردر، وهنبعتلك لينك جديد للمتابعة. رقم الأوردر موجود في إيميل تأكيد الأوردر وشكله كده: S7-2708-12345'
-            : 'Enter the email you ordered with and your order number, and we will send you a fresh tracking link. The number is in your order confirmation email and looks like this: S7-2708-12345'}
+            ? 'اكتب الإيميل اللي طلبت بيه ورقم الأوردر، وهنبعتلك لينك جديد للمتابعة. رقم الأوردر موجود في إيميل تأكيد الأوردر وشكله كده: ‎#10001'
+            : 'Enter the email you ordered with and your order number, and we will send you a fresh tracking link. The number is in your order confirmation email and looks like #10001'}
         </p>
 
         <FindForm lang={ar ? 'ar' : 'en'} />

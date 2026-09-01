@@ -260,7 +260,15 @@ try {
     const key = newKey();
     const { status, data } = await postOrder(orderBody({ key, coupon: CODE }));
     check('200 ok', [status, data?.ok], [200, true]);
-    check('has a reference', /^S7-\d{4}-\d{4}$/.test(data?.ref || ''), true);
+    /*
+     * A counting number now, not S7-DDMM-NNNNN.
+     *
+     * The reference is drawn from a Postgres sequence so a customer can read it
+     * down a phone in one breath. Orders written before the change keep their
+     * S7- references and every lookup still accepts both shapes; this asserts
+     * what is MINTED today, which is digits and nothing else.
+     */
+    check('has a reference', /^\d{4,}$/.test(data?.ref || ''), true);
     check('one order', await orderCount(), 1);
     check('one claimed key', await attemptCount(), 1);
     check('stock taken once', await stockOf(SKU), STOCK - 2);

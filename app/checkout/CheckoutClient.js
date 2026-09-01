@@ -6,6 +6,7 @@ import { localePath } from '../../lib/urls.js';
 import Link from 'next/link';
 import { readCart, writeCart, setQty as setCartQty, clearCart } from '../../lib/cart.js';
 import { cartTotals } from '../../lib/pricing.js';
+import { formatRef } from '../../lib/order-number.js';
 import { SERVED, SERVED_LABELS } from '../../lib/delivery-eta.js';
 
 /**
@@ -30,7 +31,7 @@ const COPY = {
     city_pick: 'اختار المحافظة', e_city: 'اختار محافظة من القايمة.',
     done_h: 'استلمنا طلبك', done_p: 'هنكلمك نأكد العنوان والتوصيل. الدفع عند الاستلام.',
     done_more: 'ارجع للتسوق', cod: 'الدفع عند الاستلام',
-    consent: 'ابعتلي العروض والخصومات على رقمي',
+    consent: 'ابعتلي العروض والخصومات على الإيميل',
     consent_note: 'من غير سبام. تقدر تلغي في أي وقت.',
     agree_a: 'بإتمام الطلب أنت موافق على', agree_terms: 'الشروط', agree_and: 'و',
     agree_priv: 'سياسة الخصوصية',
@@ -48,7 +49,7 @@ const COPY = {
     city_pick: 'Choose your governorate', e_city: 'Choose a governorate from the list.',
     done_h: 'Order received', done_p: 'We will call you to confirm the address and delivery. Cash on receipt.',
     done_more: 'Back to shopping', cod: 'Cash on delivery',
-    consent: 'Send me offers and discounts on my number',
+    consent: 'Send me offers and discounts by email',
     consent_note: 'No spam. Unsubscribe any time.',
     agree_a: 'By placing this order you agree to our', agree_terms: 'Terms', agree_and: 'and',
     agree_priv: 'Privacy Policy',
@@ -383,7 +384,7 @@ export default function CheckoutClient({ lang, add, catalog, shipping, currency 
     return (
       <div className="co-done">
         <div className="star">★</div>
-        <div className="ref" dir="ltr">{done.ref}</div>
+        <div className="ref" dir="ltr">{formatRef(done.ref)}</div>
         <h1>{T.done_h}</h1>
         <p>{done.message || T.done_p}</p>
         <Link className="btn btn-red btn-full" href={L(`/shop`)}>{T.done_more}</Link>
