@@ -94,7 +94,12 @@ test('every seed statement that writes products is scoped to a SKU or to origin'
   // owner has been editing all week.
   for (const stmt of splitStatements(seed)) {
     if (!/^\s*UPDATE products/m.test(stmt)) continue;
-    const scoped = /sku = '/.test(stmt) || /origin = 'seed'/.test(stmt) || /p\.sku = v\.sku/.test(stmt);
+    // `sku IN (...)` counts as named rows too: a price applies to a line of
+    // colour variants, and one statement per SKU would be thirty statements
+    // nobody reads. `kind =` and `size_ml =` still do not count - they pick
+    // up whatever is added to that category later, which is the whole risk.
+    const scoped = /sku = '/.test(stmt) || /sku IN \(\s*'S7-/.test(stmt)
+      || /origin = 'seed'/.test(stmt) || /p\.sku = v\.sku/.test(stmt);
     assert.ok(scoped, `an UPDATE on products is scoped to nothing:\n${stmt.slice(0, 160)}`);
   }
 });

@@ -115,7 +115,7 @@ test('db/seed.sql is the seeds, the copy update, the article wave, the link fix,
   skip: existsSync(`${ROOT}db/seed.sql`) ? false : 'db/seed.sql not present',
 }, () => {
   const out = splitStatements(readFileSync(`${ROOT}db/seed.sql`, 'utf8'));
-  // 12 statements built the shop; 34 more correct and extend it. Both halves
+  // 12 statements built the shop; 42 more correct and extend it. Both halves
   // are counted so a statement appended without a test to go with it fails
   // here first. The last seven map the black-coloured products onto the grey
   // hair tile; the five before them set the ingredient lists for the waxes.
@@ -123,7 +123,16 @@ test('db/seed.sql is the seeds, the copy update, the article wave, the link fix,
   // 46, up from 45: a second bulk copy block was added at out[4] when the
   // client sent a product catalogue. It is asserted below on the same terms as
   // the first one.
-  assert.equal(out.length, 46);
+  //
+  // 54, up from 46: the client price list of 1 September, eight statements,
+  // each guarded on the price it replaces so a redeploy cannot revert a figure
+  // the shop has changed in the admin since.
+  //
+  // 63, up from 54: nine more that carry one of those price corrections through
+  // to the copy. The 400ml gel had its size written in the English name, both
+  // subtitles and the highlights list as well as in size_ml, and fixing only
+  // the column left the page contradicting itself.
+  assert.equal(out.length, 64);
   assert.ok(out[0].includes('INSERT INTO products') && out[0].includes('ON CONFLICT (sku)'));
   assert.ok(out[1].includes('INSERT INTO offers') && out[1].includes('ON CONFLICT (code)'));
   // Both article statements must target the (slug, lang) index. The old
@@ -277,18 +286,43 @@ test('the corrections are guarded on the value they are replacing', {
    * the admin, and no cheaper check finds that.
    */
   const corrections = out.slice(12);
-  assert.equal(corrections.length, 34);
+  assert.equal(corrections.length, 52);
 
   for (const stmt of corrections) {
     assert.match(stmt, /^UPDATE products/m, `not an UPDATE: ${stmt.slice(0, 60)}`);
-    assert.match(stmt, /sku = 'S7-[A-Z0-9-]+'/, `does not name one SKU: ${stmt.slice(0, 60)}`);
+    /*
+     * Named rows only. `sku IN (...)` as well as a single `sku =`, because a
+     * price applies to a whole line of colour variants and writing it out one
+     * statement per SKU would be thirty statements of noise nobody reads.
+     *
+     * What is still forbidden is the shape this test exists for: a bulk UPDATE
+     * scoped by `kind` or `size_ml`. Those look equivalent and are not - they
+     * silently pick up every product added to that category afterwards,
+     * including one an owner created in the admin an hour ago.
+     */
+    assert.match(stmt, /sku = 'S7-[A-Z0-9-]+'|sku IN \(\s*'S7-/,
+      `does not name the rows it changes: ${stmt.slice(0, 60)}`);
     // Either it checks the value it is replacing, or - for the copy, where the
     // old value is several paragraphs - it checks a marker that disappears the
     // first time it runs, or - for the ingredient lists - it checks the field
-    // is still empty. All three make the statement a no-op on the next deploy,
-    // and all three leave a rewrite done in the admin alone.
-    assert.match(stmt, /AND ((hold_level|chip_en|hair_types|color|ingredients) =|long_en LIKE)/,
+    // is still empty. All make the statement a no-op on the next deploy, and
+    // all leave a rewrite done in the admin alone.
+    assert.match(stmt, /AND ((hold_level|chip_en|hair_types|color|ingredients|price|name_en|sub_en|compare_at) =|(long_en|highlights_en) LIKE)/,
       `unguarded, so a redeploy would overwrite an admin edit: ${stmt.slice(0, 80)}`);
+  }
+
+  /*
+   * The price list is money, so it gets its own assertion rather than only
+   * passing the general rule above.
+   *
+   * A price correction guarded on anything other than the OLD PRICE is the one
+   * that quietly reverts the admin: guard it on the sku alone and every deploy
+   * puts the client September figure back over whatever the shop has changed it
+   * to since.
+   */
+  for (const stmt of corrections.filter(c => /SET price/.test(c))) {
+    assert.match(stmt, /AND price = \d+/,
+      `a price change not guarded on the price it replaces: ${stmt.replace(/\s+/g, ' ').slice(0, 90)}`);
   }
 
   const all = corrections.join('\n');

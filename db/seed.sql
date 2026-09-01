@@ -2511,24 +2511,149 @@ WHERE sku IN ('S7-W120-COCONU', 'S7-W135-OLIVE', 'S7-W135-ARGAN', 'S7-W135-COCON
 --  have put that on the shop, at no price, on the next deploy. The rows it was
 --  written for all came from the seed, so it says so.
 -- ---------------------------------------------------------------------------
---  Except the depilatory range, which the client asked to be taken off the
---  shop on 31 Aug. It is a different category of product from everything else
---  here, it has never been priced, and "ask us on WhatsApp" was inviting a
---  conversation about something there is no stock of.
+--  The depilatory range used to be excluded here.
 --
---  Naming it here rather than only setting active = FALSE in the database is
---  the whole point: this statement is what put them back the first time. A
---  hidden, unpriced, seeded row is exactly what it looks for, so hiding one by
---  hand lasted until the next deploy and no longer.
+--  It was taken off the shop on 31 Aug because it had never been priced, and
+--  "ask us on WhatsApp" was inviting a conversation about something there was
+--  no stock of. That reasoning was about the MESSAGE, not about hiding the
+--  products, and the message is fixed now: lib/product-state.js answers
+--  out-of-stock before unpriced, so a product with no stock says so plainly
+--  instead of offering a WhatsApp nobody can act on.
 --
---  This is an exclusion, not a re-hide. There is no statement anywhere that
---  forces the depilatory rows hidden, so the day a price arrives the owner can
---  set it in the admin and the range comes back without a code change.
+--  So the range comes back, visible and marked out of stock, which is what the
+--  client asked for on 1 Sep - "marked out of stock, not removed". The rows
+--  carry stock 0 and are not buyable; the checkout refuses an unpriced line
+--  regardless (app/api/order/route.js), so there is no path to an order at
+--  zero pounds.
 UPDATE products
    SET active = TRUE
  WHERE price = 0 AND active = FALSE
-   AND origin = 'seed'
-   AND kind <> 'depilatory';
+   AND origin = 'seed';
+
+-- ===========================================================================
+--  The client price list, 1 September 2026
+--
+--  Sent as a WhatsApp message from the manufacturer and applied here so that a
+--  fresh database and a redeploy both agree with the shop.
+--
+--  GUARDED ON THE OLD PRICE, and that is the whole design of this block. Each
+--  statement only touches a row that still carries the figure it is replacing,
+--  so it applies exactly once and then matches nothing for ever. An owner who
+--  later changes a price in the admin is never overwritten by a deploy - which
+--  is the mistake the depilatory range taught this file, in the other
+--  direction, in August.
+--
+--  The prices are for a product LINE, so every colour or scent variant in a
+--  line gets the same figure. The counts in the message are colour counts and
+--  they are what the SKU groups below were matched against.
+-- ===========================================================================
+
+--  جل واكس نيو ستار سفن 140 مل - 6 الوان - 80
+UPDATE products SET price = 80
+ WHERE sku IN ('S7-GW140-ARGAN','S7-GW140-JOJOBA','S7-GW140-COCONU',
+               'S7-GW140-ROSEMA','S7-GW140-SHEA','S7-GW140-ALOEVE')
+   AND price = 45;
+
+--  واكس الشعر العبوة البلاستيك 135 مل - 5 الوان - 60
+--  Four 135ml plus the 125ml black-seed, which is the fifth in the same plastic
+--  line and priced with it.
+UPDATE products SET price = 60
+ WHERE sku IN ('S7-W135-OLIVE','S7-W135-ARGAN','S7-W135-COCONU','S7-W135-SHEA','S7-W125-BLACKS')
+   AND price = 45;
+
+--  واكس بريميوم العبوة المعدن 120 مل - 5 الوان - 80
+--  Six rows, not five: the message counts colours and the coconut-oil variant
+--  is the same 120ml metal tin. Confirmed with the client before applying.
+UPDATE products SET price = 80
+ WHERE sku IN ('S7-WAX-RED','S7-WAX-PUR','S7-WAX-BLU','S7-WAX-BLK','S7-WAX-YEL','S7-W120-COCONU')
+   AND price = 45;
+
+--  كريم جل نيو ستار سفن 250 مل - 6 الوان - 80
+--  The line whose name was obscured in the screenshot by a UI overlay. It is
+--  the only 250ml product with six variants, so the match is unambiguous.
+UPDATE products SET price = 80
+ WHERE sku IN ('S7-CG250-BEESWA','S7-CG250-OLIVE','S7-CG250-ARGAN',
+               'S7-CG250-JOJOBA','S7-CG250-BLACKS','S7-CG250-COCONU')
+   AND price = 40;
+
+--  جل شعر 650 مل - 4 الوان - 80
+UPDATE products SET price = 80
+ WHERE sku IN ('S7-SG650-WHITE','S7-SG650-BLACK','S7-SG650-BLUE','S7-SG650-YELLOW')
+   AND price = 0;
+
+--  جل شعر 850 مل - 4 الوان - 100
+UPDATE products SET price = 100
+ WHERE sku IN ('S7-SG850-WHITE','S7-SG850-BLACK','S7-SG850-BLUE','S7-SG850-YELLOW')
+   AND price = 0;
+
+--  جل شعر بريميوم 250 مل - 5 الوان - 80
+UPDATE products SET price = 80
+ WHERE sku IN ('S7-GEL-YEL','S7-GEL-GRN','S7-GEL-BLU','S7-G250-WHITE','S7-G250-BLACK')
+   AND price = 40;
+
+--  جل نيو ستار سفن 400 مل - 4 الوان - 60
+--
+--  The catalogue had these four at 250 ml. The list from the client says 400,
+--  colour count and the line name match nothing else, so the size was wrong
+--  here rather than the message being about a product the shop does not carry.
+--  Both columns are corrected together and guarded together, so a row that has
+--  already been fixed by hand in the admin is left alone.
+UPDATE products SET price = 60, size_ml = 400
+ WHERE sku IN ('S7-SG250-WHITE','S7-SG250-BLACK','S7-SG250-BLUE','S7-SG250-YELLOW')
+   AND price = 40 AND size_ml = 250;
+
+--  ...and the size everywhere a customer reads it, not only in the column.
+--
+--  size_ml drives the spec row on the product page; the name, the subtitle and
+--  the highlights list are free text and say "250" independently. Correcting
+--  the column alone left the page contradicting itself - "400ml" in the spec
+--  box, "250 مل" in the line under the title - which is worse than the original
+--  error, because now one of them is definitely wrong and a customer cannot
+--  tell which.
+--
+--  Guarded on the old string, so each is a no-op once applied and none of them
+--  touches a value an owner has since rewritten in the admin. The SKU keeps its
+--  SG250 spelling: a SKU is permanent, it is printed on nothing a customer
+--  sees, and renaming it would orphan every past order line.
+UPDATE products SET name_en = 'Styling Gel 400ml — White'
+ WHERE sku = 'S7-SG250-WHITE' AND name_en = 'Styling Gel 250ml — White';
+UPDATE products SET name_en = 'Styling Gel 400ml — Black'
+ WHERE sku = 'S7-SG250-BLACK' AND name_en = 'Styling Gel 250ml — Black';
+UPDATE products SET name_en = 'Styling Gel 400ml — Blue'
+ WHERE sku = 'S7-SG250-BLUE' AND name_en = 'Styling Gel 250ml — Blue';
+UPDATE products SET name_en = 'Styling Gel 400ml — Yellow'
+ WHERE sku = 'S7-SG250-YELLOW' AND name_en = 'Styling Gel 250ml — Yellow';
+
+UPDATE products SET sub_ar = '400 مل · أبيض', sub_en = '400ml · White'
+ WHERE sku = 'S7-SG250-WHITE' AND sub_en = '250ml · White';
+UPDATE products SET sub_ar = '400 مل · أسود', sub_en = '400ml · Black'
+ WHERE sku = 'S7-SG250-BLACK' AND sub_en = '250ml · Black';
+UPDATE products SET sub_ar = '400 مل · أزرق', sub_en = '400ml · Blue'
+ WHERE sku = 'S7-SG250-BLUE' AND sub_en = '250ml · Blue';
+UPDATE products SET sub_ar = '400 مل · أصفر', sub_en = '400ml · Yellow'
+ WHERE sku = 'S7-SG250-YELLOW' AND sub_en = '250ml · Yellow';
+
+--  The last line of the highlights list is the size, on all four.
+UPDATE products
+   SET highlights_ar = replace(highlights_ar, 'عبوة 250 مل', 'عبوة 400 مل'),
+       highlights_en = replace(highlights_en, '250ml jar', '400ml jar')
+ WHERE sku IN ('S7-SG250-WHITE','S7-SG250-BLACK','S7-SG250-BLUE','S7-SG250-YELLOW')
+   AND highlights_en LIKE '%250ml jar%';
+
+--  ...and clear the "was" price that the rise left stranded.
+--
+--  S7-WAX-RED carried compare_at = 55 from when it sold at 45. At 80 that is no
+--  longer a discount, and the card was rendering "80 جنيه" with "55" struck out
+--  beside it - a price RISE drawn in the visual language of a saving, on a shop
+--  where the number is collected in cash at the door.
+--
+--  lib/money.js now refuses to draw a "was" price that is not higher than the
+--  price, so this cannot reappear on the next rise. The row is corrected anyway,
+--  because a stale value nothing renders is still a wrong value.
+UPDATE products SET compare_at = NULL
+ WHERE sku = 'S7-WAX-RED' AND compare_at = 55 AND price = 80;
+
+
 
 
 -- ---------------------------------------------------------------------------
