@@ -3,7 +3,8 @@
 import { createContext, useCallback, useContext, useEffect, useId, useRef, useState } from 'react';
 import Link from 'next/link';
 import { localePath } from '../../lib/urls.js';
-import { currencyLabel, whole } from '../../lib/money.js';
+import { currencyLabel, whole, hasDiscount } from '../../lib/money.js';
+import { buyState, BUY, OUT } from '../../lib/product-state.js';
 import { site } from '../../lib/config.js';
 import AddButton from './AddButton.js';
 import './quickview.css';
@@ -153,7 +154,13 @@ function QuickViewModal({ lang, product, onClose, triggerRef }) {
 
   if (!open) return null;
 
-  const priced = Number(product.price) > 0;
+  /*
+   * The same verdict the card behind this panel reached, from the same helper,
+   * so opening the quick view can never disagree with the grid it opened from.
+   * lib/product-state.js carries why stock is answered before price.
+   */
+  const state = buyState(product);
+  const priced = state === BUY;
   const highlights = Array.isArray(product.highlights) ? product.highlights.slice(0, 4) : [];
   // Rebuilt here, not passed in, so the sentence stays identical to the card.
   const waHref = `https://wa.me/${site.whatsapp}?text=${encodeURIComponent(
@@ -197,10 +204,14 @@ function QuickViewModal({ lang, product, onClose, triggerRef }) {
           {priced ? (
             <div className="qv-price">
               <bdi className="qv-now">{whole(product.price)} <small>{currencyLabel(lang)}</small></bdi>
-              {product.compareAt != null && <bdi className="qv-was">{whole(product.compareAt)}</bdi>}
+              {hasDiscount(product.price, product.compareAt) && <bdi className="qv-was">{whole(product.compareAt)}</bdi>}
             </div>
           ) : (
-            <div className="qv-price qv-ask">{ar ? 'اسأل عن السعر' : 'Ask for price'}</div>
+            <div className="qv-price qv-ask">
+              {state === OUT
+                ? (ar ? 'خلص من المخزن' : 'Out of stock')
+                : (ar ? 'اسأل عن السعر' : 'Ask for price')}
+            </div>
           )}
 
           {/* Key info: the same three facts the product page leads with. */}
@@ -235,6 +246,10 @@ function QuickViewModal({ lang, product, onClose, triggerRef }) {
                 label={ar ? 'ضيفه للسلة' : 'Add to cart'}
                 addedLabel={ar ? 'اتضاف للسلة ✓' : 'Added ✓'}
               />
+            ) : state === OUT ? (
+              <span className="btn btn-line qv-add" style={{ opacity: 0.6, cursor: 'default' }}>
+                {ar ? 'خلص من المخزن' : 'Out of stock'}
+              </span>
             ) : (
               <a className="btn btn-red qv-add" target="_blank" rel="noopener" href={waHref}>
                 {ar ? 'واتساب' : 'WhatsApp'}

@@ -4,7 +4,8 @@ import { localePath, localeUrl } from '../../lib/urls.js';
 import { CATEGORIES, KINDS, shopPath, shopCopy, kindColumn } from './lib.js';
 import { sql, hasDb } from '../../lib/db.js';
 import { site } from '../../lib/config.js';
-import { currencyLabel, whole } from '../../lib/money.js';
+import { currencyLabel, whole, hasDiscount } from '../../lib/money.js';
+import { buyState, BUY, OUT } from '../../lib/product-state.js';
 import { Dir, Nav, Footer, Crumb, shopCategories } from '../_components/Chrome.js';
 import AddButton from '../_components/AddButton.js';
 import { QuickViewProvider, QuickViewButton } from '../_components/QuickView.js';
@@ -186,6 +187,10 @@ export default async function ShopView({ kind, lang }) {
                 name, sub, chip,
                 image: p.image,
                 price: Number(p.price),
+                // Passed so the quick view can reach the same verdict as this
+                // card. Without it, it decided on the price alone and offered
+                // an Add button for something the checkout would refuse.
+                stock: Number(p.stock),
                 compareAt: p.compare_at,
                 slug: p.slug,
                 sku: p.sku,
@@ -208,17 +213,22 @@ export default async function ShopView({ kind, lang }) {
                       quick view never triggers the card navigation. */}
                   <QuickViewButton product={quick} lang={lang} />
                   <div className="foot">
-                    {/* A price of zero is not free — it is a product the client
-                        has not priced yet. The catalogue still shows it, but
-                        with a way to ask rather than a way to buy. */}
-                    {Number(p.price) > 0 ? (
+                    {/* Three states, decided in lib/product-state.js so this
+                        card, the quick view and the product page cannot drift
+                        apart. A price of zero is not free - it is a product the
+                        client has not priced yet - and a stock of zero beats it,
+                        because inviting a WhatsApp about something out of stock
+                        wastes the message. */}
+                    {buyState(p) === BUY ? (
                       <>
                         <div className="price">
                           <bdi className="now">{whole(p.price)} <small>{currencyLabel(lang)}</small></bdi>
-                          {p.compare_at != null && <bdi className="was">{whole(p.compare_at)}</bdi>}
+                          {hasDiscount(p.price, p.compare_at) && <bdi className="was">{whole(p.compare_at)}</bdi>}
                         </div>
                         <AddButton sku={p.sku} label={ar ? 'ضيف للسلة' : 'Add'} name={name} />
                       </>
+                    ) : buyState(p) === OUT ? (
+                      <div className="price ask">{ar ? 'خلص من المخزن' : 'Out of stock'}</div>
                     ) : (
                       <>
                         <div className="price ask">{ar ? 'اسأل عن السعر' : 'Ask for price'}</div>
