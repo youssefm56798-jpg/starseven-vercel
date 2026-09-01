@@ -87,7 +87,7 @@ export async function GET(req) {
              LIMIT 1`;
 
           const [subject, html] = tplWelcome(offers[0]?.code || 'STAR10', lang, sub.token);
-          await sendMail({ to: sub.email, subject, html, kind: 'welcome' });
+          await sendMail({ to: sub.email, subject, html, kind: 'welcome', unsubToken: sub.token });
         }
       } else {
         /*

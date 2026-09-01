@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { spawnSync } from 'node:child_process';
 
 import { LEGAL } from '../app/_components/legalCopy.js';
 
@@ -182,4 +183,166 @@ test('the lawyer brief exists and names the open questions', () => {
   assert.match(brief, /151/, 'the brief does not reference the data protection law');
   assert.match(brief, /181|consumer/i, 'the brief does not reference consumer protection');
   assert.match(brief, /Frankfurt|cross-border|transfer/i, 'the brief omits the transfer question');
+});
+
+/* ------------------------------------------ retention, which is now a real job */
+
+/**
+ * The section that was aspirational until lib/retention.js existed.
+ *
+ * The policy used to say quiz answers and IP logs were kept "a short period"
+ * while nothing in the deployment ever removed one. The three
+ * `DELETE ... interval` lines in db/schema.sql run when the schema is applied
+ * and never again, and none of them touched a column a customer would ask
+ * about. These tests are what stops that drifting back: the periods in the
+ * document are interpolated from DAYS, and the job that applies them has to be
+ * scheduled and has to name every table the document mentions.
+ */
+
+test('every period the policy publishes is the one the sweep actually applies', async () => {
+  const { DAYS } = await import('../lib/retention.js');
+
+  // The document quotes days for these; a number that stopped matching would
+  // mean the policy and the job had come apart, which is the whole failure.
+  for (const key of ['orderIp', 'quizIp', 'idempotency', 'emailRecipient', 'rateLimit']) {
+    for (const [name, body] of BODIES) {
+      assert.match(body, new RegExp(`\\b${DAYS[key]}\\b`),
+        `${name} does not state the ${key} window of ${DAYS[key]} days`);
+    }
+  }
+
+  const years = Math.round(DAYS.orderIdentity / 365);
+  assert.match(LEGAL.privacy.en.body, new RegExp(`\\b${years} years\\b`),
+    'the English policy no longer says how long an order keeps a customer on it');
+  assert.match(LEGAL.privacy.ar.body, new RegExp(`\\b${years} `),
+    'the Arabic policy no longer says how long an order keeps a customer on it');
+});
+
+test('the retention sweep is scheduled, not merely written', () => {
+  // A prune job nobody runs is the same defect as a policy nobody implements.
+  const vercel = JSON.parse(read('vercel.json'));
+  const paths = (vercel.crons || []).map(c => c.path);
+  assert.ok(paths.includes('/api/cron/prune'),
+    `vercel.json does not schedule the retention sweep: ${paths.join(', ') || 'no crons at all'}`);
+
+  const route = read('app/api/cron/prune/route.js');
+  assert.match(route, /prune\(sql\)/, 'the scheduled route does not run the sweep');
+});
+
+test('the sweep touches every table the policy names a period for', () => {
+  const retention = read('lib/retention.js');
+  for (const table of ['orders', 'subscribers', 'quiz_results', 'order_attempts', 'email_log', 'rate_limits']) {
+    assert.match(retention, new RegExp(`\\b${table}\\b`),
+      `the policy publishes a retention period that lib/retention.js does not apply to ${table}`);
+  }
+});
+
+test('the sweep redacts and cannot delete the audit trail', async () => {
+  /*
+   * The design decision the policy depends on, asserted so that a later "tidy
+   * up" cannot quietly turn the retention job into a way to erase orders.
+   * db/grants.mjs withholds DELETE from the audit tables; if the sweep ever
+   * needs it, this fails and the conversation happens here rather than after.
+   */
+  const { GRANTS } = await import('../db/grants.mjs');
+  for (const table of ['orders', 'email_log', 'quiz_results', 'order_attempts']) {
+    assert.ok(!GRANTS[table].includes('DELETE'),
+      `${table} now grants DELETE to the runtime - the retention sweep is supposed to redact, not erase`);
+    assert.ok(GRANTS[table].includes('UPDATE'),
+      `${table} has no UPDATE, so the retention sweep cannot redact it`);
+  }
+});
+
+/* --------------------------------------------------- analytics, when it changes */
+
+test('the Google Analytics paragraph is gated on the same variable as the script', () => {
+  /*
+   * GA4 is wired up and dormant: app/_components/Telemetry.js loads it only when
+   * NEXT_PUBLIC_GA_ID is set, and next.config.mjs opens the CSP for Google on
+   * the same condition. Setting that variable in Vercel would put _ga cookies on
+   * every visitor - which would make the cookie sentence in this policy false,
+   * from a deploy, with no code review anywhere near it.
+   *
+   * So the copy reads the same gate. This asserts the wiring; the test below
+   * asserts the behaviour.
+   */
+  assert.match(read('app/_components/Telemetry.js'), /NEXT_PUBLIC_GA_ID/,
+    'Telemetry no longer gates GA on NEXT_PUBLIC_GA_ID - this test needs rewriting, not deleting');
+  assert.match(read('app/_components/legalCopy.js'), /NEXT_PUBLIC_GA_ID/,
+    'the policy does not read the GA gate, so turning GA on would leave it saying customers get no cookies');
+});
+
+test('turning Google Analytics on turns the Google paragraph on', () => {
+  /*
+   * Loaded in a child process with the variable set, because the module reads it
+   * once at import and this suite has already imported it without.
+   */
+  const script = `
+    import { LEGAL } from './app/_components/legalCopy.js';
+    const out = { en: LEGAL.privacy.en.body, ar: LEGAL.privacy.ar.body };
+    process.stdout.write(JSON.stringify(out));
+  `;
+  const res = spawnSync(process.execPath, ['--input-type=module', '-e', script], {
+    cwd: ROOT,
+    encoding: 'utf8',
+    env: { ...process.env, NEXT_PUBLIC_GA_ID: 'G-TESTONLY' },
+  });
+  assert.equal(res.status, 0, `could not render the policy with GA configured: ${res.stderr}`);
+
+  const withGa = JSON.parse(res.stdout);
+  assert.match(withGa.en, /Google Analytics/,
+    'GA is configured and the English policy does not mention Google');
+  assert.match(withGa.ar, /Google Analytics/,
+    'GA is configured and the Arabic policy does not mention Google');
+  assert.match(withGa.en, /_ga/, 'the policy does not say GA sets a cookie');
+
+  // And with it unset - the state this suite already has - it must not.
+  assert.doesNotMatch(LEGAL.privacy.en.body, /Google Analytics/,
+    'the policy names Google Analytics while no GA id is configured');
+});
+
+/* ------------------------------------------------- consent, and for what channel */
+
+test('the checkout consent asks for the channel the code actually uses', () => {
+  /*
+   * The checkbox said "Send me offers and discounts on my number" and what it
+   * did was add an EMAIL address to the list that lib/mail.js broadcasts to.
+   * Consent gathered for one channel and used on another is not consent for the
+   * channel it was used on, whatever the policy says elsewhere.
+   */
+  const checkout = read('app/checkout/CheckoutClient.js');
+  const offers = read('app/admin/_lib/offer-actions.js');
+
+  assert.match(offers, /sendMail\(/, 'offers are no longer sent by email - the consent copy needs revisiting');
+  assert.doesNotMatch(offers, /whatsapp|sms/i,
+    'offers now go out on another channel; the checkout checkbox and the policy both say email only');
+
+  assert.doesNotMatch(checkout, /offers and discounts on my number/i,
+    'the English checkbox still asks for the mobile number to be used for marketing');
+  assert.doesNotMatch(checkout, /العروض والخصومات على رقمي/,
+    'the Arabic checkbox still asks for the mobile number to be used for marketing');
+
+  for (const [name, body] of BODIES) {
+    assert.match(body, /email|الإيميل/i, `${name} does not say which channel offers are sent on`);
+  }
+});
+
+/* ----------------------------------------------- the deadline the shop enforces */
+
+test('the terms state the hold window that actually cancels the order', async () => {
+  /*
+   * /api/cron/release cancels an unconfirmed order after ORDER_HOLD_HOURS, and
+   * after the shorter ORDER_WARNED_HOLD_HOURS when the WhatsApp confirmation
+   * was delivered and ignored. A customer whose order disappears overnight was
+   * told about it nowhere until this clause existed.
+   */
+  const { orderHoldHours, orderWarnedHoldHours } = await import('../lib/config.js');
+  if (!orderHoldHours) return; // the sweep is off, and so is the clause
+
+  assert.match(LEGAL.terms.en.body, new RegExp(`\\b${orderHoldHours} hours\\b`),
+    'the English terms do not state the hold window that cancels an unconfirmed order');
+  assert.match(LEGAL.terms.ar.body, new RegExp(`\\b${orderHoldHours} `),
+    'the Arabic terms do not state the hold window that cancels an unconfirmed order');
+  assert.match(LEGAL.terms.en.body, new RegExp(`\\b${orderWarnedHoldHours} hours\\b`),
+    'the English terms do not state the shorter window applied after a delivered WhatsApp confirmation');
 });
