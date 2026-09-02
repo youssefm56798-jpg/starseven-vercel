@@ -178,6 +178,39 @@ function Field({ id, label, val, set, err, hint, type = 'text', ta, sel, ...rest
   );
 }
 
+/**
+ * One rule per field, in one place.
+ *
+ * These used to live inline inside submit(), which meant the only moment a
+ * customer learned their phone number was wrong was after pressing Place
+ * order. Typing eleven digits, leaving the field, filling in four more and
+ * only then being sent back is a bad way to find out - and on a phone the
+ * error can be off screen when it appears.
+ *
+ * So blur checks the field the customer just left, using these same functions.
+ * Extracted rather than duplicated on purpose: two copies of "what counts as a
+ * valid Egyptian mobile" would drift, and the copy that drifts is the one that
+ * lets a bad number through to a server that then refuses it.
+ *
+ * The phone rule is deliberately the same shape as normalizePhone() in
+ * lib/phone.js, which is what the route actually trusts. This one exists to
+ * save a round trip and to say so early, never to be the real check.
+ */
+const RULES = {
+  name: (v, T) => (v.trim().length < 3 ? T.e_name : ''),
+  phone: (v, T) =>
+    (/^(?:\+?20|0020)?0?1[0125]\d{8}$/.test(v.replace(/\D/g, '')) ? '' : T.e_phone),
+  addr: (v, T) => (v.trim().length < 8 ? T.e_addr : ''),
+  // The picker starts empty, so this catches somebody submitting without
+  // touching it. The server refuses an unserved governorate regardless - this
+  // only saves the round trip.
+  city: (v, T) => (v.trim() ? '' : T.e_city),
+  // Required. There are no accounts, so this address is the only way the
+  // customer can reach their order again - to check it or to cancel it.
+  email: (v, T) =>
+    (/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim()) ? '' : T.e_email),
+};
+
 export default function CheckoutClient({ lang, add, catalog, shipping, currency }) {
   const T = COPY[lang] || COPY.ar;
   const ar = lang === 'ar';
@@ -248,7 +281,13 @@ export default function CheckoutClient({ lang, add, catalog, shipping, currency 
   const subtotalNow = lines.reduce((n, l) => n + l.price * l.qty, 0);
   const t = cartTotals(subtotalNow, applied ? applied.amount : 0, shipping.fee, shipping.freeOver);
 
-  const upd = k => v => setF(s => ({ ...s, [k]: v }));
+  const upd = k => v => {
+    setF(s => ({ ...s, [k]: v }));
+    // A field that has been told it is wrong stops saying so the moment it
+    // is right, without waiting for another blur or another submit.
+    setErrs(prev => (prev[k] && RULES[k] && !RULES[k](v, T)
+      ? { ...prev, [k]: undefined } : prev));
+  };
 
   function changeQty(sku, qty) {
     setCart(setCartQty(sku, qty));
@@ -276,21 +315,31 @@ export default function CheckoutClient({ lang, add, catalog, shipping, currency 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [subtotalNow]);
 
+  /**
+   * Check one field when the customer leaves it.
+   *
+   * Only ever ADDS an error for the field just left, and only when it has
+   * something in it - blurring an untouched field on the way past should not
+   * light it up red before anyone has typed anything. Clearing happens on the
+   * next keystroke, so a corrected value stops complaining immediately rather
+   * than waiting for another blur.
+   */
+  const blur = name => () => {
+    const value = f[name] ?? '';
+    if (!value.trim()) return;
+    const bad = RULES[name] ? RULES[name](value, T) : '';
+    setErrs(prev => (prev[name] === bad ? prev : { ...prev, [name]: bad || undefined }));
+  };
+
   async function submit(e) {
     e.preventDefault();
     if (busy) return;
 
     const next = {};
-    if (f.name.trim().length < 3) next.name = T.e_name;
-    if (!/^(?:\+?20|0020)?0?1[0125]\d{8}$/.test(f.phone.replace(/\D/g, ''))) next.phone = T.e_phone;
-    if (f.addr.trim().length < 8) next.addr = T.e_addr;
-    // The picker starts empty, so this catches somebody submitting without
-    // touching it. The server refuses an unserved governorate regardless -
-    // this only saves the round trip.
-    if (!f.city.trim()) next.city = T.e_city;
-    // Required. There are no accounts, so this address is the only way the
-    // customer can reach their order again — to check it or to cancel it.
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(f.email.trim())) next.email = T.e_email;
+    for (const [name, check] of Object.entries(RULES)) {
+      const bad = check(f[name], T);
+      if (bad) next[name] = bad;
+    }
     setErrs(next);
     if (Object.keys(next).length) {
       /* Put the caret on the first thing that is wrong. Without this the page
@@ -413,13 +462,13 @@ export default function CheckoutClient({ lang, add, catalog, shipping, currency 
           {top && <div className="formmsg" role="alert">{top}</div>}
 
           <div className="ff2">
-            <Field id="name" label={T.name} val={f.name} set={upd('name')} err={errs.name}
+            <Field id="name" label={T.name} val={f.name} set={upd('name')} onBlur={blur('name')} err={errs.name}
               autoComplete="name" />
-            <Field id="phone" label={T.phone} val={f.phone} set={upd('phone')} err={errs.phone}
+            <Field id="phone" label={T.phone} val={f.phone} set={upd('phone')} onBlur={blur('phone')} err={errs.phone}
               type="tel" dir="ltr" inputMode="tel" autoComplete="tel" placeholder="01xxxxxxxxx" />
           </div>
 
-          <Field id="addr" label={T.addr} val={f.addr} set={upd('addr')} err={errs.addr} ta
+          <Field id="addr" label={T.addr} val={f.addr} set={upd('addr')} onBlur={blur('addr')} err={errs.addr} ta
             autoComplete="street-address" />
 
           <div className="ff2">
@@ -438,7 +487,7 @@ export default function CheckoutClient({ lang, add, catalog, shipping, currency 
                   </option>
                 )),
               ]} />
-            <Field id="email" label={T.email} val={f.email} set={upd('email')} err={errs.email}
+            <Field id="email" label={T.email} val={f.email} set={upd('email')} onBlur={blur('email')} err={errs.email}
               hint={T.email_hint}
               type="email" dir="auto" autoComplete="email" required />
           </div>
