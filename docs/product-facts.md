@@ -292,8 +292,7 @@ Premium line, and Amazon carries both. They are easy to confuse.
 
 ## Still missing
 
-- **Ingredient list for the Argan (blue) wax** — the only one of our five with no photographed panel
-- **Ingredient lists for all three gels**
+- **Ingredient lists for the gels** — and for all 55 catalogue SKUs. Only the five 120ml Premium waxes have a transcribed panel; every other product page shows the honest placeholder instead of a list. (The Argan wax was on this list and has since been read off a panel.)
 - Manufacturer address, cosmetic registration / EDA notification number
 - Scent descriptions for any SKU
 - Directions for four of the five waxes (only Pro X has a printed set)

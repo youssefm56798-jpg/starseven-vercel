@@ -4,7 +4,6 @@ import { createContext, useCallback, useContext, useEffect, useId, useRef, useSt
 import Link from 'next/link';
 import { localePath } from '../../lib/urls.js';
 import { currencyLabel, whole } from '../../lib/money.js';
-import { site } from '../../lib/config.js';
 import AddButton from './AddButton.js';
 import './quickview.css';
 import { imageUrl, imageSrcSet } from '../../lib/product-image.js';
@@ -22,9 +21,7 @@ import { imageUrl, imageSrcSet } from '../../lib/product-image.js';
  *
  * The product arrives as plain serialisable fields already resolved for the
  * page language, because the trigger is a client component and cannot re-read
- * the row from the server. The one thing kept out of the payload is the
- * unpriced WhatsApp copy, which is rebuilt from the name so it stays identical
- * to the sentence the card sends.
+ * the row from the server.
  */
 
 const QuickViewCtx = createContext(null);
@@ -153,12 +150,11 @@ function QuickViewModal({ lang, product, onClose, triggerRef }) {
 
   if (!open) return null;
 
-  const priced = Number(product.price) > 0;
+  // The same verdict the card behind this panel reached, read from the same two
+  // fields, so opening the dialog can never disagree with the grid it opened
+  // from. See the comment on the card in app/shop/view.js.
+  const priced = Number(product.price) > 0 && Number(product.stock) > 0;
   const highlights = Array.isArray(product.highlights) ? product.highlights.slice(0, 4) : [];
-  // Rebuilt here, not passed in, so the sentence stays identical to the card.
-  const waHref = `https://wa.me/${site.whatsapp}?text=${encodeURIComponent(
-    ar ? `عايز أعرف سعر ${product.name}` : `What is the price of ${product.name}?`,
-  )}`;
 
   function onOverlayMouseDown(e) {
     // Only a press that both starts and lands on the backdrop closes the
@@ -200,7 +196,7 @@ function QuickViewModal({ lang, product, onClose, triggerRef }) {
               {product.compareAt != null && <bdi className="qv-was">{whole(product.compareAt)}</bdi>}
             </div>
           ) : (
-            <div className="qv-price qv-ask">{ar ? 'اسأل عن السعر' : 'Ask for price'}</div>
+            <div className="qv-price qv-ask">{ar ? 'خلص من المخزن' : 'Out of stock'}</div>
           )}
 
           {/* Key info: the same three facts the product page leads with. */}
@@ -236,9 +232,9 @@ function QuickViewModal({ lang, product, onClose, triggerRef }) {
                 addedLabel={ar ? 'اتضاف للسلة ✓' : 'Added ✓'}
               />
             ) : (
-              <a className="btn btn-red qv-add" target="_blank" rel="noopener" href={waHref}>
-                {ar ? 'واتساب' : 'WhatsApp'}
-              </a>
+              <span className="btn btn-line qv-add" style={{ opacity: 0.6, cursor: 'default' }}>
+                {ar ? 'خلص من المخزن' : 'Out of stock'}
+              </span>
             )}
             <Link className="btn btn-line qv-details" href={L(`/product/${product.slug}`)} onClick={onClose}>
               {ar ? 'كل التفاصيل ←' : 'Full details →'}

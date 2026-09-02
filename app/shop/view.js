@@ -193,6 +193,10 @@ export default async function ShopView({ kind, lang }) {
                 color: p.color,
                 hold: p.hold_level,
                 sizeMl: p.size_ml,
+                // In or out, never the count. The dialog needs it to reach the
+                // same verdict as the card it opened from, and it had no way to
+                // ask, so an out-of-stock product opened onto an Add button.
+                stock: Number(p.stock) > 0 ? 1 : 0,
                 highlights,
               };
               return (
@@ -208,10 +212,20 @@ export default async function ShopView({ kind, lang }) {
                       quick view never triggers the card navigation. */}
                   <QuickViewButton product={quick} lang={lang} />
                   <div className="foot">
-                    {/* A price of zero is not free — it is a product the client
-                        has not priced yet. The catalogue still shows it, but
-                        with a way to ask rather than a way to buy. */}
-                    {Number(p.price) > 0 ? (
+                    {/* Two outcomes, and unpriced is the same one as unstocked.
+                        A price of zero is not free and it is not an invitation
+                        to ask — it is a product nobody can sell you, which is
+                        the same fact as having none of it.
+                        There used to be a third outcome: "اسأل عن السعر" beside
+                        a WhatsApp button pre-filled with the product name. 23 of
+                        the 63 live products were in it, and a grid where a third
+                        of the cards will not say what anything costs reads as a
+                        shop that is not open rather than as a complete range. It
+                        also put a message on the owner for every one of them.
+                        The way out of the state is a price in the admin.
+                        Stock is read here too. It was not, so a sold-out product
+                        offered an Add button the checkout then refused. */}
+                    {Number(p.price) > 0 && Number(p.stock) > 0 ? (
                       <>
                         <div className="price">
                           <bdi className="now">{whole(p.price)} <small>{currencyLabel(lang)}</small></bdi>
@@ -220,18 +234,7 @@ export default async function ShopView({ kind, lang }) {
                         <AddButton sku={p.sku} label={ar ? 'ضيف للسلة' : 'Add'} name={name} />
                       </>
                     ) : (
-                      <>
-                        <div className="price ask">{ar ? 'اسأل عن السعر' : 'Ask for price'}</div>
-                        {/* Named for the same reason the Add buttons are: a grid
-                            of unpriced products rendered a column of links all
-                            called "WhatsApp". */}
-                        <a className="buy" target="_blank" rel="noopener"
-                          aria-label={ar ? `اسأل عن سعر ${name} على واتساب` : `Ask about ${name} on WhatsApp`}
-                          href={`https://wa.me/${site.whatsapp}?text=${encodeURIComponent(
-                            ar ? `عايز أعرف سعر ${p.name_ar}` : `What is the price of ${p.name_en}?`)}`}>
-                          {ar ? 'واتساب' : 'WhatsApp'}
-                        </a>
-                      </>
+                      <div className="price ask">{ar ? 'خلص من المخزن' : 'Out of stock'}</div>
                     )}
                   </div>
                 </div>

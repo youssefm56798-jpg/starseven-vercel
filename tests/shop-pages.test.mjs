@@ -511,11 +511,16 @@ test('the quick view is one state-driven dialog wired onto every card', async ()
   assert.match(qv, /triggerRef\.current[\s\S]{0,140}\.focus\(\)/,
     'focus does not return to the trigger when the dialog closes');
 
-  // A priced product gets add-to-cart; an unpriced one gets the WhatsApp ask
-  // path and no buy button - the same split the card makes.
+  // A product that is priced AND in stock gets add-to-cart; anything else gets
+  // "out of stock" and no buy button - the same split the card makes. The
+  // WhatsApp ask that used to be the third outcome is gone, and stays gone:
+  // 23 of 63 live products were in it, each one a message for the owner to
+  // answer by hand about a product nobody had costed.
   assert.match(qv, /Number\(product\.price\)\s*>\s*0/, 'the dialog does not branch on whether the product is priced');
+  assert.match(qv, /Number\(product\.stock\)\s*>\s*0/, 'the dialog ignores stock, so a sold-out product opens onto an Add button');
   assert.match(qv, /AddButton/, 'a priced product cannot be added to cart from the dialog');
-  assert.match(qv, /wa\.me/, 'an unpriced product has no WhatsApp ask path');
+  assert.doesNotMatch(qv, /wa\.me/, 'the dialog still sends shoppers to WhatsApp about a price');
+  assert.match(qv, /خلص من المخزن/, 'the dialog cannot say a product is unavailable');
 
   // The full-details link is language-aware, so the English dialog links the
   // English page. It goes through the localePath helper, aliased L here.
