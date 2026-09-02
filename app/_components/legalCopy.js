@@ -28,7 +28,7 @@
  * rather than guessing.
  */
 import { DAYS } from '../../lib/retention.js';
-import { orderHoldHours, orderWarnedHoldHours } from '../../lib/config.js';
+import { site, orderHoldHours, orderWarnedHoldHours } from '../../lib/config.js';
 
 /** Five years reads better than 1825 days, and the policy is for reading. */
 const years = Math.round(DAYS.orderIdentity / 365);
@@ -85,7 +85,7 @@ export const LEGAL = {
   privacy: {
     ar: {
       title: 'سياسة الخصوصية',
-      body: `آخر تحديث: أغسطس 2026
+      body: `آخر تحديث: سبتمبر 2026
 
 نيو ستار سفن (علامة تابعة لـ **أوفانزا كوزمتيكس** — [[الاسم القانوني المسجل]]، [[العنوان]]، سجل تجاري [[رقم]]، بطاقة ضريبية [[رقم]]) بتحترم خصوصيتك. الصفحة دي بتشرح بالظبط إيه اللي بنجمعه، ليه، وفين بيتخزن.
 
@@ -110,7 +110,7 @@ export const LEGAL = {
 قبل ما أي عنوان صفحة يتبعت لأي أداة تحليلات، بنشيل منه توكن الدخول بتاع الأوردر. يعني اللينك اللي بيفتح أوردرك عمره ما بيوصل لجوجل ولا لـ Vercel.
 
 - **تخزين محلي في متصفحك:** السلة، ومفتاح بيمنع تكرار الأوردر لو دوست مرتين. البيانات دي بتفضل على جهازك.
-- **الكوكيز:** العميل ${gaOn ? 'بياخد كوكيز جوجل أناليتكس المذكورة فوق وبس' : 'مبياخدش أي كوكي من الموقع'}. لوحة التحكم ليها كوكيز خاصة بيها — كوكي دخول وكوكي حماية — ومحصورة على مسار /admin، يعني عمرها ما بتتبعت لعميل.
+- **الكوكيز:** العميل ${gaOn ? 'بياخد كوكيز جوجل أناليتكس المذكورة فوق وبس' : 'مبياخدش أي كوكي من الموقع'}. لوحة التحكم ليها كوكيز خاصة بيها — كوكي دخول، وكوكي التحقق بخطوتين، وكوكي حماية — وكلها محصورة على مسار /admin، يعني عمرها ما بتتبعت لعميل.
 
 ## فين بتتخزن بياناتك
 
@@ -139,7 +139,7 @@ export const LEGAL = {
 
     en: {
       title: 'Privacy Policy',
-      body: `Last updated: August 2026
+      body: `Last updated: September 2026
 
 New Star Seven (a brand of **Ovanza Cosmetics** — [[registered legal name]], [[address]], commercial register [[number]], tax card [[number]]) respects your privacy. This page explains exactly what we collect, why, and where it is stored.
 
@@ -164,7 +164,7 @@ Plainly: this site runs **Vercel Web Analytics** and **Vercel Speed Insights**. 
 Before any page address is reported to any analytics tool, the order access token is stripped out of it. The link that opens your order never reaches Google or Vercel.
 
 - **Local storage in your browser:** your cart, and a key that stops a double tap creating two orders. Both stay on your device.
-- **Cookies:** ${gaOn ? 'the Google Analytics cookies described above, and nothing else' : 'customers are given none at all'}. The admin panel sets its own — a login cookie and a CSRF cookie — and they are scoped to /admin, so a customer is never sent one.
+- **Cookies:** ${gaOn ? 'the Google Analytics cookies described above, and nothing else' : 'customers are given none at all'}. The admin panel sets its own — a login cookie, a two-factor cookie and a CSRF cookie — and all three are scoped to /admin, so a customer is never sent one.
 
 ## Where your data is stored
 
@@ -195,7 +195,7 @@ You can ask for a copy of your data, correct it, delete it, or stop the offers. 
   terms: {
     ar: {
       title: 'الشروط والأحكام',
-      body: `آخر تحديث: أغسطس 2026
+      body: `آخر تحديث: سبتمبر 2026
 
 باستخدامك موقع نيو ستار سفن والطلب منه، إنت موافق على الشروط دي. البايع هو [[الاسم القانوني المسجل]]، [[العنوان]]، سجل تجاري [[رقم]]، بطاقة ضريبية [[رقم]].
 
@@ -207,7 +207,7 @@ You can ask for a copy of your data, correct it, delete it, or stop the offers. 
 
 ## التوصيل
 
-- مصاريف ومدة التوصيل بتبان في الشيك أوت وبتختلف حسب المحافظة.
+- رسوم التوصيل **${site.shipping} جنيه** على أي أوردر${site.freeOver > 0 ? `، **ومجاني** لو الأوردر ${site.freeOver} جنيه أو أكتر` : ''}. الرقم بيبان في الشيك أوت قبل ما تأكد.
 - بنبعتلك على الإيميل ميعاد وصول تقريبي بعد ما نأكد الأوردر. ده تقدير مش وعد قاطع.
 
 ## إلغاء الأوردر وتعديله
@@ -216,11 +216,11 @@ You can ask for a copy of your data, correct it, delete it, or stop the offers. 
 - بعد ما يخرج مع المندوب، تقدر تطلب الإلغاء من نفس اللينك وهنكلمك نظبطها.
 - لو عايز تغيّر الكمية أو العنوان بعد الطلب، كلّمنا وإحنا نعدّلها، وهيوصلك إيميل بالتفاصيل الجديدة.${HOLD_CLAUSE.ar}
 
-## الاسترجاع
+## الاسترجاع والاستبدال
 
-- **حقك في الاسترجاع خلال 14 يوم:** طبقاً لقانون حماية المستهلك المصري، من حقك ترجّع المنتج خلال 14 يوم من الاستلام. المنتج لازم يكون بحالته وما اتفتحش استخدام. [[يراجع المحامي: المدة والاستثناءات لمنتجات التجميل]]
-- **لو وصلك تالف أو غلط:** كلّمنا على 01028282216 وإحنا نظبطها على حسابنا.
-- المنتجات اللي بتتفتح وتتستعمل ممكن يكون ليها استثناء لأسباب صحية — [[يراجع المحامي]].
+- **الاستبدال والاسترجاع خلال 14 يوم:** من حقك تطلب استبدال المنتج أو استرجاعه خلال 14 يوم من تاريخ الاستلام، بشرطين: يكون المنتج في حالته الأصلية ومتستخدمش، والعلبة الأصلية وكل الملحقات بحالتها الكاملة.
+- **لو وصلك منتج غير اللي طلبته، أو وصل تالف:** كلّمنا على 01028282216 وهنستبدله بالصح أو نرجّعلك فلوسك، والشحن في الحالتين على حسابنا.
+- المنتجات اللي اتفتحت أو اتستخدمت مش بتتقبل في الاسترجاع، لأسباب صحية — إلا لو كانت هي نفسها الغلط أو التالف.
 
 ## أكواد الخصم
 
@@ -241,7 +241,7 @@ You can ask for a copy of your data, correct it, delete it, or stop the offers. 
 
     en: {
       title: 'Terms & Conditions',
-      body: `Last updated: August 2026
+      body: `Last updated: September 2026
 
 By using the New Star Seven site and ordering from it, you agree to these terms. The seller is [[registered legal name]], [[address]], commercial register [[number]], tax card [[number]].
 
@@ -253,7 +253,7 @@ By using the New Star Seven site and ordering from it, you agree to these terms.
 
 ## Delivery
 
-- Delivery fees and times are shown at checkout and vary by governorate.
+- Delivery is **${site.shipping} EGP** on any order${site.freeOver > 0 ? `, and **free** on orders of ${site.freeOver} EGP or more` : ''}. The figure is shown at checkout before you confirm.
 - After we confirm your order we email you an estimated arrival window. It is an estimate, not a guarantee.
 
 ## Cancelling and changing an order
@@ -262,11 +262,11 @@ By using the New Star Seven site and ordering from it, you agree to these terms.
 - Once it is with the courier you can request cancellation from the same link and we will call you to sort it out.
 - If you want to change quantities or the address after ordering, tell us and we will amend it. You will get an email showing the new details.${HOLD_CLAUSE.en}
 
-## Returns
+## Returns & exchanges
 
-- **Your 14-day right to return:** under Egyptian consumer protection law you may return a product within 14 days of receiving it. It must be in its original condition and unused. [[for the lawyer: confirm the period and any cosmetics exemption]]
-- **If it arrives damaged or wrong:** call 01028282216 and we will put it right at our cost.
-- Opened and used products may be exempt for hygiene reasons — [[for the lawyer]].
+- **Exchange or return within 14 days:** you may ask to exchange or return a product within 14 days of receiving it, on two conditions: it is in its original condition and unused, and the original box and all accessories are complete.
+- **If you receive the wrong product, or it arrives damaged:** call 01028282216 and we will exchange it for the right one or refund you, with delivery at our cost either way.
+- Opened or used products cannot be returned, for hygiene reasons — unless they are the wrong or damaged item itself.
 
 ## Discount codes
 
