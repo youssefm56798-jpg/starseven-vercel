@@ -10,7 +10,8 @@
 
 import { after } from 'next/server';
 import { sql, clientIp, rateOk } from '../../../lib/db.js';
-import { ok, fail, readJson, langOf, orderRef, token40 } from '../../../lib/http.js';
+import { ok, fail, readJson, langOf, token40 } from '../../../lib/http.js';
+import { formatRef, fakeOrderRef } from '../../../lib/order-number.js';
 import { discountFor, cartTotals } from '../../../lib/pricing.js';
 import { normalizePhone } from '../../../lib/phone.js';
 import { sendMail, tplOrder, tplOrderAdmin } from '../../../lib/mail.js';
@@ -35,7 +36,7 @@ export async function POST(req) {
 
   // Honeypot: a field no human ever sees. Answer exactly like a success —
   // a plausible reference and no trace in the database — so the bot moves on.
-  if (trapped(body.hp)) return ok({ ref: orderRef() });
+  if (trapped(body.hp)) return ok({ ref: fakeOrderRef() });
 
   const ip = clientIp(req);
   if (!(await rateOk('order', ip, ...limits.order))) return tooMany(lang);
@@ -195,7 +196,7 @@ export async function POST(req) {
 
   // One query for the whole basket. Prices come from here and nowhere else.
   const found = await sql`
-    SELECT id, sku, name_ar, name_en, price, stock
+    SELECT id, sku, name_ar, name_en, price, stock, image
       FROM products
      WHERE sku = ANY(${[...want.keys()]}::text[])
        AND active = true`;
@@ -255,6 +256,14 @@ export async function POST(req) {
       name: ar ? p.name_ar : p.name_en,
       price,
       qty,
+      // Carried for the confirmation email, which draws the jar next to the
+      // line. order_items has no image column and does not want one - the
+      // INSERT below names its columns, so this rides along to the templates
+      // and is dropped at the database. A product photographed differently
+      // next year should not change what a receipt from today looks like in
+      // any way that matters, and the name and the price are the parts that
+      // do; the picture is decoration and is allowed to follow the catalogue.
+      image: p.image || '',
     });
   }
 
@@ -396,7 +405,7 @@ export async function POST(req) {
    */
   const replyFor = ref => {
     // Prefilled WhatsApp text so the customer can jump straight into the chat.
-    const waLines = [ar ? `أوردر رقم ${ref}` : `Order ${ref}`];
+    const waLines = [ar ? `أوردر رقم ${formatRef(ref)}` : `Order ${formatRef(ref)}`];
     for (const it of items) waLines.push(`• ${it.name} × ${it.qty}`);
     waLines.push(`${ar ? 'الإجمالي: ' : 'Total: '}${money(total)} ${site.currency}`);
 
@@ -602,29 +611,40 @@ export async function POST(req) {
     return stmts;
   };
 
-  let ref = '';
-  let reply = null;
+  /*
+   * The order number, drawn once and kept.
+   *
+   * Here rather than at the top of the route, because everything above this
+   * line can still refuse the order and a refused checkout should not consume a
+   * number. It cannot be free of gaps regardless - nextval() does not roll
+   * back, so a write that fails below burns one - but there is no reason to
+   * spend numbers on orders that were never going to be written.
+   */
+  const [seq] = await sql`SELECT nextval('order_ref_seq')::text AS ref`;
+  const ref = seq.ref;
+  const reply = replyFor(ref);
+
   let written = false;
   let writeErr = null;
 
   /*
-   * orderRef() is five random digits within a day, so a collision is unlikely
-   * but not impossible. A duplicate is worth retrying; anything else is not.
-   * A retry is safe for the claim too: the collision aborted the batch, so the
-   * key it tried to take was rolled back with everything else and is free again.
+   * The loop exists for one case, and it is no longer the reference.
    *
-   * 23505 has a second meaning now, and the retry is right for that one too.
-   * Two checkouts racing for the last slot of a per-customer-capped code both
-   * compute the same slot number and one loses on idx_redemptions_slot. Its
-   * whole batch rolls back, this loop draws a fresh reference and tries again —
-   * and the second attempt reads the winner's committed redemption, fails the
-   * count test in the same statement, and is refused as 22012 below. So the
-   * loser is told the code is spent rather than being handed a second
-   * redemption, which is exactly the outcome the index exists to produce.
+   * 23505 used to mean two orders had drawn the same random reference. A
+   * sequence cannot collide, so that meaning is gone. What it means today is
+   * the per-customer redemption slot: two checkouts racing for the last use of
+   * a capped code compute the same slot number and one loses on
+   * idx_redemptions_slot.
+   *
+   * Retrying the loser is right, and it is right with the SAME reference - its
+   * whole batch rolled back, so the reference, the idempotency claim and the
+   * stock it touched all went with it. The second attempt re-reads the
+   * redemption count, now sees the winner committed, fails the count test in
+   * the same statement and is refused as 22012 below. So the loser is told the
+   * code is spent rather than being handed a second redemption, which is
+   * exactly the outcome the unique index exists to produce.
    */
   for (let attempt = 0; attempt < 5 && !written; attempt++) {
-    ref = orderRef();
-    reply = replyFor(ref);
     try {
       await sql.transaction(writeFor(ref, reply));
       written = true;

@@ -511,13 +511,22 @@ test('the quick view is one state-driven dialog wired onto every card', async ()
   assert.match(qv, /triggerRef\.current[\s\S]{0,140}\.focus\(\)/,
     'focus does not return to the trigger when the dialog closes');
 
-  // A product that is priced AND in stock gets add-to-cart; anything else gets
-  // "out of stock" and no buy button - the same split the card makes. The
-  // WhatsApp ask that used to be the third outcome is gone, and stays gone:
-  // 23 of 63 live products were in it, each one a message for the owner to
-  // answer by hand about a product nobody had costed.
-  assert.match(qv, /Number\(product\.price\)\s*>\s*0/, 'the dialog does not branch on whether the product is priced');
-  assert.match(qv, /Number\(product\.stock\)\s*>\s*0/, 'the dialog ignores stock, so a sold-out product opens onto an Add button');
+  /*
+   * Two states, and the dialog must reach them through the SHARED helper
+   * rather than re-deriving them from the price.
+   *
+   * It used to test `product.price > 0` itself, which is how it drifted from
+   * the card behind it. lib/product-state.js owns the rule now, and asserting
+   * the IMPORT rather than the comparison is what stops the next screen
+   * quietly inventing its own version of it. The WhatsApp ask that used to be
+   * a third outcome is gone, and stays gone: 23 of 63 live products were in
+   * it, each one a message for the owner to answer by hand about a product
+   * nobody had costed.
+   */
+  assert.match(qv, /from '\.\.\/\.\.\/lib\/product-state\.js'/,
+    'the dialog decides availability for itself instead of using the shared rule');
+  assert.doesNotMatch(qv, /Number\(product\.price\)\s*>\s*0/,
+    'the dialog re-derives "is it priced" locally, which is how it drifted from the card last time');
   assert.match(qv, /AddButton/, 'a priced product cannot be added to cart from the dialog');
   assert.doesNotMatch(qv, /wa\.me/, 'the dialog still sends shoppers to WhatsApp about a price');
   assert.match(qv, /خلص من المخزن/, 'the dialog cannot say a product is unavailable');

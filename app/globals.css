@@ -696,11 +696,14 @@ button{font:inherit;cursor:pointer}
 /* The order page a customer reaches from the link in their confirmation
    email. No account behind it — see lib/order-access.js. */
 .ordpage{max-width:720px;padding:36px 22px 90px}
-.ord-head{margin-bottom:28px}
+.ord-head{margin-bottom:22px}
+.ord-head-row{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px}
 .ord-ref{display:inline-block;background:var(--ink);color:var(--paper);font-weight:900;
-  font-size:13px;padding:6px 14px;border-radius:99px;margin-bottom:12px}
-.ord-head h1{font-size:clamp(24px,4vw,32px);font-weight:900;margin-bottom:4px}
-.ord-status{font-weight:800;color:var(--red-ui);font-size:16px}
+  font-size:13px;padding:6px 14px;border-radius:99px}
+.ord-head h1{font-size:clamp(24px,4vw,32px);font-weight:900}
+.ord-status{display:inline-block;font-weight:800;color:var(--red-ui);font-size:13px;
+  border:1.5px solid var(--red-ui);padding:5px 12px;border-radius:99px}
+.ord-status.off{color:var(--grey);border-color:var(--line)}
 
 .ord-track{list-style:none;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:34px}
 .ord-track li{position:relative;padding-top:20px;font-size:12.5px;font-weight:800;color:var(--grey)}
@@ -746,6 +749,8 @@ button{font:inherit;cursor:pointer}
 .ord-sec{margin-bottom:34px}
 .ord-sec h2{font-size:18px;font-weight:900;margin-bottom:12px}
 .ord-items{list-style:none;display:grid;gap:1px;background:var(--line);border:1px solid var(--line)}
+.ord-items li img{width:44px;height:44px;flex:none;object-fit:contain;padding:3px;
+  background:var(--paper-2);border:1px solid var(--line);border-radius:10px}
 .ord-items li{background:var(--paper);display:flex;align-items:center;gap:12px;padding:11px 14px;
   font-weight:700;font-size:14.5px}
 .ord-items li b{color:var(--grey);font-weight:800;white-space:nowrap}
@@ -767,7 +772,9 @@ button{font:inherit;cursor:pointer}
 .ord-done p{color:var(--grey);font-weight:600;font-size:14px}
 .ord-help{color:var(--grey);font-weight:700;font-size:14px;border-top:1px solid var(--line);padding-top:20px}
 .ord-help a{color:var(--red-ui)}
-@media(max-width:560px){.ord-track{grid-template-columns:repeat(2,1fr)}}
+/* Four steps stay on one line on a phone. Two rows of two read as a grid, not
+   a sequence, and "On its way" under "Order received" looked like step two. */
+@media(max-width:560px){.ord-track li{font-size:11px;line-height:1.3}}
 
 /* /order/find — asking for the tracking link again. Narrow because it is two
    fields, and .fld above is the same field treatment the admin login uses. */

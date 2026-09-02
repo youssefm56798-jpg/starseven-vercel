@@ -6,6 +6,7 @@ import { localePath } from '../../lib/urls.js';
 import Link from 'next/link';
 import { readCart, writeCart, setQty as setCartQty, clearCart } from '../../lib/cart.js';
 import { cartTotals } from '../../lib/pricing.js';
+import { formatRef } from '../../lib/order-number.js';
 import { SERVED, SERVED_LABELS } from '../../lib/delivery-eta.js';
 
 /**
@@ -30,7 +31,7 @@ const COPY = {
     city_pick: 'اختار المحافظة', e_city: 'اختار محافظة من القايمة.',
     done_h: 'استلمنا طلبك', done_p: 'هنكلمك نأكد العنوان والتوصيل. الدفع عند الاستلام.',
     done_more: 'ارجع للتسوق', cod: 'الدفع عند الاستلام',
-    consent: 'ابعتلي العروض والخصومات على رقمي',
+    consent: 'ابعتلي العروض والخصومات على الإيميل',
     consent_note: 'من غير سبام. تقدر تلغي في أي وقت.',
     agree_a: 'بإتمام الطلب أنت موافق على', agree_terms: 'الشروط', agree_and: 'و',
     agree_priv: 'سياسة الخصوصية',
@@ -48,7 +49,7 @@ const COPY = {
     city_pick: 'Choose your governorate', e_city: 'Choose a governorate from the list.',
     done_h: 'Order received', done_p: 'We will call you to confirm the address and delivery. Cash on receipt.',
     done_more: 'Back to shopping', cod: 'Cash on delivery',
-    consent: 'Send me offers and discounts on my number',
+    consent: 'Send me offers and discounts by email',
     consent_note: 'No spam. Unsubscribe any time.',
     agree_a: 'By placing this order you agree to our', agree_terms: 'Terms', agree_and: 'and',
     agree_priv: 'Privacy Policy',
@@ -177,6 +178,39 @@ function Field({ id, label, val, set, err, hint, type = 'text', ta, sel, ...rest
   );
 }
 
+/**
+ * One rule per field, in one place.
+ *
+ * These used to live inline inside submit(), which meant the only moment a
+ * customer learned their phone number was wrong was after pressing Place
+ * order. Typing eleven digits, leaving the field, filling in four more and
+ * only then being sent back is a bad way to find out - and on a phone the
+ * error can be off screen when it appears.
+ *
+ * So blur checks the field the customer just left, using these same functions.
+ * Extracted rather than duplicated on purpose: two copies of "what counts as a
+ * valid Egyptian mobile" would drift, and the copy that drifts is the one that
+ * lets a bad number through to a server that then refuses it.
+ *
+ * The phone rule is deliberately the same shape as normalizePhone() in
+ * lib/phone.js, which is what the route actually trusts. This one exists to
+ * save a round trip and to say so early, never to be the real check.
+ */
+const RULES = {
+  name: (v, T) => (v.trim().length < 3 ? T.e_name : ''),
+  phone: (v, T) =>
+    (/^(?:\+?20|0020)?0?1[0125]\d{8}$/.test(v.replace(/\D/g, '')) ? '' : T.e_phone),
+  addr: (v, T) => (v.trim().length < 8 ? T.e_addr : ''),
+  // The picker starts empty, so this catches somebody submitting without
+  // touching it. The server refuses an unserved governorate regardless - this
+  // only saves the round trip.
+  city: (v, T) => (v.trim() ? '' : T.e_city),
+  // Required. There are no accounts, so this address is the only way the
+  // customer can reach their order again - to check it or to cancel it.
+  email: (v, T) =>
+    (/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim()) ? '' : T.e_email),
+};
+
 export default function CheckoutClient({ lang, add, catalog, shipping, currency }) {
   const T = COPY[lang] || COPY.ar;
   const ar = lang === 'ar';
@@ -247,7 +281,13 @@ export default function CheckoutClient({ lang, add, catalog, shipping, currency 
   const subtotalNow = lines.reduce((n, l) => n + l.price * l.qty, 0);
   const t = cartTotals(subtotalNow, applied ? applied.amount : 0, shipping.fee, shipping.freeOver);
 
-  const upd = k => v => setF(s => ({ ...s, [k]: v }));
+  const upd = k => v => {
+    setF(s => ({ ...s, [k]: v }));
+    // A field that has been told it is wrong stops saying so the moment it
+    // is right, without waiting for another blur or another submit.
+    setErrs(prev => (prev[k] && RULES[k] && !RULES[k](v, T)
+      ? { ...prev, [k]: undefined } : prev));
+  };
 
   function changeQty(sku, qty) {
     setCart(setCartQty(sku, qty));
@@ -275,21 +315,31 @@ export default function CheckoutClient({ lang, add, catalog, shipping, currency 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [subtotalNow]);
 
+  /**
+   * Check one field when the customer leaves it.
+   *
+   * Only ever ADDS an error for the field just left, and only when it has
+   * something in it - blurring an untouched field on the way past should not
+   * light it up red before anyone has typed anything. Clearing happens on the
+   * next keystroke, so a corrected value stops complaining immediately rather
+   * than waiting for another blur.
+   */
+  const blur = name => () => {
+    const value = f[name] ?? '';
+    if (!value.trim()) return;
+    const bad = RULES[name] ? RULES[name](value, T) : '';
+    setErrs(prev => (prev[name] === bad ? prev : { ...prev, [name]: bad || undefined }));
+  };
+
   async function submit(e) {
     e.preventDefault();
     if (busy) return;
 
     const next = {};
-    if (f.name.trim().length < 3) next.name = T.e_name;
-    if (!/^(?:\+?20|0020)?0?1[0125]\d{8}$/.test(f.phone.replace(/\D/g, ''))) next.phone = T.e_phone;
-    if (f.addr.trim().length < 8) next.addr = T.e_addr;
-    // The picker starts empty, so this catches somebody submitting without
-    // touching it. The server refuses an unserved governorate regardless -
-    // this only saves the round trip.
-    if (!f.city.trim()) next.city = T.e_city;
-    // Required. There are no accounts, so this address is the only way the
-    // customer can reach their order again — to check it or to cancel it.
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(f.email.trim())) next.email = T.e_email;
+    for (const [name, check] of Object.entries(RULES)) {
+      const bad = check(f[name], T);
+      if (bad) next[name] = bad;
+    }
     setErrs(next);
     if (Object.keys(next).length) {
       /* Put the caret on the first thing that is wrong. Without this the page
@@ -383,7 +433,7 @@ export default function CheckoutClient({ lang, add, catalog, shipping, currency 
     return (
       <div className="co-done">
         <div className="star">★</div>
-        <div className="ref" dir="ltr">{done.ref}</div>
+        <div className="ref" dir="ltr">{formatRef(done.ref)}</div>
         <h1>{T.done_h}</h1>
         <p>{done.message || T.done_p}</p>
         <Link className="btn btn-red btn-full" href={L(`/shop`)}>{T.done_more}</Link>
@@ -412,13 +462,19 @@ export default function CheckoutClient({ lang, add, catalog, shipping, currency 
           {top && <div className="formmsg" role="alert">{top}</div>}
 
           <div className="ff2">
-            <Field id="name" label={T.name} val={f.name} set={upd('name')} err={errs.name}
+            <Field id="name" label={T.name} val={f.name} set={upd('name')} onBlur={blur('name')} err={errs.name}
               autoComplete="name" />
-            <Field id="phone" label={T.phone} val={f.phone} set={upd('phone')} err={errs.phone}
-              type="tel" dir="ltr" inputMode="tel" autoComplete="tel" placeholder="01xxxxxxxxx" />
+            {/* Digits only, stripped as they are typed: a letter in a phone
+                number is never right, and the numeric keyboard on a phone has
+                no letters to offer. normalizePhone() on the server already
+                drops everything that is not a digit, so nothing it accepted
+                before is refused now. */}
+            <Field id="phone" label={T.phone} val={f.phone} set={v => upd('phone')(v.replace(/\D/g, ''))}
+              onBlur={blur('phone')} err={errs.phone}
+              type="tel" dir="ltr" inputMode="numeric" pattern="[0-9]*" autoComplete="tel" placeholder="01xxxxxxxxx" />
           </div>
 
-          <Field id="addr" label={T.addr} val={f.addr} set={upd('addr')} err={errs.addr} ta
+          <Field id="addr" label={T.addr} val={f.addr} set={upd('addr')} onBlur={blur('addr')} err={errs.addr} ta
             autoComplete="street-address" />
 
           <div className="ff2">
@@ -437,7 +493,7 @@ export default function CheckoutClient({ lang, add, catalog, shipping, currency 
                   </option>
                 )),
               ]} />
-            <Field id="email" label={T.email} val={f.email} set={upd('email')} err={errs.email}
+            <Field id="email" label={T.email} val={f.email} set={upd('email')} onBlur={blur('email')} err={errs.email}
               hint={T.email_hint}
               type="email" dir="auto" autoComplete="email" required />
           </div>
@@ -455,9 +511,16 @@ export default function CheckoutClient({ lang, add, catalog, shipping, currency 
 
           {/* Spam trap. .hp-field in globals.css takes it off screen with
               clip-path. Never remove that rule: anything typed in here makes the
-              order route discard the order. */}
+              order route discard the order.
+
+              The name is deliberately meaningless. It was "company_website",
+              and Chrome's address autofill recognises that as an organisation
+              URL and fills it in along with the name and street - so a customer
+              who autofilled the form was answered with a fake order number and
+              nothing was written. Found on 2 September when exactly that
+              happened. A name no autofill profile matches is the whole fix. */}
           <input type="text" tabIndex={-1} autoComplete="off" aria-hidden="true"
-            name="company_website" value={hp} onChange={e => setHp(e.target.value)}
+            name="s7_x9" value={hp} onChange={e => setHp(e.target.value)}
             className="hp-field" />
 
           <button className="btn btn-red btn-full" type="submit" disabled={busy}

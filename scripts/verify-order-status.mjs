@@ -120,6 +120,24 @@ try {
     actor TEXT NOT NULL DEFAULT 'system',
     note  TEXT NOT NULL DEFAULT '',
     created_at TIMESTAMPTZ NOT NULL DEFAULT now())`);
+  /*
+   * Cancelling gives a coupon redemption back as well as decrementing
+   * used_count, so the table transition() deletes from has to exist here too.
+   *
+   * This script builds its own minimal schema rather than applying
+   * db/schema.sql — deliberately, because the point of it is to prove the
+   * module against exactly the columns it reads. The cost of that choice is
+   * this: a new table in the transaction is a compile error here that nothing
+   * else catches, and it shows up as a whole run failing rather than as one
+   * assertion. Only the three columns the DELETE and the assertions touch are
+   * declared, for the same reason as every other table above.
+   */
+  await db(`CREATE TABLE offer_redemptions (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    code TEXT NOT NULL DEFAULT '',
+    order_id INT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+    phone TEXT NOT NULL DEFAULT '',
+    slot INT)`);
 
   // The module reads DATABASE_URL on its first query, so it has to be pointed
   // at the throwaway database before it is imported.

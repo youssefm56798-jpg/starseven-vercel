@@ -8,6 +8,7 @@ import { STATUSES, nextFrom, eventsFor, logEvent } from '../../../../../lib/orde
 import { transitionAndNotify, editAndNotify } from '../../../../../lib/order-notify.js';
 import { canEdit, MAX_QTY } from '../../../../../lib/order-edit.js';
 import { formatWindow, zoneFor } from '../../../../../lib/delivery-eta.js';
+import { formatRef } from '../../../../../lib/order-number.js';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Order — Star Seven admin' };
@@ -436,7 +437,7 @@ export default async function OrderDetail({ params, searchParams }) {
         <Link className="btn sm ghost" href="/admin/orders">← All orders</Link>
       </div>
 
-      <h1>{order.ref} <span className={`pill ${order.status}`}>{title(order.status)}</span></h1>
+      <h1>{formatRef(order.ref)} <span className={`pill ${order.status}`}>{title(order.status)}</span></h1>
       <p className="sub">
         Placed {dt(order.created_at)} · {order.lang === 'en' ? 'English' : 'Arabic'} · cash on delivery
         {order.cancelled_at ? ` · cancelled ${dt(order.cancelled_at)}` : ''}

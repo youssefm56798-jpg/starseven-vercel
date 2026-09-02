@@ -3,7 +3,8 @@
 import { createContext, useCallback, useContext, useEffect, useId, useRef, useState } from 'react';
 import Link from 'next/link';
 import { localePath } from '../../lib/urls.js';
-import { currencyLabel, whole } from '../../lib/money.js';
+import { currencyLabel, whole, hasDiscount } from '../../lib/money.js';
+import { buyState, BUY } from '../../lib/product-state.js';
 import AddButton from './AddButton.js';
 import './quickview.css';
 import { imageUrl, imageSrcSet } from '../../lib/product-image.js';
@@ -150,10 +151,12 @@ function QuickViewModal({ lang, product, onClose, triggerRef }) {
 
   if (!open) return null;
 
-  // The same verdict the card behind this panel reached, read from the same two
-  // fields, so opening the dialog can never disagree with the grid it opened
-  // from. See the comment on the card in app/shop/view.js.
-  const priced = Number(product.price) > 0 && Number(product.stock) > 0;
+  /*
+   * The same verdict the card behind this panel reached, from the same helper,
+   * so opening the quick view can never disagree with the grid it opened from.
+   * Unpriced reads as out of stock there too - see lib/product-state.js.
+   */
+  const priced = buyState(product) === BUY;
   const highlights = Array.isArray(product.highlights) ? product.highlights.slice(0, 4) : [];
 
   function onOverlayMouseDown(e) {
@@ -193,7 +196,7 @@ function QuickViewModal({ lang, product, onClose, triggerRef }) {
           {priced ? (
             <div className="qv-price">
               <bdi className="qv-now">{whole(product.price)} <small>{currencyLabel(lang)}</small></bdi>
-              {product.compareAt != null && <bdi className="qv-was">{whole(product.compareAt)}</bdi>}
+              {hasDiscount(product.price, product.compareAt) && <bdi className="qv-was">{whole(product.compareAt)}</bdi>}
             </div>
           ) : (
             <div className="qv-price qv-ask">{ar ? 'خلص من المخزن' : 'Out of stock'}</div>
@@ -231,6 +234,10 @@ function QuickViewModal({ lang, product, onClose, triggerRef }) {
                 label={ar ? 'ضيفه للسلة' : 'Add to cart'}
                 addedLabel={ar ? 'اتضاف للسلة ✓' : 'Added ✓'}
               />
+            ) : state === OUT ? (
+              <span className="btn btn-line qv-add" style={{ opacity: 0.6, cursor: 'default' }}>
+                {ar ? 'خلص من المخزن' : 'Out of stock'}
+              </span>
             ) : (
               <span className="btn btn-line qv-add" style={{ opacity: 0.6, cursor: 'default' }}>
                 {ar ? 'خلص من المخزن' : 'Out of stock'}

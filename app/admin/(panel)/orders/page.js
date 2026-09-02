@@ -2,10 +2,13 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { csrfOk, csrfToken } from '../../../../lib/auth.js';
 import { sql } from '../../../../lib/db.js';
+import ConfirmButton from '../../_lib/confirm-button.js';
 import { requirePermission } from '../../_lib/guard.js';
+import { can } from '../../../../lib/admin-roles.js';
 import { dt, Flash, money, waLink } from '../../_lib/ui.js';
 import { STATUSES, nextFrom } from '../../../../lib/order-status.js';
 import { transitionAndNotify } from '../../../../lib/order-notify.js';
+import { formatRef, normaliseRef, isRef } from '../../../../lib/order-number.js';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Orders — Star Seven admin' };
@@ -58,6 +61,95 @@ async function saveStatus(formData) {
   redirect(backTo(fStatus, fQ, 'order_saved'));
 }
 
+/**
+ * Give back the stock that unconfirmed orders are sitting on, right now.
+ *
+ * ---------------------------------------------------------------------------
+ * Why a button exists when a sweep already runs
+ *
+ * The nightly sweep bounds the damage from a flood of fake orders; it does not
+ * end it. Somebody who scripts two hundred orders at 3am takes the catalogue to
+ * "out of stock" and it STAYS there until the hold expires — which is correct,
+ * unattended behaviour, and completely useless to whoever opens the shop at 9am
+ * and finds nothing sellable.
+ *
+ * This is the thing they reach for. One press, the stock is back, and the shop
+ * is trading again in seconds rather than hours.
+ *
+ * ---------------------------------------------------------------------------
+ * It is deliberately blunt, and deliberately owner-only
+ *
+ * It cancels every unconfirmed, unverified `new` order older than an hour. Some
+ * of those may be real customers who simply have not been rung yet, and they
+ * get the ordinary cancellation email inviting them to say if they still want
+ * it. That is a real cost and it is the right trade in the situation this
+ * exists for: a shop that cannot sell anything is losing every order, not some.
+ *
+ * The hour is what protects the checkout that is happening right now. Without
+ * it, pressing this during normal trading would cancel an order placed thirty
+ * seconds ago while its customer was still reading the confirmation.
+ *
+ * Owner-only, because it is bulk order cancellation — the most destructive
+ * single action in this panel — and because `products:write` is already where
+ * this codebase draws the line for stock. Staff answering the phone do not need
+ * it and should not be one mis-click from it.
+ *
+ * Every cancellation goes through transitionAndNotify, so each one restocks,
+ * returns its coupon and writes its own audit row naming who pressed this.
+ */
+const PANIC_MIN_AGE_MINUTES = 60;
+const PANIC_BATCH = 200;
+
+async function releaseHeldStock(formData) {
+  'use server';
+  const me = await requirePermission('products:write');
+
+  /*
+   * Both permissions, named, and that is not belt-and-braces.
+   *
+   * products:write is the one that decides WHO may press this - it is
+   * owner-only, and stock is the money on a shop that takes cash at the door.
+   * But the action also cancels orders in bulk, so it needs orders:write as
+   * well, and naming it here is what stops the order check being shed by moving
+   * the write into a helper. tests/action-permissions.test.mjs holds that line:
+   * an action calling transitionAndNotify() must name orders:write or fail the
+   * suite.
+   *
+   * In practice this second test can never refuse anybody who passed the first,
+   * because every role holding products:write also holds orders:write. It is
+   * here so the requirement is stated rather than inferred from a role table
+   * that someone may change later.
+   */
+  if (!can(me.role, 'orders:write')) redirect(backTo('', '', 'forbidden'));
+
+  if (!(await csrfOk(formData.get('_csrf')))) redirect(backTo('', '', 'csrf'));
+
+  const stale = await sql`
+    SELECT id FROM orders
+     WHERE status = 'new'
+       AND phone_verified_at IS NULL
+       AND created_at < now() - (${String(PANIC_MIN_AGE_MINUTES)} || ' minutes')::interval
+     ORDER BY id ASC
+     LIMIT ${PANIC_BATCH}`;
+
+  let freed = 0;
+  for (const row of stale) {
+    // A refusal is not a failure: an admin may have confirmed one of these
+    // between the read and the write, and transition() testing the live row is
+    // what makes that safe. Only count the ones that actually moved.
+    const res = await transitionAndNotify({
+      orderId: row.id,
+      to: 'cancelled',
+      actor: `admin:${me.id}`,
+      note: 'Bulk stock release from the Orders screen.',
+    });
+    if (res.ok && res.changed) freed++;
+  }
+
+  console.log(`[s7] bulk stock release by admin:${me.id} — ${freed} order(s) cancelled`);
+  redirect(backTo('', '', freed ? 'stock_released' : 'stock_nothing'));
+}
+
 export default async function OrdersPage({ searchParams }) {
   await requirePermission('orders:read');
   const sp = await searchParams;
@@ -65,7 +157,36 @@ export default async function OrdersPage({ searchParams }) {
 
   const status = STATUSES.includes(String(sp?.status || '')) ? String(sp.status) : '';
   const q = String(sp?.q || '').trim().slice(0, 80);
-  const like = `%${q}%`;
+
+  /*
+   * An exact order number opens the order, rather than a list of one.
+   *
+   * This is the most common thing anybody does on this screen: a customer is on
+   * the phone reading their number out, and every click between typing it and
+   * seeing the order happens while somebody waits. A filtered list holding
+   * exactly one row is a page that exists only to be clicked through.
+   *
+   * Only on an EXACT match, and only when what was typed is shaped like a
+   * reference. A partial number, a name or a phone still lists - jumping on a
+   * partial would take somebody who typed "100" to whichever order sorted first
+   * and hide the other nine from them.
+   *
+   * normaliseRef because the number is printed with a hash and that is what
+   * gets read out and pasted; isRef first, so a name never costs a lookup.
+   */
+  if (q) {
+    const probe = normaliseRef(q);
+    if (isRef(probe)) {
+      const [hit] = await sql`SELECT id FROM orders WHERE ref = ${probe} LIMIT 1`;
+      if (hit) redirect(`/admin/orders/${hit.id}`);
+    }
+  }
+
+  // The hash is decoration, so it must not reach the LIKE: searching "#100001"
+  // has to find the order stored as "100001". Everything else is left exactly as
+  // typed, because this box also takes names and phone numbers, and normalising
+  // those would strip the space out of "Youssef Tester".
+  const like = `%${q.replace(/^#+/, '')}%`;
 
   /*
    * Four complete queries rather than one assembled string: the values stay
@@ -148,6 +269,26 @@ export default async function OrdersPage({ searchParams }) {
      ORDER BY id DESC
      LIMIT 51`;
 
+  /*
+   * How much stock is currently held by orders nobody has confirmed.
+   *
+   * The number that matters during a flood. `products.stock` says the shelf is
+   * empty; this says how much of that emptiness is orders that may never become
+   * deliveries, which is the difference between "we sold out" and "we are being
+   * attacked".
+   *
+   * Only counts orders old enough for the release button to act on, so the
+   * figure shown and the figure the button would free are the same number.
+   */
+  const [held] = await sql`
+    SELECT count(DISTINCT o.id)::int AS orders,
+           coalesce(sum(i.qty), 0)::int AS units
+      FROM orders o
+      JOIN order_items i ON i.order_id = o.id
+     WHERE o.status = 'new'
+       AND o.phone_verified_at IS NULL
+       AND o.created_at < now() - interval '60 minutes'`;
+
   const shown = outstanding.slice(0, 50);
   const mismatched = shown.filter(o => o.collected_amount != null);
 
@@ -157,6 +298,34 @@ export default async function OrdersPage({ searchParams }) {
       <p className="sub">Cash on delivery. Call the customer, confirm, then move the status along.</p>
 
       <Flash code={sp?.m} />
+
+      {Number(held?.orders) > 0 ? (
+        <div className="panel">
+          <h2>
+            Stock held by unconfirmed orders
+            <span className="right">
+              <form action={releaseHeldStock} className="bar-row">
+                <input type="hidden" name="_csrf" value={token} />
+                <ConfirmButton
+                  className="btn sm"
+                  message={`Cancel ${held.orders} unconfirmed order(s) and put ${held.units} unit(s) back on the shelf? Each customer is emailed. This cannot be undone.`}
+                >
+                  Release {Number(held.units)} unit{Number(held.units) === 1 ? '' : 's'}
+                </ConfirmButton>
+              </form>
+            </span>
+          </h2>
+          <div className="muted" style={{ padding: '14px 20px' }}>
+            <b>{Number(held.orders)}</b> order{Number(held.orders) === 1 ? '' : 's'} placed over an
+            hour ago that nobody has confirmed and whose phone number has not answered, holding{' '}
+            <b>{Number(held.units)}</b> unit{Number(held.units) === 1 ? '' : 's'} of stock.
+            {' '}Normal on a busy morning — these are orders waiting for their call. Worth acting on
+            when the number is far larger than a day of real orders, which is what a flood of fake
+            orders looks like: the shop reads as sold out while none of it will ever be delivered.
+            Releasing cancels them, returns the stock and emails each customer that they can reorder.
+          </div>
+        </div>
+      ) : null}
 
       {shown.length ? (
         <div className="panel">
@@ -185,7 +354,7 @@ export default async function OrdersPage({ searchParams }) {
                     : null;
                   return (
                     <tr key={o.id}>
-                      <td><Link href={`/admin/orders/${o.id}`}><b>{o.ref}</b></Link></td>
+                      <td><Link href={`/admin/orders/${o.id}`}><b>{formatRef(o.ref)}</b></Link></td>
                       <td className="muted">{o.name}</td>
                       <td style={{ textAlign: 'right' }}>{money(o.total)}</td>
                       <td style={{ textAlign: 'right' }}>
@@ -256,7 +425,7 @@ export default async function OrdersPage({ searchParams }) {
                 {orders.map(o => (
                   <tr key={o.id}>
                     <td>
-                      <b><Link href={`/admin/orders/${o.id}`}>{o.ref}</Link></b>
+                      <b><Link href={`/admin/orders/${o.id}`}>{formatRef(o.ref)}</Link></b>
                       <div className="muted">{dt(o.created_at)}</div>
                       {o.coupon ? <div className="muted">code: {o.coupon}</div> : null}
                       {/* The customer asked to cancel through the link in

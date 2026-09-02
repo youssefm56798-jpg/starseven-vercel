@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Dir, Nav, Footer, Crumb } from '../_components/Chrome.js';
 import { localePath } from '../../lib/urls.js';
+import { formatRef, normaliseRef } from '../../lib/order-number.js';
 import { site } from '../../lib/config.js';
 
 /**
@@ -35,7 +36,13 @@ import { site } from '../../lib/config.js';
 export default function OrderThanksView({ lang, refCode }) {
   const ar = lang === 'ar';
   const L = p => localePath(p, lang);
-  const ref = String(refCode || '').trim().slice(0, 32);
+  /*
+   * Normalised on the way in and formatted on the way out, because this value
+   * arrives from the query string and a stranger can type anything into it.
+   * normaliseRef strips the decoration a customer may have pasted back; the
+   * slice is what stops the page rendering an essay somebody put in ?ref=.
+   */
+  const ref = formatRef(normaliseRef(refCode).slice(0, 32));
 
   return (
     <Dir lang={lang}>

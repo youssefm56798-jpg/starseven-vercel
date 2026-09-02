@@ -58,6 +58,7 @@ say so, because it is a design decision and not an accident.
 | **Neon** | Postgres database — all customer data | **Frankfurt, Germany** (`eu-central-1`) |
 | **Vercel** | Hosting, plus Web Analytics and Speed Insights | US company, global edge |
 | **Resend** | Transactional and marketing email | US company |
+| **Meta** (WhatsApp Cloud API) | **Not live yet.** The inbound webhook is built and the outbound confirmation message is not, so no customer data reaches Meta today. When it ships, the customer's phone number and their reply to one message will. | US company |
 
 Analytics measures page views and load speed. It sets no advertising cookies and
 there is no advertising on the site. **There is currently no consent banner.**
@@ -100,6 +101,11 @@ first-party-ish, cookieless, and not used for advertising or profiling.
 
 - Under Egyptian law, is consent required before loading them?
 - If a banner is needed, does it need to block loading until a choice is made?
+- **Google Analytics 4 is wired in and switched off**, gated on a single
+  environment variable. Setting it would add `_ga` cookies. The policy text is
+  gated on the same variable, so the document cannot go stale — but the consent
+  question would become a real one that day, so it is worth answering now rather
+  than at the moment somebody wants a funnel report.
 
 ### Q4 — What must appear on the site
 
@@ -120,12 +126,35 @@ taxpayer.
 
 So you are not re-solving these:
 
-- Marketing is **double opt-in**: a subscriber is not added until they click a
-  confirmation link.
+- Marketing consent has **two paths, and they are not the same strength**, which
+  matters if you are asked to advise on the basis for it:
+  - **Newsletter sign-up is double opt-in.** Nothing is added to the list until
+    the address clicks a confirmation link.
+  - **The checkout tick-box is single opt-in.** It is unticked by default, and
+    the customer ticks it on their own order while giving us that address — so
+    the consent is contemporaneous and specific, but no confirmation email is
+    required before the address becomes active. If you think a distance sale
+    needs the second step too, say so; it is a five-line change.
+  - The tick-box asks for, and gets, **email only**. It used to say "on my
+    number" while adding the address to an email list; the wording now matches
+    what the code does. Mobile numbers are stored with the row and are not used
+    for marketing.
 - **Unsubscribe is honoured permanently.** A previously fixed defect let an old
   confirmation link re-subscribe somebody who had opted out; it now refuses.
-- Order data is never shared, sold, or sent anywhere except the three
-  sub-processors above.
+- Order data is never shared, sold, or sent anywhere except the sub-processors
+  above.
+- **Retention is now enforced, not merely published.** A second nightly job
+  (`/api/cron/prune`, `lib/retention.js`) redacts each thing at the period the
+  policy names: IP addresses on orders and sign-ups at 90 days, on quiz answers
+  at 30, the recipient of a send-log line at 180, and the customer's name, phone,
+  address and email off an order at five years — leaving the money and the
+  reference, so the books stay whole. It **redacts and cannot delete**: the
+  runtime role has no DELETE on the order history or the audit trail, which is
+  deliberate, and `npm run verify:retention` proves the sweep works within that
+  limit against a real database.
+- **Marketing mail now carries one-click unsubscribe** (`List-Unsubscribe` and
+  `List-Unsubscribe-Post`, RFC 8058), so a mailbox provider's own Unsubscribe
+  button works and reaches a POST endpoint rather than a scanner-followable link.
 - The privacy policy and terms have been rewritten to describe what the code
   actually does, and a test now fails the build if they drift apart again.
 

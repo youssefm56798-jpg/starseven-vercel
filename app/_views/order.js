@@ -3,6 +3,8 @@ import { localePath } from '../../lib/urls.js';
 import { currencyLabel, whole } from '../../lib/money.js';
 import { orderFor, itemsFor, timelineFor } from '../../lib/order-access.js';
 import { formatStamp, formatWindow } from '../../lib/delivery-eta.js';
+import { formatRef } from '../../lib/order-number.js';
+import { imageUrl, imageSrcSet } from '../../lib/product-image.js';
 import { Dir, Nav, Footer, waLink } from '../_components/Chrome.js';
 // The bracketed folder is a real directory name, not a placeholder. The client
 // component is colocated with the route it belongs to, and only files named
@@ -248,6 +250,8 @@ export default async function OrderDetail({ order, token }) {
   const money = v => `${whole(v)} ${currencyLabel(lang)}`;
 
   const steps = ['new', 'confirmed', 'shipped', 'delivered'];
+  // First name only. The full name is on the delivery block where it belongs.
+  const first = String(order.name || '').trim().split(/\s+/)[0];
 
   return (
     <Dir lang={lang}>
@@ -255,9 +259,11 @@ export default async function OrderDetail({ order, token }) {
 
       <div className="wrap ordpage">
         <div className="ord-head">
-          <span className="ord-ref" dir="ltr">{order.ref}</span>
-          <h1>{ar ? `أهلاً ${order.name}` : `Hi ${order.name}`}</h1>
-          <p className="ord-status">{ar ? st.ar : st.en}</p>
+          <p className="ord-head-row">
+            <span className="ord-ref" dir="ltr">{formatRef(order.ref)}</span>
+            <span className={cancelled ? 'ord-status off' : 'ord-status'}>{ar ? st.ar : st.en}</span>
+          </p>
+          <h1>{ar ? `أهلاً ${first}` : `Hi ${first}`}</h1>
         </div>
 
         {!cancelled && (
@@ -277,6 +283,10 @@ export default async function OrderDetail({ order, token }) {
           <ul className="ord-items">
             {items.map(i => (
               <li key={i.sku}>
+                {i.image ? (
+                  <img src={imageUrl(i.image)} srcSet={imageSrcSet(i.image)} sizes="44px"
+                    width="44" height="44" alt="" loading="lazy" />
+                ) : null}
                 <span>{i.name}</span>
                 <b dir="ltr">× {i.qty}</b>
                 <bdi>{money(i.price * i.qty)}</bdi>
@@ -322,7 +332,7 @@ export default async function OrderDetail({ order, token }) {
 
         <p className="ord-help">
           {ar ? 'محتاج حاجة تانية؟ ' : 'Need anything else? '}
-          <a href={waLink(ar ? `عندي سؤال عن الأوردر ${order.ref}` : `A question about order ${order.ref}`)}
+          <a href={waLink(ar ? `عندي سؤال عن الأوردر ${formatRef(order.ref)}` : `A question about order ${formatRef(order.ref)}`)}
             target="_blank" rel="noopener">
             {ar ? 'كلّمنا على واتساب' : 'Message us on WhatsApp'}
           </a>

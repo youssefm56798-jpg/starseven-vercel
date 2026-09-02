@@ -49,6 +49,7 @@ import { tplOrderLink } from '../../../../lib/order-mail.js';
 import { issueRecoveryToken, orderUrl } from '../../../../lib/order-access.js';
 import { limits } from '../../../../lib/config.js';
 import { str, trapped, isEmail, tooMany, tooBig } from '../../_lib/shared.js';
+import { normaliseRef } from '../../../../lib/order-number.js';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -86,12 +87,22 @@ export async function POST(req) {
     );
   }
 
-  // Uppercased because references are minted uppercase and a customer reading
-  // one off a phone screen types whatever they see.
-  const ref = str(body.ref, 32).toUpperCase();
+  /*
+   * Normalised, not merely uppercased.
+   *
+   * Order numbers are PRINTED with a hash - #100001 - so that is what a customer
+   * copies out of their confirmation email, and a lookup that only uppercased
+   * would tell somebody holding the right number that no such order exists. The
+   * hash is presentation this app adds; it is not part of the stored value.
+   *
+   * The uppercasing stays for the older S7-DDMM-NNNN references, which are
+   * still live and which a customer reading one off a screen types in whatever
+   * case they see it.
+   */
+  const ref = normaliseRef(str(body.ref, 40));
   if (!REF.test(ref)) {
     return fail(
-      ar ? 'رقم الأوردر شكله كده: S7-2708-12345' : 'An order number looks like this: S7-2708-12345',
+      ar ? 'رقم الأوردر شكله كده: ‎#100001‎ أو S7-2708-12345' : 'An order number looks like #100001 (older ones look like S7-2708-12345)',
       422, { field: 'ref' },
     );
   }

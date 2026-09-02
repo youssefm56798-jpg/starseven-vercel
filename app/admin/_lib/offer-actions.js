@@ -47,7 +47,8 @@ export async function sendOfferBatch({ offerId, afterId = 0, csrf }) {
   let sent = 0;
   for (const sub of batch) {
     const [subject, html] = tplOffer(offer, sub.lang === 'en' ? 'en' : 'ar', sub.token);
-    if (await sendMail({ to: sub.email, subject, html, kind: 'offer' })) sent++;
+    // unsubToken is what puts the one-click header on a broadcast; see lib/mail.js.
+    if (await sendMail({ to: sub.email, subject, html, kind: 'offer', unsubToken: sub.token })) sent++;
   }
 
   if (sent > 0) {

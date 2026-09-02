@@ -3,6 +3,7 @@ import { ok, fail, readJson } from '../../../../lib/http.js';
 import { site, mail } from '../../../../lib/config.js';
 import { originAllowed } from '../../../../lib/credentials.js';
 import { orderFor, requestRefund } from '../../../../lib/order-access.js';
+import { formatRef } from '../../../../lib/order-number.js';
 import { logEvent } from '../../../../lib/order-status.js';
 import { sendMail } from '../../../../lib/mail.js';
 
@@ -64,8 +65,8 @@ export async function POST(req) {
       const reason = updated.refund_reason || '(no reason given)';
       await sendMail({
         to: mail.notifyTo,
-        subject: `Cancellation requested — ${order.ref}`,
-        html: `<p><b>${esc(order.ref)}</b> — ${esc(order.name)} (${esc(order.phone)})</p>
+        subject: `Cancellation requested — ${formatRef(order.ref)}`,
+        html: `<p><b>${esc(formatRef(order.ref))}</b> — ${esc(order.name)} (${esc(order.phone)})</p>
                <p>Status: ${esc(order.status)}. Total: ${esc(order.total)}</p>
                <p><b>Reason:</b> ${esc(reason)}</p>`,
         kind: 'refund-request',

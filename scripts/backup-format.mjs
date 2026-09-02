@@ -129,6 +129,16 @@ export const BACKUP_VERSION = 1;
  *                              hand back a fresh redemption budget on every
  *                              capped code in the shop.
  *
+ *  offer_redemptions            The same argument one level down, and the
+ *                              reason it is not enough to keep offers alone.
+ *                              used_count says how many redemptions a code has
+ *                              left; this says which customers have had theirs.
+ *                              Losing it resets every per-customer cap in the
+ *                              shop to zero — a "first order only" code becomes
+ *                              usable again by everybody who has already used
+ *                              it, and the restore would look clean while doing
+ *                              it, because used_count would still be right.
+ *
  *  products                     The subtle one. db/seed.sql does recreate all
  *                              63 rows, so a naive reading says skip it. But
  *                              the seed is INSERT ... ON CONFLICT DO NOTHING,
@@ -215,6 +225,7 @@ export const TABLES = [
   { name: 'order_items', pk: 'id' },
   { name: 'order_events', pk: 'id' },
   { name: 'order_tokens', pk: 'id' },
+  { name: 'offer_redemptions', pk: 'id' },
 ];
 
 export const TABLE_NAMES = TABLES.map(t => t.name);

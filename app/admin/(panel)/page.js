@@ -155,7 +155,7 @@ export default async function Dashboard({ searchParams }) {
               <tbody>
                 {recent.map(o => (
                   <tr key={o.id}>
-                    <td><Link href={`/admin/orders?q=${encodeURIComponent(o.ref)}`}><b>{o.ref}</b></Link></td>
+                    <td><Link href={`/admin/orders?q=${encodeURIComponent(o.ref)}`}><b>{formatRef(o.ref)}</b></Link></td>
                     <td>{o.name}<div className="muted" dir="ltr">{o.phone}</div></td>
                     <td>{Number(o.n_items)}</td>
                     <td><b>{money(o.total)}</b></td>
