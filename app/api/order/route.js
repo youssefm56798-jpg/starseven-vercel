@@ -196,7 +196,7 @@ export async function POST(req) {
 
   // One query for the whole basket. Prices come from here and nowhere else.
   const found = await sql`
-    SELECT id, sku, name_ar, name_en, price, stock
+    SELECT id, sku, name_ar, name_en, price, stock, image
       FROM products
      WHERE sku = ANY(${[...want.keys()]}::text[])
        AND active = true`;
@@ -256,6 +256,14 @@ export async function POST(req) {
       name: ar ? p.name_ar : p.name_en,
       price,
       qty,
+      // Carried for the confirmation email, which draws the jar next to the
+      // line. order_items has no image column and does not want one - the
+      // INSERT below names its columns, so this rides along to the templates
+      // and is dropped at the database. A product photographed differently
+      // next year should not change what a receipt from today looks like in
+      // any way that matters, and the name and the price are the parts that
+      // do; the picture is decoration and is allowed to follow the catalogue.
+      image: p.image || '',
     });
   }
 
