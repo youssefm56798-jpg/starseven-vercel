@@ -62,8 +62,9 @@ const args = process.argv.slice(2);
 const doSend = args.includes('--send');
 const toArg = (args.find(a => a.startsWith('--to=')) || '').slice(5).trim();
 
-const { mail } = await import('../lib/config.js');
+const { mail, site } = await import('../lib/config.js');
 const { tplOrder, tplOrderAdmin, sendMail } = await import('../lib/mail.js');
+const { orderUrl } = await import('../lib/order-access.js');
 
 const ok = s => `  \x1b[32m✓\x1b[0m ${s}`;
 const no = s => `  \x1b[31m✗\x1b[0m ${s}`;
@@ -119,11 +120,36 @@ const items = [
   { name: 'Premium Wax Black', qty: 1, price: 45 },
 ];
 
+/* ------------------------------------------------------- the tracking link */
+
+// Built by the same orderUrl() the checkout calls, from the same site.url, so
+// this reports the link a real customer would actually receive rather than a
+// hand-written one that is right by luck.
+//
+// It matters more here than anywhere else on the site. The link in a
+// confirmation email is the only copy of that token that will ever exist, and
+// it never expires - so a wrong base URL is not a redirect away, it is a dead
+// link in somebody's inbox forever, or a permanent commitment to a hostname
+// nobody meant to keep.
+const trackUrl = orderUrl(order.ref, 'TOKEN-GOES-HERE', 'ar');
+
+const base = String(site.url || '');
+if (/localhost|127\.0\.0\.1/.test(base)) {
+  console.log(no(`links would point at ${base} - NEXT_PUBLIC_SITE_URL is unset here`));
+} else if (/\.vercel\.app$/i.test(new URL(base).hostname)) {
+  console.log(no(`links would point at ${base}`));
+  console.log(info('that is a preview hostname, and these links never expire.'));
+  console.log(info('set NEXT_PUBLIC_SITE_URL to the real domain before any mail goes out.'));
+} else {
+  console.log(ok(`tracking links are built on ${base}`));
+}
+console.log(info(`a customer would receive: ${trackUrl}`));
+
 let adminMail;
 let custMail;
 try {
   adminMail = tplOrderAdmin(order, items);
-  custMail = tplOrder(order, items, 'ar', 'https://starseven-vercel.vercel.app/order/S7-0000-00000?t=test');
+  custMail = tplOrder(order, items, 'ar', trackUrl);
   console.log(ok(`both templates render (${adminMail[1].length} and ${custMail[1].length} bytes of HTML)`));
 } catch (e) {
   console.log(no(`a template threw: ${e?.message || e}`));
