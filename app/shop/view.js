@@ -198,6 +198,10 @@ export default async function ShopView({ kind, lang }) {
                 color: p.color,
                 hold: p.hold_level,
                 sizeMl: p.size_ml,
+                // In or out, never the count. The dialog needs it to reach the
+                // same verdict as the card it opened from, and it had no way to
+                // ask, so an out-of-stock product opened onto an Add button.
+                stock: Number(p.stock) > 0 ? 1 : 0,
                 highlights,
               };
               return (
@@ -213,12 +217,16 @@ export default async function ShopView({ kind, lang }) {
                       quick view never triggers the card navigation. */}
                   <QuickViewButton product={quick} lang={lang} />
                   <div className="foot">
-                    {/* Three states, decided in lib/product-state.js so this
+                    {/* Two outcomes, decided in lib/product-state.js so this
                         card, the quick view and the product page cannot drift
-                        apart. A price of zero is not free - it is a product the
-                        client has not priced yet - and a stock of zero beats it,
-                        because inviting a WhatsApp about something out of stock
-                        wastes the message. */}
+                        apart. A price of zero is not free and it is not an
+                        invitation to ask - it is a product nobody can sell you,
+                        which is the same fact as having none of it. There used
+                        to be a third outcome, a WhatsApp ask, and 23 of 63 live
+                        products were in it: a grid where a third of the cards
+                        will not say what anything costs reads as a shop that is
+                        not open. The way out of the state is a price in the
+                        admin. */}
                     {buyState(p) === BUY ? (
                       <>
                         <div className="price">
@@ -230,18 +238,7 @@ export default async function ShopView({ kind, lang }) {
                     ) : buyState(p) === OUT ? (
                       <div className="price ask">{ar ? 'خلص من المخزن' : 'Out of stock'}</div>
                     ) : (
-                      <>
-                        <div className="price ask">{ar ? 'اسأل عن السعر' : 'Ask for price'}</div>
-                        {/* Named for the same reason the Add buttons are: a grid
-                            of unpriced products rendered a column of links all
-                            called "WhatsApp". */}
-                        <a className="buy" target="_blank" rel="noopener"
-                          aria-label={ar ? `اسأل عن سعر ${name} على واتساب` : `Ask about ${name} on WhatsApp`}
-                          href={`https://wa.me/${site.whatsapp}?text=${encodeURIComponent(
-                            ar ? `عايز أعرف سعر ${p.name_ar}` : `What is the price of ${p.name_en}?`)}`}>
-                          {ar ? 'واتساب' : 'WhatsApp'}
-                        </a>
-                      </>
+                      <div className="price ask">{ar ? 'خلص من المخزن' : 'Out of stock'}</div>
                     )}
                   </div>
                 </div>

@@ -4,8 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useId, useRef, useSt
 import Link from 'next/link';
 import { localePath } from '../../lib/urls.js';
 import { currencyLabel, whole, hasDiscount } from '../../lib/money.js';
-import { buyState, BUY, OUT } from '../../lib/product-state.js';
-import { site } from '../../lib/config.js';
+import { buyState, BUY } from '../../lib/product-state.js';
 import AddButton from './AddButton.js';
 import './quickview.css';
 import { imageUrl, imageSrcSet } from '../../lib/product-image.js';
@@ -23,9 +22,7 @@ import { imageUrl, imageSrcSet } from '../../lib/product-image.js';
  *
  * The product arrives as plain serialisable fields already resolved for the
  * page language, because the trigger is a client component and cannot re-read
- * the row from the server. The one thing kept out of the payload is the
- * unpriced WhatsApp copy, which is rebuilt from the name so it stays identical
- * to the sentence the card sends.
+ * the row from the server.
  */
 
 const QuickViewCtx = createContext(null);
@@ -157,15 +154,10 @@ function QuickViewModal({ lang, product, onClose, triggerRef }) {
   /*
    * The same verdict the card behind this panel reached, from the same helper,
    * so opening the quick view can never disagree with the grid it opened from.
-   * lib/product-state.js carries why stock is answered before price.
+   * Unpriced reads as out of stock there too - see lib/product-state.js.
    */
-  const state = buyState(product);
-  const priced = state === BUY;
+  const priced = buyState(product) === BUY;
   const highlights = Array.isArray(product.highlights) ? product.highlights.slice(0, 4) : [];
-  // Rebuilt here, not passed in, so the sentence stays identical to the card.
-  const waHref = `https://wa.me/${site.whatsapp}?text=${encodeURIComponent(
-    ar ? `عايز أعرف سعر ${product.name}` : `What is the price of ${product.name}?`,
-  )}`;
 
   function onOverlayMouseDown(e) {
     // Only a press that both starts and lands on the backdrop closes the
@@ -207,11 +199,7 @@ function QuickViewModal({ lang, product, onClose, triggerRef }) {
               {hasDiscount(product.price, product.compareAt) && <bdi className="qv-was">{whole(product.compareAt)}</bdi>}
             </div>
           ) : (
-            <div className="qv-price qv-ask">
-              {state === OUT
-                ? (ar ? 'خلص من المخزن' : 'Out of stock')
-                : (ar ? 'اسأل عن السعر' : 'Ask for price')}
-            </div>
+            <div className="qv-price qv-ask">{ar ? 'خلص من المخزن' : 'Out of stock'}</div>
           )}
 
           {/* Key info: the same three facts the product page leads with. */}
@@ -251,9 +239,9 @@ function QuickViewModal({ lang, product, onClose, triggerRef }) {
                 {ar ? 'خلص من المخزن' : 'Out of stock'}
               </span>
             ) : (
-              <a className="btn btn-red qv-add" target="_blank" rel="noopener" href={waHref}>
-                {ar ? 'واتساب' : 'WhatsApp'}
-              </a>
+              <span className="btn btn-line qv-add" style={{ opacity: 0.6, cursor: 'default' }}>
+                {ar ? 'خلص من المخزن' : 'Out of stock'}
+              </span>
             )}
             <Link className="btn btn-line qv-details" href={L(`/product/${product.slug}`)} onClick={onClose}>
               {ar ? 'كل التفاصيل ←' : 'Full details →'}

@@ -15,7 +15,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { buyState, BUY, ASK, OUT } from '../lib/product-state.js';
+import { buyState, BUY, OUT } from '../lib/product-state.js';
 
 const ROOT = new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1');
 
@@ -26,10 +26,11 @@ test('priced and in stock can be bought', () => {
   assert.equal(buyState({ price: 80, stock: 1 }), BUY);
 });
 
-test('in stock but unpriced sends them to WhatsApp', () => {
+test('in stock but unpriced cannot be bought', () => {
   // A price of zero is a product the client has not costed yet, not a free
-  // one. It is listed so the range looks complete.
-  assert.equal(buyState({ price: 0, stock: 200 }), ASK);
+  // one - and not an invitation to ask, either. It reads as out of stock until
+  // the admin gives it a price.
+  assert.equal(buyState({ price: 0, stock: 200 }), OUT);
 });
 
 test('out of stock beats unpriced', () => {

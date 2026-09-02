@@ -90,8 +90,77 @@ function withCsrfSeed(request) {
   return res;
 }
 
+/**
+ * The holding gate.
+ *
+ * SITE_PASSWORD closes the whole site behind one HTTP Basic prompt. Unset -
+ * which is every local checkout and every preview - there is no gate at all and
+ * this function returns before reading anything, so nothing about development
+ * changes.
+ *
+ * It exists because the storefront is finished enough to look finished and is
+ * not finished enough to sell: order mail does not send yet, so a real customer
+ * who ordered would get no confirmation, no tracking link, and no reply. The
+ * domain still has to be attached early - the tracking links in the
+ * confirmation email never expire, so whatever hostname is live when mail
+ * switches on is one we are committed to - and this is what makes attaching it
+ * early safe.
+ *
+ * Vercel sells exactly this as Advanced Deployment Protection for $150 a month.
+ * This is nine lines and does the same job for a site nobody has heard of yet.
+ *
+ * The cron paths are exempt. Vercel Cron authenticates with a Bearer token and
+ * cannot answer a Basic challenge, so gating them would not secure anything -
+ * it would silently stop the nightly sweep putting reserved stock back, and the
+ * failure would look like nothing at all.
+ *
+ * Turning it off is deleting the environment variable. No deploy of this file.
+ */
+const GATE_EXEMPT = /^\/api\/cron(?:\/|$)/;
+
+function holdingGate(request) {
+  const expected = process.env.SITE_PASSWORD;
+  if (!expected) return null;
+  if (GATE_EXEMPT.test(request.nextUrl.pathname)) return null;
+
+  const header = request.headers.get('authorization') || '';
+  if (header.startsWith('Basic ')) {
+    try {
+      const decoded = atob(header.slice(6));
+      // Everything after the first colon, so the username can be anything.
+      const supplied = decoded.slice(decoded.indexOf(':') + 1);
+      // Compared without an early return. The gate is a shared password rather
+      // than a per-person credential, so this buys little, but a length-leaking
+      // compare is not worth the two lines it saves.
+      let diff = supplied.length ^ expected.length;
+      for (let i = 0; i < supplied.length; i += 1) {
+        diff |= supplied.charCodeAt(i) ^ expected.charCodeAt(i % expected.length);
+      }
+      if (diff === 0) return null;
+    } catch {
+      /* a malformed header is simply not a match; fall through to the prompt */
+    }
+  }
+
+  return new NextResponse('New Star Seven is not open yet.', {
+    status: 401,
+    headers: {
+      'WWW-Authenticate': 'Basic realm="New Star Seven", charset="UTF-8"',
+      // Nothing behind the gate should be cached by anything in front of it.
+      'Cache-Control': 'no-store',
+      // Belt and braces while the gate is on: a 401 is not indexable anyway.
+      'X-Robots-Tag': 'noindex, nofollow',
+    },
+  });
+}
+
 export function middleware(request) {
   const { pathname, searchParams } = request.nextUrl;
+
+  // Before everything, including the PASS_THROUGH routes: /api and /admin
+  // are exactly what must not be reachable while the gate is on.
+  const locked = holdingGate(request);
+  if (locked) return locked;
 
   if (PASS_THROUGH.test(pathname)) {
     return pathname === '/admin' || pathname.startsWith('/admin/')

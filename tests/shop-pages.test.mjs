@@ -512,23 +512,24 @@ test('the quick view is one state-driven dialog wired onto every card', async ()
     'focus does not return to the trigger when the dialog closes');
 
   /*
-   * Three states, and the dialog must reach them through the SHARED helper
+   * Two states, and the dialog must reach them through the SHARED helper
    * rather than re-deriving them from the price.
    *
    * It used to test `product.price > 0` itself, which is how it drifted from
-   * the card behind it: an out-of-stock product with no price got an "Ask for
-   * price" WhatsApp button here, inviting a message about something the shop
-   * could not supply either way. lib/product-state.js owns the rule now, and
-   * asserting the IMPORT rather than the comparison is what stops the next
-   * screen quietly inventing its own version of it.
+   * the card behind it. lib/product-state.js owns the rule now, and asserting
+   * the IMPORT rather than the comparison is what stops the next screen
+   * quietly inventing its own version of it. The WhatsApp ask that used to be
+   * a third outcome is gone, and stays gone: 23 of 63 live products were in
+   * it, each one a message for the owner to answer by hand about a product
+   * nobody had costed.
    */
   assert.match(qv, /from '\.\.\/\.\.\/lib\/product-state\.js'/,
     'the dialog decides availability for itself instead of using the shared rule');
   assert.doesNotMatch(qv, /Number\(product\.price\)\s*>\s*0/,
     'the dialog re-derives "is it priced" locally, which is how it drifted from the card last time');
   assert.match(qv, /AddButton/, 'a priced product cannot be added to cart from the dialog');
-  assert.match(qv, /wa\.me/, 'an unpriced product has no WhatsApp ask path');
-  assert.match(qv, /خلص من المخزن/, 'an out-of-stock product is not said to be out of stock');
+  assert.doesNotMatch(qv, /wa\.me/, 'the dialog still sends shoppers to WhatsApp about a price');
+  assert.match(qv, /خلص من المخزن/, 'the dialog cannot say a product is unavailable');
 
   // The full-details link is language-aware, so the English dialog links the
   // English page. It goes through the localePath helper, aliased L here.

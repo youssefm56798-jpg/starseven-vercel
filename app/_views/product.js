@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { sql } from '../../lib/db.js';
 import { site } from '../../lib/config.js';
 import { currencyLabel, whole, discountPercent, hasDiscount } from '../../lib/money.js';
-import { buyState, ASK, BUY } from '../../lib/product-state.js';
+import { buyState, BUY } from '../../lib/product-state.js';
 import { bySlug } from '../../lib/hairtypes.js';
 import { renderMarkdown } from '../../lib/markdown.js';
 import { productFaq, faqJsonLd } from '../../lib/faq.js';
@@ -223,13 +223,16 @@ export default async function ProductView({ slug, lang }) {
             <h1>{name}</h1>
             <div className="sub">{sub}</div>
 
+            {/* The price whenever there is one, and never mind whether it is
+                in stock today — what the customer cannot do is said once, on
+                the button underneath. */}
             <div className="pdp-price">
               {priced ? (
                 <bdi className="p">
                   {whole(p.price)} <small>{currencyLabel(lang)}</small>
                 </bdi>
               ) : (
-                <span className="p ask">{ar ? 'اسأل عن السعر' : 'Ask for the price'}</span>
+                <span className="p ask">{ar ? 'مش متاح دلوقتي' : 'Not available yet'}</span>
               )}
               {hasDiscount(p.price, p.compare_at) && (
                 <>
@@ -241,22 +244,17 @@ export default async function ProductView({ slug, lang }) {
               )}
             </div>
 
+            {/* Unpriced and unstocked get one sentence, because they are one
+                fact: nobody can sell it to you. The WhatsApp ask that used to
+                stand here is gone — see app/shop/view.js for why. */}
             <div className="pdp-buy">
-              {state === ASK ? (
-                <a className="btn btn-red" target="_blank" rel="noopener"
-                  href={`https://wa.me/${site.whatsapp}?text=${encodeURIComponent(
-                    ar ? `عايز أعرف سعر ${name}` : `What is the price of ${name}?`)}`}>
-                  {ar ? 'اسأل على واتساب' : 'Ask on WhatsApp'}
-                </a>
-              ) : state === BUY ? (
-                <>
-                  <AddButton
-                    sku={p.sku}
-                    className="btn btn-red"
-                    label={ar ? 'ضيفه للسلة' : 'Add to cart'}
-                    addedLabel={ar ? 'اتضاف للسلة ✓' : 'Added to cart ✓'}
-                  />
-                </>
+              {state === BUY ? (
+                <AddButton
+                  sku={p.sku}
+                  className="btn btn-red"
+                  label={ar ? 'ضيفه للسلة' : 'Add to cart'}
+                  addedLabel={ar ? 'اتضاف للسلة ✓' : 'Added to cart ✓'}
+                />
               ) : (
                 <span className="btn btn-line" style={{ opacity: 0.6, cursor: 'default' }}>
                   {ar ? 'خلص من المخزن' : 'Out of stock'}
