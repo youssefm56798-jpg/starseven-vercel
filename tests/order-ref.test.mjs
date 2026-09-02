@@ -187,3 +187,47 @@ test('the sweep only ever touches orders nobody has looked at', () => {
   assert.doesNotMatch(sweep, /UPDATE\s+products|UPDATE\s+orders/,
     'the sweep writes to orders or products directly instead of going through transition()');
 });
+
+test('the order number sequence starts where the shop says it does', () => {
+  // This assertion earns its place because the failure it guards is silent.
+  // The line is CREATE SEQUENCE IF NOT EXISTS, so on any database that already
+  // has the sequence - which is every deployed one - editing the number here
+  // does precisely nothing. Someone changes it, deploys, sees no error, and
+  // believes it took. Only a fresh database would ever disagree.
+  //
+  // It also has to match what the customer is told. The find form's
+  // placeholder, the error message when a reference will not parse and the
+  // examples in the Arabic and English copy all print a specimen number, and a
+  // specimen of the wrong length teaches people to type the wrong thing.
+  const START = 100001;
+  const schema = readFileSync(`${ROOT}db/schema.sql`, 'utf8');
+
+  const line = schema.match(/CREATE SEQUENCE IF NOT EXISTS order_ref_seq[^;]*;/);
+  assert.ok(line, 'the order_ref_seq sequence is gone from db/schema.sql');
+  // Read the numbers out and compare them as numbers. Building the pattern
+  // from a template literal is a trap here: a lone backslash-b in a template
+  // literal is a backspace character, not a word boundary, so the regex
+  // silently matches nothing and the test fails on a correct schema.
+  const startsAt = Number((line[0].match(/START WITH (\d+)/) || [])[1]);
+  const minimum  = Number((line[0].match(/MINVALUE (\d+)/) || [])[1]);
+
+  assert.equal(startsAt, START, `the sequence starts at ${startsAt}, not ${START}`);
+  assert.equal(minimum, START,
+    `MINVALUE is ${minimum}, not ${START} - a RESTART could drop below the floor`);
+
+  // Every place a specimen number is shown to a customer.
+  const shown = [
+    'app/order/find/FindForm.js',
+    'app/_views/order-find.js',
+    'app/api/order/find/route.js',
+  ];
+  for (const file of shown) {
+    const text = readFileSync(ROOT + file, 'utf8');
+    const specimens = [...text.matchAll(/#\s?(\d{4,})/g)].map(m => m[1]);
+    for (const n of specimens) {
+      assert.equal(n.length, String(START).length,
+        `${file} shows #${n} as an example, which is ${n.length} digits — `
+        + `real order numbers are ${String(START).length}`);
+    }
+  }
+});

@@ -90,7 +90,7 @@ export async function POST(req) {
   /*
    * Normalised, not merely uppercased.
    *
-   * Order numbers are PRINTED with a hash - #10001 - so that is what a customer
+   * Order numbers are PRINTED with a hash - #100001 - so that is what a customer
    * copies out of their confirmation email, and a lookup that only uppercased
    * would tell somebody holding the right number that no such order exists. The
    * hash is presentation this app adds; it is not part of the stored value.
@@ -102,7 +102,7 @@ export async function POST(req) {
   const ref = normaliseRef(str(body.ref, 40));
   if (!REF.test(ref)) {
     return fail(
-      ar ? 'رقم الأوردر شكله كده: ‎#10001‎ أو S7-2708-12345' : 'An order number looks like #10001 (older ones look like S7-2708-12345)',
+      ar ? 'رقم الأوردر شكله كده: ‎#100001‎ أو S7-2708-12345' : 'An order number looks like #100001 (older ones look like S7-2708-12345)',
       422, { field: 'ref' },
     );
   }

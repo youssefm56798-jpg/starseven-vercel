@@ -182,8 +182,8 @@ export default async function OrdersPage({ searchParams }) {
     }
   }
 
-  // The hash is decoration, so it must not reach the LIKE: searching "#10001"
-  // has to find the order stored as "10001". Everything else is left exactly as
+  // The hash is decoration, so it must not reach the LIKE: searching "#100001"
+  // has to find the order stored as "100001". Everything else is left exactly as
   // typed, because this box also takes names and phone numbers, and normalising
   // those would strip the space out of "Youssef Tester".
   const like = `%${q.replace(/^#+/, '')}%`;

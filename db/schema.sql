@@ -154,7 +154,7 @@ CREATE INDEX IF NOT EXISTS idx_orders_status ON orders (status, created_at DESC)
 --  random digits. That is thirteen characters to read down a phone, on a shop
 --  whose main channel IS the phone, and customers regularly got it wrong.
 --
---  So it is a plain counting number now — 10001, 10002 — displayed as #10001.
+--  So it is a plain counting number now — 100001, 100002 — displayed as #100001.
 --  Short, unambiguous, and a customer can say it out loud in one breath.
 --
 --  A SEQUENCE and not max(id)+1, and not random digits either:
@@ -173,7 +173,7 @@ CREATE INDEX IF NOT EXISTS idx_orders_status ON orders (status, created_at DESC)
 --      feature, not a defect: it means the numbers are not an exact order
 --      counter for anybody subtracting two of them.
 --
---  START WITH 10001 so the first order is not #1, which advertises a brand new
+--  START WITH 100001 so the first order is not #1, which advertises a brand new
 --  shop. Change the number here BEFORE the first real order and never after:
 --  IF NOT EXISTS means this line does nothing on a database that already has
 --  the sequence, so editing it later is silently a no-op. To move it on a live
@@ -183,7 +183,7 @@ CREATE INDEX IF NOT EXISTS idx_orders_status ON orders (status, created_at DESC)
 --  Orders placed before this keep their S7- references and every lookup still
 --  accepts both shapes — see normaliseRef() in lib/order-number.js.
 -- ---------------------------------------------------------------------------
-CREATE SEQUENCE IF NOT EXISTS order_ref_seq START WITH 10001 MINVALUE 10001;
+CREATE SEQUENCE IF NOT EXISTS order_ref_seq START WITH 100001 MINVALUE 100001;
 
 CREATE TABLE IF NOT EXISTS order_items (
   id         INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

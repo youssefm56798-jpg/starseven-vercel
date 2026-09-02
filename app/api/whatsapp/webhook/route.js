@@ -26,7 +26,7 @@ export const dynamic = 'force-dynamic';
  * This URL is public, and the signature is the only thing guarding it
  *
  * Meta has to be able to reach it, so anybody can. A POST here claims "the
- * customer on order #10001 replied", and acting on that claim keeps an order's
+ * customer on order #100001 replied", and acting on that claim keeps an order's
  * stock and can cancel an order outright. Unsigned, one curl command confirms
  * every order on the shop — handing back the exact abuse the confirmation
  * exists to prevent, with a public endpoint attached.
@@ -107,7 +107,7 @@ async function claim(eventId, kind) {
  *             Unguessable, because we minted it and it is stored on the order.
  *             This is the good path.
  *   payload   the order number we put in the button. Guessable by design —
- *             #10002 follows #10001 — so it is only ever accepted together with
+ *             #100002 follows #100001 — so it is only ever accepted together with
  *             the phone number matching the order it names.
  *
  * The phone is checked on BOTH paths regardless. The signature is what makes

@@ -115,7 +115,7 @@ export default function FindForm({ lang }) {
           type="text"
           value={ref}
           onChange={e => setRef(e.target.value)}
-          placeholder="#10001"
+          placeholder="#100001"
           autoComplete="off"
           inputMode="text"
           dir="ltr"
