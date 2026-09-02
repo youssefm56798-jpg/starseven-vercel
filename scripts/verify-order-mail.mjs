@@ -150,6 +150,7 @@ const order = {
   ref: '999999',
   name: 'Verify Script',
   phone: '01000000000',
+  email: 'customer@example.com',
   address: 'This is a test from scripts/verify-order-mail.mjs. No such order exists.',
   city: 'Cairo',
   notes: 'Test send — ignore.',

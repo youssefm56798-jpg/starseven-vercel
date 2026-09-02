@@ -705,7 +705,8 @@ export async function POST(req) {
 
   /* --------------------------------------------------------------- consent */
 
-  const order = { ref, name, phone, address, city, notes, subtotal, shipping, discount, total };
+  // email rides along for the shop's copy, which lists it; the customer's copy never prints it.
+  const order = { ref, name, phone, address, city, notes, email: custEmail, subtotal, shipping, discount, total };
 
   // Marketing consent given at checkout (unticked by default). Because the
   // customer opted in directly on their own order, the row is stored active —
