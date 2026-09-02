@@ -109,7 +109,9 @@ test('the product seeds still conflict on the SKU rather than overwriting', () =
   // also, indirectly, why a hard delete of a seeded product is not offered:
   // a deleted row stops conflicting, so the next deploy inserts it again.
   const inserts = splitStatements(seed).filter(s => /^\s*INSERT INTO products/m.test(s));
-  assert.equal(inserts.length, 2, 'the number of product seed inserts changed');
+  // The launch eight, the manufacturer catalogue, and the shampoo line of
+  // September 2026.
+  assert.equal(inserts.length, 3, 'the number of product seed inserts changed');
   for (const stmt of inserts) {
     assert.match(stmt, /ON CONFLICT \(sku\) DO NOTHING/,
       'a product seed would overwrite a row the owner has edited');

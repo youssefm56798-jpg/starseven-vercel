@@ -132,7 +132,12 @@ test('db/seed.sql is the seeds, the copy update, the article wave, the link fix,
   // to the copy. The 400ml gel had its size written in the English name, both
   // subtitles and the highlights list as well as in size_ml, and fixing only
   // the column left the page contradicting itself.
-  assert.equal(out.length, 64);
+  //
+  // 65, up from 64: the shampoo line of September 2026, one INSERT at out[8],
+  // straight after the catalogue block. Its own statement rather than three
+  // more rows in that block because it is switched on at price 0, which the
+  // block is held to never doing - see below.
+  assert.equal(out.length, 65);
   assert.ok(out[0].includes('INSERT INTO products') && out[0].includes('ON CONFLICT (sku)'));
   assert.ok(out[1].includes('INSERT INTO offers') && out[1].includes('ON CONFLICT (code)'));
   // Both article statements must target the (slug, lang) index. The old
@@ -228,17 +233,45 @@ test('db/seed.sql is the seeds, the copy update, the article wave, the link fix,
     (catalogue.match(/'S7-/g) || []).length,
     'every catalogue row must be seeded inactive');
 
+  /*
+   * The shampoo line, out[8]. Three rows that do exactly what the block above
+   * is forbidden, on purpose: they are active at price 0. The client wants the
+   * line on the storefront before it is priced, and since the catalogue block
+   * was written the shop learned to render an unpriced row as unavailable
+   * rather than as free (lib/product-state.js), so the page can exist before
+   * the price does. Its own statement because the block above has to keep
+   * refusing that shape for the fifty-five rows it carries.
+   */
+  const shampoo = out[8];
+  assert.ok(shampoo.includes('INSERT INTO products'));
+  assert.ok(shampoo.includes('ON CONFLICT (sku) DO NOTHING'),
+    'the shampoo seed must never overwrite a price the client has set');
+  assert.deepEqual(shampoo.match(/'S7-[A-Z0-9-]+'/g),
+    ["'S7-SH800-DRY'", "'S7-SH800-NORMAL'", "'S7-SH800-DANDRF'"]);
+  assert.equal((shampoo.match(/'shampoo'/g) || []).length, 3, 'every row is kind shampoo');
+  // Unpriced, out of stock and switched on - all three at once, so the page
+  // renders as unavailable and nothing can be bought for nothing.
+  assert.equal((shampoo.match(/\n\s+0, '#[0-9A-F]{6}', 'assets\/catalog\/shampoo-800-/g) || []).length, 3,
+    'a shampoo row is seeded with a price');
+  assert.equal((shampoo.match(/, 0, TRUE, \d+,/g) || []).length, 3,
+    'a shampoo row is seeded with stock, or switched off');
+  // The highlights ride in the INSERT rather than in a copy block: the copy
+  // blocks fill blanks on rows that already exist, and these rows and their
+  // copy arrive together.
+  assert.ok(shampoo.includes('highlights_ar') && shampoo.includes('highlights_en'),
+    'the shampoo rows arrive without their highlights');
+
   // The two pricing statements that follow. Both must stay guarded on
   // price = 0 AND active = false, so a row is priced once and a price the
   // client later sets in the admin is never overwritten by a redeploy.
-  for (const stmt of out.slice(8, 10)) {
+  for (const stmt of out.slice(9, 11)) {
     assert.match(stmt, /UPDATE products/);
     assert.match(stmt, /price = 0 AND active = FALSE/,
       'a pricing statement is unguarded and would overwrite an admin edit');
   }
 
   // And neither may reach a format whose size makes the copied price wrong.
-  const priced = out.slice(8, 10).join('\n');
+  const priced = out.slice(9, 11).join('\n');
   assert.ok(!/'spray'|'cologne'|'depilatory'/.test(priced),
     'a format with no priced sibling is being given a copied price');
   assert.ok(/size_ml = 250/.test(priced),
@@ -279,13 +312,16 @@ test('the corrections are guarded on the value they are replacing', {
    * the client sent a product catalogue, and it sits in the base seed rather
    * than among the corrections because that is what it is.
    *
+   * 13, not 12: the shampoo line went in as its own INSERT after the
+   * catalogue block, for the reason given beside its assertions above.
+   *
    * This index is positional and it will move again the next time anything is
    * added to the top of the file. That is a real weakness of this test and it
    * is kept anyway - the thing it catches is a correction written as a bulk
    * UPDATE with no SKU and no guard, which is how the seed starts overwriting
    * the admin, and no cheaper check finds that.
    */
-  const corrections = out.slice(12);
+  const corrections = out.slice(13);
   assert.equal(corrections.length, 52);
 
   for (const stmt of corrections) {
@@ -362,7 +398,7 @@ test('the copy corrections cannot leave a number behind in the long-form text', 
   // prose is the failure mode this guards, because the prose is what the
   // customer actually reads.
   const out = splitStatements(readFileSync(`${ROOT}db/seed.sql`, 'utf8'));
-  const perSku = out.slice(12).filter(s => s.includes('long_en'));
+  const perSku = out.slice(13).filter(s => s.includes('long_en'));
   const copy = perSku.join('\n');
 
   for (const sku of ['S7-WAX-RED', 'S7-WAX-PUR', 'S7-WAX-BLU', 'S7-WAX-YEL',

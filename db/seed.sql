@@ -2303,6 +2303,76 @@ VALUES
 ON CONFLICT (sku) DO NOTHING;
 
 -- ---------------------------------------------------------------------------
+--  The shampoo line (3 products)
+--
+--  Three 800ml pump bottles from the client PDF of September 2026: a 2x1
+--  shampoo and conditioner for dry hair, the same for normal hair, and an
+--  anti-dandruff shampoo. The Arabic names and highlights are the PDF text as
+--  printed; the English is a translation of it. The photographs are cut from
+--  the same PDF.
+--
+--  These land `active = TRUE` at `price = 0`, which the catalogue block above
+--  may not do. The difference is intent: the client wants this line on the
+--  storefront now, and a row at price 0 renders as unavailable rather than as
+--  free (lib/product-state.js), so the page can exist before the price does.
+--  Stock is 0 for the same reason. Both are for the admin to set, and DO
+--  NOTHING means a redeploy cannot put either back.
+--
+--  hold_level means nothing for a shampoo; 1 is the lowest the CHECK allows.
+--  hair_types is filled so the finder can offer them once they are priced -
+--  sellable() in lib/hairtypes.js keeps them out of it until then.
+--
+--  (No apostrophes in this comment, for the same reason as above.)
+-- ---------------------------------------------------------------------------
+INSERT INTO products
+  (sku, slug, kind, name_ar, name_en, sub_ar, sub_en, chip_ar, chip_en,
+   price, color, image, size_ml, hold_level, hair_types, stock, active, sort,
+   highlights_ar, highlights_en)
+VALUES
+  ('S7-SH800-DRY', 'shampoo-800-dry', 'shampoo',
+   'شامبو وبلسم نيو ستار سفن للشعر الجاف', 'Shampoo & Conditioner 800ml — Dry Hair',
+   '800 مل · شامبو وبلسم 2×1 · للشعر الجاف', '800ml · 2-in-1 · Dry Hair',
+   'للشعر الجاف', 'Dry Hair',
+   0, '#12100B', 'assets/catalog/shampoo-800-dry.webp', 800, 1, 'coily,curly,thick', 0, TRUE, 170,
+   'ينظف الشعر وفروة الرأس بسرعه وبدون جفاف بفضل تركيبة الشامبو والبلسم 2×1.
+سهل الاستخدام ومناسب لاصلاح الشعر التالف والجاف.
+يزيل كل منتجات نيوستارسفن بسهولة مع الحفاظ على رطوبة الشعر.
+يوصى بإستخدام حمام كريم نيوستارسفن بعد الشامبو للحصول على أقصى استفادة.',
+   'Cleans the hair and scalp quickly and without drying, thanks to the 2-in-1 shampoo and conditioner formula
+Easy to use, and made for repairing damaged, dry hair
+Washes every New Star Seven product out easily while keeping the moisture in the hair
+For the most out of it, follow the shampoo with New Star Seven cream bath'),
+  ('S7-SH800-NORMAL', 'shampoo-800-normal', 'shampoo',
+   'شامبو وبلسم نيو ستار سفن للشعر العادي', 'Shampoo & Conditioner 800ml — Normal Hair',
+   '800 مل · شامبو وبلسم 2×1 · للشعر العادي', '800ml · 2-in-1 · Normal Hair',
+   'للشعر العادي', 'Normal Hair',
+   0, '#FFFDF8', 'assets/catalog/shampoo-800-normal.webp', 800, 1, 'straight,wavy,fine', 0, TRUE, 171,
+   'ينظف الشعر وفروة الرأس بسرعه بفضل تركيبة الشامبو والبلسم 2×1.
+سهل الاستخدام ومناسب للشعر العادي.
+يزيل كل منتجات نيوستارسفن بسهولة مع الحفاظ على رطوبة الشعر.
+يوصى بإستخدام حمام كريم نيوستارسفن بعد الشامبو للحصول على أقصى استفادة.',
+   'Cleans the hair and scalp quickly, thanks to the 2-in-1 shampoo and conditioner formula
+Easy to use, and made for normal hair
+Washes every New Star Seven product out easily while keeping the moisture in the hair
+For the most out of it, follow the shampoo with New Star Seven cream bath'),
+  ('S7-SH800-DANDRF', 'shampoo-800-anti-dandruff', 'shampoo',
+   'شامبو نيو ستار سفن ضد القشرة', 'Shampoo 800ml — Anti-Dandruff',
+   '800 مل · شامبو ضد القشرة', '800ml · Anti-Dandruff',
+   'ضد القشرة', 'Anti-Dandruff',
+   0, '#2A6DE8', 'assets/catalog/shampoo-800-anti-dandruff.webp', 800, 1, 'straight,wavy,curly,coily,fine,thick,white', 0, TRUE, 172,
+   'ينظف الشعر وفروة الرأس ويتخلص من القشرة تماما.
+يمنح انتعاشا فوريا واحساس بالنشاط والحيوية.
+سهل الاستخدام ومناسب لجميع أنواع الشعر.
+يزيل كل منتجات نيوستارسفن بسهولة مع انتعاش لفروة الرأس.
+يوصى بإستخدام حمام كريم نيوستارسفن بعد الشامبو للحصول على أقصى استفادة.',
+   'Cleans the hair and scalp and gets rid of dandruff completely
+Gives an instant feeling of freshness, energy and vitality
+Easy to use, and right for every hair type
+Washes every New Star Seven product out easily and leaves the scalp refreshed
+For the most out of it, follow the shampoo with New Star Seven cream bath')
+ON CONFLICT (sku) DO NOTHING;
+
+-- ---------------------------------------------------------------------------
 --  Price the catalogue that shares a format with something already on sale
 --
 --  Instruction was to price these the same as the existing products. That maps

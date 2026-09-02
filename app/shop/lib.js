@@ -162,6 +162,23 @@ export const CATEGORIES = [
     },
   },
   {
+    slug: 'shampoo', kind: 'shampoo',
+    crumb: { ar: 'شامبو', en: 'Shampoo' },
+    h1: { ar: 'شامبو وبلسم للشعر', en: 'Shampoo & conditioner' },
+    title: {
+      ar: 'شامبو وبلسم للشعر — ينظف من غير ما ينشّف',
+      en: 'Shampoo & conditioner — cleans without drying out',
+    },
+    desc: {
+      ar: 'شامبو نيو ستار سفن ٨٠٠ مل: شامبو وبلسم ٢×١ للشعر الجاف والعادي، وشامبو ضد القشرة. بيشيل كل منتجات التصفيف بسهولة ويحافظ على رطوبة الشعر. توصيل لكل مصر والدفع عند الاستلام.',
+      en: 'New Star Seven shampoo, 800ml: a 2-in-1 shampoo and conditioner for dry or normal hair, and an anti-dandruff. Washes styling products out without drying the hair. Delivered across Egypt, cash on receipt.',
+    },
+    lead: {
+      ar: 'اللي بيشيل الواكس والجل في آخر اليوم. تلات عبوات ٨٠٠ مل: ٢×١ للشعر الجاف، ٢×١ للشعر العادي، وواحد ضد القشرة — وكلهم بيغسلوا منتجات نيو ستار سفن من غير ما ينشّفوا الشعر.',
+      en: 'What takes the wax and the gel back out at the end of the day. Three 800ml bottles: a 2-in-1 for dry hair, a 2-in-1 for normal hair and an anti-dandruff, and all three wash New Star Seven products out without drying the hair.',
+    },
+  },
+  {
     slug: 'depilatory', kind: 'depilatory',
     crumb: { ar: 'إزالة الشعر', en: 'Hair Removal' },
     h1: { ar: 'منتجات إزالة الشعر', en: 'Hair removal' },
