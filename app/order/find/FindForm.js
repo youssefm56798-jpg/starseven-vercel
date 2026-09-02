@@ -127,7 +127,7 @@ export default function FindForm({ lang }) {
           clip-path. Anything typed in here makes the endpoint answer exactly
           as it would on success and send nothing. */}
       <input type="text" tabIndex={-1} autoComplete="off" aria-hidden="true"
-        name="company_website" value={hp} onChange={e => setHp(e.target.value)}
+        name="s7_x9" value={hp} onChange={e => setHp(e.target.value)}
         className="hp-field" />
 
       <button className="btn btn-red" type="submit" disabled={busy}>

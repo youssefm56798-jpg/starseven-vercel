@@ -464,8 +464,14 @@ export default function CheckoutClient({ lang, add, catalog, shipping, currency 
           <div className="ff2">
             <Field id="name" label={T.name} val={f.name} set={upd('name')} onBlur={blur('name')} err={errs.name}
               autoComplete="name" />
-            <Field id="phone" label={T.phone} val={f.phone} set={upd('phone')} onBlur={blur('phone')} err={errs.phone}
-              type="tel" dir="ltr" inputMode="tel" autoComplete="tel" placeholder="01xxxxxxxxx" />
+            {/* Digits only, stripped as they are typed: a letter in a phone
+                number is never right, and the numeric keyboard on a phone has
+                no letters to offer. normalizePhone() on the server already
+                drops everything that is not a digit, so nothing it accepted
+                before is refused now. */}
+            <Field id="phone" label={T.phone} val={f.phone} set={v => upd('phone')(v.replace(/\D/g, ''))}
+              onBlur={blur('phone')} err={errs.phone}
+              type="tel" dir="ltr" inputMode="numeric" pattern="[0-9]*" autoComplete="tel" placeholder="01xxxxxxxxx" />
           </div>
 
           <Field id="addr" label={T.addr} val={f.addr} set={upd('addr')} onBlur={blur('addr')} err={errs.addr} ta
@@ -505,9 +511,16 @@ export default function CheckoutClient({ lang, add, catalog, shipping, currency 
 
           {/* Spam trap. .hp-field in globals.css takes it off screen with
               clip-path. Never remove that rule: anything typed in here makes the
-              order route discard the order. */}
+              order route discard the order.
+
+              The name is deliberately meaningless. It was "company_website",
+              and Chrome's address autofill recognises that as an organisation
+              URL and fills it in along with the name and street - so a customer
+              who autofilled the form was answered with a fake order number and
+              nothing was written. Found on 2 September when exactly that
+              happened. A name no autofill profile matches is the whole fix. */}
           <input type="text" tabIndex={-1} autoComplete="off" aria-hidden="true"
-            name="company_website" value={hp} onChange={e => setHp(e.target.value)}
+            name="s7_x9" value={hp} onChange={e => setHp(e.target.value)}
             className="hp-field" />
 
           <button className="btn btn-red btn-full" type="submit" disabled={busy}
