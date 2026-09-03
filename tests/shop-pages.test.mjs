@@ -539,3 +539,22 @@ test('the quick view is one state-driven dialog wired onto every card', async ()
   // Reduced motion is honoured, and only in the stylesheet.
   assert.match(css, /prefers-reduced-motion/, 'the quick view ignores prefers-reduced-motion');
 });
+
+test('shopCopy returns the same shape for a category and for the full line', () => {
+  /*
+   * The /shop fallback used to omit `body` and `faq` entirely, because those
+   * were added to the category branch only. app/shop/view.js reads
+   * `c.faq.length` unconditionally, so /shop and /en/shop threw
+   * "Cannot read properties of undefined" during prerender and took the whole
+   * production build down with them. The category pages were fine, which is
+   * exactly why it was missed.
+   */
+  for (const lang of ['ar', 'en']) {
+    const full = shopCopy(null, lang);
+    const cat = shopCopy('gel', lang);
+    assert.deepEqual(Object.keys(full).sort(), Object.keys(cat).sort(),
+      `shopCopy(null, '${lang}') and shopCopy('gel', '${lang}') return different shapes`);
+    assert.ok(Array.isArray(full.faq), 'the full line has no faq array to read length from');
+    assert.equal(typeof full.body, 'string', 'the full line has no body string');
+  }
+});

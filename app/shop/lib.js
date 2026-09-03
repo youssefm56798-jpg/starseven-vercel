@@ -347,7 +347,12 @@ export function shopCopy(slug, lang) {
     };
   }
 
+  // The same shape as the branch above, down to the empty body and faq. A
+  // caller that reads c.faq.length must not have to know which branch it got -
+  // /shop took this one, and the missing key crashed the prerender.
   return {
+    body: '',
+    faq: [],
     crumb: ar ? 'المنتجات' : 'Shop',
     h1: ar ? 'كل التشكيلة' : 'The full line',
     title: ar ? 'المنتجات — واكس وجل شعر' : 'Shop — hair wax & gel',
