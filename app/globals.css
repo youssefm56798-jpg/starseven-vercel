@@ -566,6 +566,19 @@ button{font:inherit;cursor:pointer}
 .pdp-trust span{display:block;color:var(--grey);font-size:12px;font-weight:600;line-height:1.4}
 
 /* "you may also like" — the cards themselves are the shared .card/.price rules */
+/* The guides beside the jar. Three at most, and set as a list rather than
+   cards so it never competes with the product grid underneath it. */
+.pdp-reads{margin-top:56px;padding-top:38px;border-top:1.5px solid var(--line)}
+.pdp-reads h2{font-size:22px;font-weight:900;line-height:1.25;margin-bottom:16px}
+.pdp-reads ul{list-style:none;display:grid;gap:1px;background:var(--line);
+  border:1px solid var(--line)}
+.pdp-reads li{background:var(--paper)}
+.pdp-reads a{display:block;padding:14px 16px}
+.pdp-reads a:hover{background:var(--paper-2)}
+.pdp-reads b{display:block;font-weight:900;font-size:15px;line-height:1.4}
+.pdp-reads small{display:block;margin-top:4px;color:var(--grey);font-weight:600;
+  font-size:13px;line-height:1.6}
+
 .pdp-related{margin-top:56px;padding-top:38px;border-top:1.5px solid var(--line)}
 .pdp-related h2{font-size:22px;font-weight:900;line-height:1.25;margin-bottom:20px}
 .pdp-related-grid,

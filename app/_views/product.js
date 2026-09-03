@@ -86,6 +86,37 @@ export default async function ProductView({ slug, lang }) {
   // than a boolean ordering key.
   const others = await sql`
     SELECT * FROM products WHERE active = true ORDER BY sort, id`;
+
+  /*
+   * The articles worth reading next to this jar.
+   *
+   * Every product page linked to four more products and to no writing at all,
+   * which left 66 pages with no outbound topical link and left the guides
+   * reachable only from /blog and the hair-type pages. The ordering is the
+   * whole of the logic: an article that names this SKU first, then one written
+   * for a hair type this product is for, then the newest. LIMIT 3, so a page
+   * with no match still gets a strip rather than an empty heading.
+   *
+   * The second term is what stops a wax page recommending gel: the article's
+   * own sku is resolved back to a product and its kind compared, so the wax
+   * guides sort onto wax pages even though nothing links them directly.
+   *
+   * hair_types is a comma-joined string on the product and a single slug on
+   * the article, so the overlap is tested with a LIKE against the padded
+   * list - the same shape lib/hairtypes.js uses everywhere else.
+   */
+  const reads = await sql`
+    SELECT a.slug, a.title, a.excerpt
+      FROM articles a
+      -- articles.sku holds a SKU on some rows and a slug on others, so the
+      -- join accepts either rather than silently matching half of them.
+      LEFT JOIN products ap ON ap.sku = a.sku OR ap.slug = a.sku
+     WHERE a.status = 'published' AND a.lang = ${lang}
+     ORDER BY (a.sku <> '' AND (a.sku = ${p.sku} OR a.sku = ${p.slug})) DESC,
+              (ap.kind = ${p.kind}) DESC,
+              (a.hair_type <> '' AND ${',' + String(p.hair_types || '') + ','} LIKE '%,' || a.hair_type || ',%') DESC,
+              a.published_at DESC NULLS LAST, a.id DESC
+     LIMIT 3`;
   const related = others
     .filter(r => String(r.sku) !== String(p.sku))
     .sort((a, b) => (b.kind === p.kind) - (a.kind === p.kind))
@@ -435,6 +466,22 @@ export default async function ProductView({ slug, lang }) {
               ))}
             </div>
           </section>
+
+          {reads.length > 0 && (
+            <section className="pdp-reads">
+              <h2>{ar ? 'اقرأ كمان' : 'Read next'}</h2>
+              <ul>
+                {reads.map(a => (
+                  <li key={a.slug}>
+                    <Link href={L(`/article/${a.slug}`)}>
+                      <b>{a.title}</b>
+                      {a.excerpt && <small>{a.excerpt}</small>}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
 
           {related.length > 0 && (
             <section className="pdp-related">
