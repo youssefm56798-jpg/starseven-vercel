@@ -10,6 +10,8 @@ import { Dir, Nav, Footer, Crumb, shopCategories } from '../_components/Chrome.j
 import AddButton from '../_components/AddButton.js';
 import { QuickViewProvider, QuickViewButton } from '../_components/QuickView.js';
 import { imageUrl, imageSrcSet } from '../../lib/product-image.js';
+import { renderMarkdown } from '../../lib/markdown.js';
+import { faqJsonLd } from '../../lib/faq.js';
 
 /**
  * The shop, rendered once and mounted at three addresses.
@@ -105,6 +107,12 @@ export default async function ShopView({ kind, lang }) {
     <Dir lang={lang}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ld(itemList) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ld(crumbLd) }} />
+      {/* Only where questions have actually been written. An empty FAQPage is
+          a structured-data error, not a neutral omission. */}
+      {c.faq.length > 0 && (
+        <script type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: ld(faqJsonLd(c.faq)) }} />
+      )}
       {/* The path has to carry the category, not the bare word. Nav builds the
           language toggle from it, so a hardcoded "shop" sent someone reading
           /shop/gel to /en/shop - switching language quietly threw away the
@@ -246,6 +254,30 @@ export default async function ShopView({ kind, lang }) {
             })}
           </div>
           </QuickViewProvider>
+        )}
+
+        {/* The long copy, under the grid where it belongs: someone who came to
+            buy sees jars first, and someone still deciding reads on. Written
+            per category, so this renders only where it exists. renderMarkdown
+            escapes before it re-enables bold and safe links, which is what
+            makes setting it as HTML here safe. */}
+        {c.body && (
+          <section className="cat-copy"
+            dangerouslySetInnerHTML={{ __html: renderMarkdown(c.body) }} />
+        )}
+
+        {c.faq.length > 0 && (
+          <section className="cat-copy">
+            <h2>{ar ? 'أسئلة بتتسأل كتير' : 'Common questions'}</h2>
+            <div className="ht-faq">
+              {c.faq.map((f, i) => (
+                <details key={i} name="catfaq" open={i === 0}>
+                  <summary>{f.q}</summary>
+                  <div>{f.a}</div>
+                </details>
+              ))}
+            </div>
+          </section>
         )}
 
         {/* Every category page hands the crawler — and the customer who landed

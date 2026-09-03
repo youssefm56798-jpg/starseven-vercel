@@ -257,6 +257,27 @@ button{font:inherit;cursor:pointer}
 .acard p{color:var(--grey);font-size:13.5px;font-weight:600;flex:1}
 .acard .more{margin-top:14px;font-weight:900;font-size:13px;color:var(--ink)}
 
+/* Category copy: the long block under the product grid. Held to a reading
+   measure rather than the grid width - it is prose, not a layout. The
+   disclosure rules are restated here because .ht-faq lives in
+   app/hair-types/hairtypes.css, which the shop pages do not load. */
+.cat-copy{max-width:68ch;margin:52px 0 0}
+.cat-copy h2{font-size:19px;font-weight:900;margin:30px 0 10px}
+.cat-copy h2:first-child{margin-top:0}
+.cat-copy p{margin:0 0 13px;line-height:1.85}
+.cat-copy ul{margin:0 0 13px;padding-inline-start:20px;display:grid;gap:7px}
+.cat-copy li{line-height:1.75}
+.cat-copy a{color:var(--red-ui);font-weight:700}
+.cat-copy .ht-faq{margin-top:6px}
+.cat-copy .ht-faq details{border-bottom:1px solid var(--line)}
+.cat-copy .ht-faq summary{cursor:pointer;list-style:none;padding:14px 0;font-weight:800;
+  display:flex;justify-content:space-between;gap:14px;align-items:baseline}
+.cat-copy .ht-faq summary::-webkit-details-marker{display:none}
+.cat-copy .ht-faq summary::after{content:"+";color:var(--red-ui);font-weight:900;flex:none}
+.cat-copy .ht-faq details[open] summary::after{content:"2"}
+.cat-copy .ht-faq details>div{padding-bottom:14px;color:var(--grey);font-weight:600;
+  font-size:14px;line-height:1.8}
+
 /* article */
 .article{max-width:760px;margin:0 auto;padding:8px 0 70px}
 .article .cov{border-radius:20px;overflow:hidden;margin:22px 0 30px;background:var(--paper-2)}

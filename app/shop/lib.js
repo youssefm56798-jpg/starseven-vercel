@@ -46,8 +46,114 @@ export const CATEGORIES = [
       en: 'New Star Seven men’s hair gel: our highest hold, holding a defined style all day without flaking. Delivered across Egypt, cash on receipt.',
     },
     lead: {
-      ar: 'الجل هو أعلى تثبيت عندنا، وأنسب حاجة للشعر الناعم المفرود اللي مش بيمسك شكل — وللاستايل المحدد اللي عايزه يفضل مكانه.',
-      en: 'Gel is the highest hold we make. It’s the right answer for straight hair that refuses to hold a shape, and for any style you want to stay exactly where you put it.',
+      ar: 'جل شعر رجالي بأعلى تثبيت عندنا — أنسب حاجة للشعر الناعم المفرود اللي مش بيمسك شكل، وللاستايل المحدد اللي عايزه يفضل مكانه.',
+      en: 'Men’s hair gel at the highest hold we make. The right answer for straight hair that refuses to hold a shape, and for any style you want to stay exactly where you put it.',
+    },
+
+    /*
+     * The long copy under the grid.
+     *
+     * The category pages carried twenty words each, which is nothing for a
+     * page meant to answer "which gel do I buy". This is written for the
+     * question rather than for a keyword: what gel is, which size, and the two
+     * things men actually worry about - flaking, and whether it washes out.
+     */
+    body: {
+      ar: `## الجل ولا الواكس؟
+
+الفرق مش في القوة، الفرق في طريقة الشغل. **الجل بيتحط على شعر مبلول وبينشف على الشكل** اللي حطيته وبيفضل فيه. **الواكس بيتحط على شعر ناشف** أو نص ناشف وبيفضل ماشي مع إيدك طول اليوم، تقدر تعدّل فيه أي وقت.
+
+يعني لو عايز شكل محدد يقف مكانه من الصبح للّيل — الجل. ولو عايز شعر طبيعي تقدر تلعب فيه — الواكس. ولو مش متأكد، [اعرف نوع شعرك](/hair-types) الأول.
+
+الجل كمان هو الحل الوحيد للشعر الناعم المفرود. الشعر ده بيقع بسرعة ومبيمسكش شكل، والواكس بوزنه بيوقّعه أكتر. الجل بينشف عليه وبيمسكه من غير وزن.
+
+## أنواع جل شعر رجالي عندنا
+
+عندنا خطين، والفرق بينهم الحجم والسعر مش الجودة:
+
+- **جل بريميوم ٢٥٠ مل — ٨٠ جنيه.** خمس ألوان: أسود، أبيض، أزرق، أخضر، جولدن. ده اللي تبدأ بيه لو بتجرب الماركة لأول مرة.
+- **جل تثبيت الشعر ٤٠٠ مل — ٦٠ جنيه.** أربع ألوان. أرخص علبة عندنا وأكتر حاجة بتتباع.
+- **٦٥٠ مل — ٨٠ جنيه** و **٨٥٠ مل — ١٠٠ جنيه.** نفس الجل، علبة أكبر. لو بتستعمل جل كل يوم، الـ٨٥٠ بتطلع أرخص بكتير على الاستعمالة.
+
+كل الجل عندنا **تثبيته ٥ من ٥**. اللي بيفرق بين اللون والتاني هو اللمعة: الجولدن أعلى لمعة، والأبيض أهدى واحد.
+
+## بيعمل قشرة؟
+
+القشرة البيضا اللي بتنزل على الكتف مش قشرة فروة رأس — دي الجل نفسه بينشف ويتكسر. بتحصل لما تحط كتير، أو تحط على شعر ناشف بدل مبلول.
+
+الجل بتاعنا تركيبته مائية ومصممة إنها متتكسرش، وده مكتوب على كل علبة. بس التطبيق برضه بيفرق: **قد فصّة إيدك على شعر مبلول** كفاية لشعر متوسط الطول.
+
+## بيتشال بالمياه؟
+
+أيوة، من غير شامبو. تركيبة مائية يعني بتذوب في المياه لوحدها — تحط راسك تحت الدش ودلّك بإيدك وخلاص.
+
+## صنع في مصر
+
+نيو ستار سفن ماركة مصرية من إنتاج **أوفانزا كوزمتيكس**، مصنّعة هنا من ٢٠١٢. أغلب الجل اللي هتلاقيه على الرف مستورد وسعره ضعف ده. إحنا بنصنّعه محلي، والتوصيل لكل محافظات مصر **والدفع عند الاستلام**.`,
+
+      en: `## Gel or wax?
+
+The difference is not strength, it is how each one works. **Gel goes on wet hair and dries into the shape** you put it in, then stays there. **Wax goes on dry or half-dry hair** and stays movable all day, so you can rework it whenever you like.
+
+So: a defined shape that holds from morning to night is gel. Natural hair you can run your hands through is wax. If you are not sure, [find your hair type](/en/hair-types) first.
+
+Gel is also the only real answer for fine, straight hair. That hair drops fast and will not hold a shape, and wax only weighs it down further. Gel dries onto it and holds it with no weight at all.
+
+## The gels we make
+
+Two lines. The difference between them is size and price, not quality:
+
+- **Premium Gel 250ml — 80 EGP.** Five colours: black, white, blue, green and golden. Start here if you are trying the brand for the first time.
+- **Styling Gel 400ml — 60 EGP.** Four colours. Our cheapest jar and our best seller.
+- **650ml — 80 EGP** and **850ml — 100 EGP.** The same gel in a bigger jar. If you use gel daily, the 850ml works out far cheaper per use.
+
+Every gel we make is **hold 5 of 5**. What separates the colours is shine: golden is the highest, white the quietest.
+
+## Does it flake?
+
+The white dust that lands on your shoulder is not scalp flaking — it is the gel itself drying and cracking. It happens when you use too much, or apply to dry hair instead of wet.
+
+Ours is a water-based formula built not to crack, and that claim is printed on every jar. Application still matters: **a fingertip-sized amount on wet hair** is enough for medium-length hair.
+
+## Does it wash out?
+
+Yes, without shampoo. Water-based means it dissolves in water on its own — put your head under the shower, work it through with your fingers, done.
+
+## Made in Egypt
+
+New Star Seven is an Egyptian brand made by **Ovanza Cosmetics**, manufacturing here since 2012. Most gel on the shelf is imported and costs twice this. We make ours locally, deliver to every governorate, and you **pay cash when it arrives**.`,
+    },
+
+    /*
+     * Five questions, and each one is a real search rather than a thing we
+     * wanted to say. They render as a disclosure list and as FAQPage JSON-LD,
+     * so the answers can also appear directly in a result.
+     */
+    faq: {
+      ar: [
+        { q: 'إيه الفرق بين الجل والواكس؟',
+          a: 'الجل بيتحط على شعر مبلول وبينشف على الشكل وبيفضل ثابت. الواكس بيتحط على شعر ناشف وبيفضل ماشي مع إيدك طول اليوم. الجل للشكل المحدد، الواكس للشعر الطبيعي اللي بتلعب فيه.' },
+        { q: 'الجل بيعمل قشرة؟',
+          a: 'القشرة البيضا دي الجل نفسه بينشف ويتكسر، مش قشرة فروة رأس. تركيبتنا مائية ومصممة إنها متتكسرش، وبتقل أكتر لما تحط قد فصّة إيدك على شعر مبلول مش ناشف.' },
+        { q: 'الجل بيتشال إزاي؟',
+          a: 'بالمياه لوحدها من غير شامبو. التركيبة مائية يعني بتذوب في المياه — تحط راسك تحت الدش وتدلّك بإيدك.' },
+        { q: 'أنهي حجم أشتري؟',
+          a: 'لو بتجرب لأول مرة خد ٢٥٠ مل بـ٨٠ جنيه أو ٤٠٠ مل بـ٦٠ جنيه. لو بتستعمل جل كل يوم، ٨٥٠ مل بـ١٠٠ جنيه بتطلع أرخص بكتير على الاستعمالة.' },
+        { q: 'الجل بيقع الشعر؟',
+          a: 'لأ. الجل بيقعد على الشعرة نفسها مش على الفروة، وبيتشال بالمياه. اللي بيأذي الشعر هو الشد والتمشيط وهو ناشف، مش الجل.' },
+      ],
+      en: [
+        { q: 'What is the difference between gel and wax?',
+          a: 'Gel goes on wet hair, dries into the shape and holds it. Wax goes on dry hair and stays movable all day. Gel is for a defined shape; wax is for natural hair you can run your hands through.' },
+        { q: 'Does hair gel cause flaking?',
+          a: 'The white dust is the gel drying and cracking, not scalp flaking. Our formula is water-based and built not to crack, and it happens far less when you use a fingertip-sized amount on wet rather than dry hair.' },
+        { q: 'How do I wash gel out?',
+          a: 'Plain water, no shampoo needed. A water-based formula dissolves in water on its own — put your head under the shower and work it through with your fingers.' },
+        { q: 'Which size should I buy?',
+          a: 'Trying the brand: 250ml at 80 EGP or 400ml at 60 EGP. Using gel daily: the 850ml at 100 EGP is far cheaper per use.' },
+        { q: 'Does hair gel cause hair loss?',
+          a: 'No. Gel sits on the hair shaft rather than the scalp and rinses out with water. What damages hair is pulling and combing it while it is dry and set, not the gel itself.' },
+      ],
     },
   },
   {
@@ -233,6 +339,11 @@ export function shopCopy(slug, lang) {
     return {
       crumb: pick(c.crumb), h1: pick(c.h1),
       title: pick(c.title), desc: pick(c.desc), lead: pick(c.lead),
+      // Written for one category at a time. A category with nothing written
+      // yet returns the empty forms, and the page renders as it always did
+      // rather than showing an empty heading.
+      body: c.body ? pick(c.body) : '',
+      faq: c.faq ? pick(c.faq) : [],
     };
   }
 

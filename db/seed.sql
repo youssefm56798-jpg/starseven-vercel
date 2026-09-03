@@ -1963,6 +1963,210 @@ Not by itself — greasy-looking is usually a finish question before it is a for
 
 التوصيل 30 جنيه، ومجاني لو الطلب فوق 300 جنيه. الدفع كاش عند الاستلام بس. الشحن جوه مصر بس.',
    'assets/wax-red.webp', 'Star Seven Premium Wax Pro X', '', '',
+   'published', now()),
+  ('gel-and-wudu', 'ar', 'gel-wudu',
+   'هل جل الشعر يمنع الوضوء؟ اللي بيحصل فعلاً على الشعر',
+   'الحكم لأهل العلم. إنما السؤال الفيزيائي — هل الجل بيعمل طبقة بتصد المياه ولا بيذوب فيها — ده سؤال ليه إجابة واضحة، وتقدر تختبره بنفسك في ثانيتين.',
+   'بتحط جل الصبح، وبعدين بيجي وقت الوضوء وتقف تفكر: هو ده بيمنع المياه توصل للشعر ولا لأ؟
+
+السؤال ده بيتسأل كتير جداً، والإجابة اللي بتلاقيها على النت غالباً إما فتوى من غير ما حد يعرف المنتج فيه إيه، أو إعلان منتج من غير ما حد يجاوب على السؤال. إحنا هنقول الحتة اللي إحنا نعرفها بالظبط، ونسيب الحتة التانية لأهلها.
+
+## الحكم لأهل العلم، والفيزياء علينا
+
+الفقهاء بيتكلموا عن حاجة اسمها **الحائل** — أي طبقة بتمنع المياه إنها توصل للجلد أو للشعر في الوضوء. الخلاف والتفصيل في المسألة دي شغل أهل العلم، **مش شغلنا وإحنا مش هنفتي فيها**. لو عايز حكم، اسأل شيخ أو دار الإفتاء.
+
+اللي إحنا نقدر نجاوب عليه بمنتهى الدقة هو السؤال الفيزيائي اللي الحكم مبني عليه: **المنتج ده بيعمل طبقة بتصد المياه، ولا بيذوب فيها؟** وده سؤال ليه إجابة واضحة وتقدر تختبرها بنفسك في ثانيتين.
+
+## الجل المائي بيذوب
+
+جل الشعر بتاعنا — وأغلب الجل عموماً — **تركيبته مائية**. يعني الأساس اللي فيه مياه، والمادة اللي بتمسك الشعر بتتفكك تاني أول ما تلمس مياه.
+
+عملياً كده: تحط راسك تحت الدش من غير شامبو، تدلّك بإيدك تلات أربع ثواني، والجل بيروح. ده مش ادعاء تسويقي — ده نفس السبب اللي بيخلي الجل بينشف على شعرك أصلاً: المياه اللي فيه بتتبخر ويفضل الفيلم، والفيلم ده بيرجع يذوب لما المياه ترجع.
+
+## الواكس والبوميد قصة تانية خالص
+
+هنا لازم نبقى صادقين، حتى لو الكلام مش في مصلحة نص التشكيلة بتاعتنا.
+
+**الواكس أساسه شمع وزيوت.** الشمع بطبيعته بيصد المياه — دي وظيفته. عشان كده لما تحاول تشيل واكس بمياه بس، بيفضل ملمس دهني على الشعر، وبتحتاج شامبو عشان يروح تماماً.
+
+يعني: الجل المائي والواكس الشمعي **مش نفس الحالة**، ومش صح إن حد يقول لك «كله زي بعضه». لو الموضوع ده يهمك، ده فرق حقيقي بين نوعين المنتج، وبيدخل في قرار الشراء زي ما بيدخل فيه [التثبيت واللمعة](/article/matte-or-shine).
+
+## اختبار تعمله بنفسك في ثانيتين
+
+متصدقناش، جرب:
+
+- حط شوية صغيرة من المنتج على **ضهر إيدك**.
+- سيبها تنشف دقيقة.
+- حط إيدك تحت الصنبور **من غير صابون** ودلّك تلات ثواني.
+
+لو راح خالص وضهر إيدك رجع ناعم زي ما كان، يبقى المياه بتوصل للجلد. لو فضل ملمس دهني أو طبقة بتحس بيها، يبقى المنتج ده محتاج صابون عشان يروح — وده الفرق كله.
+
+## وقبل الإحرام؟
+
+دي مسألة مختلفة تماماً ومحدش يخلط بينها وبين الوضوء. الإحرام ليه شروط تانية، وأهمها في الموضوع ده إن **الطيب ممنوع على المحرم**.
+
+وده مهم لينا نقوله بوضوح: **منتجات نيو ستار سفن كلها معطّرة**. الجل والواكس والكريم جل كلهم ليهم ريحة. يعني حتى لو المنتج بيذوب في المياه، فموضوع الطيب حاجة تانية لازم تسأل فيها قبل ما تحرم.
+
+## الخلاصة في سطرين
+
+- **الحكم الشرعي** — اسأل أهل العلم، إحنا مش مرجع في ده.
+- **الحقيقة الفيزيائية** — الجل المائي بتاعنا بيذوب في المياه لوحده من غير شامبو. الواكس والبوميد لأ، دول أساسهم شمع وبيصدوا المياه.
+
+ولو عايز تشوف الجل نفسه: [تشكيلة الجل كلها هنا](/shop/gel)، من ٦٠ لـ١٠٠ جنيه، والدفع عند الاستلام.',
+   '', '', '', 'S7-G250-WHITE',
+   'published', now()),
+  ('gel-and-wudu', 'en', 'gel-wudu',
+   'Does hair gel block wudu? What actually happens on the hair',
+   'The ruling belongs to scholars. But the physical question underneath it — does gel form a water-repelling layer or dissolve — has a clear answer you can test in two seconds.',
+   'You put gel in that morning, and then it is time for wudu and you stop and wonder: is this stopping the water from reaching my hair?
+
+It is one of the most-asked questions about hair product in Egypt, and the answers online are usually one of two useless things — a ruling written by someone who has never read an ingredients list, or a product advert that never answers the question. We will answer the part we actually know, and leave the other part to the people whose job it is.
+
+## The ruling belongs to scholars. The physics is ours.
+
+Scholars discuss something called a **ḥāʾil** — any layer that stops water reaching the skin or hair during wudu. The ruling, and the disagreements within it, are the work of people of knowledge. **It is not ours and we will not issue one.** If you want a ruling, ask a sheikh or Dar al-Ifta.
+
+What we can answer precisely is the physical question the ruling rests on: **does this product form a layer that repels water, or does it dissolve in it?** That has a clear answer, and you can test it yourself in about two seconds.
+
+## Water-based gel dissolves
+
+Our hair gel — and most gel generally — is **water-based**. The base is water, and the film that holds your hair breaks apart again the moment it meets more water.
+
+In practice: put your head under the shower with no shampoo, work it with your fingers for three or four seconds, and it is gone. That is not a marketing claim. It is the same reason gel dries on your hair in the first place: the water in it evaporates and leaves the film, and the film redissolves when water comes back.
+
+## Wax and pomade are a different story
+
+Here we have to be honest even though it does not flatter half our own range.
+
+**Wax is built on waxes and oils.** Wax repels water — that is what wax is for. Which is why rinsing wax with water alone leaves a greasy feel on the hair, and why you need shampoo to take it out properly.
+
+So water-based gel and wax-based product are **not the same case**, and anyone telling you they are is not being careful. If this matters to you, it is a real difference between the two formats, and it belongs in the buying decision alongside [hold and shine](/en/article/matte-or-shine).
+
+## Test it yourself in two seconds
+
+Do not take our word for it:
+
+- Put a small amount of the product on the **back of your hand**.
+- Let it dry for a minute.
+- Hold your hand under the tap **with no soap** and rub for three seconds.
+
+If it is gone and the skin feels exactly as it did before, water is reaching the skin. If a greasy feel or a film is still there, that product needs soap to remove — and that is the whole difference.
+
+## And before ihram?
+
+That is a completely separate matter and should not be confused with wudu. Ihram has its own conditions, and the one that matters here is that **perfume is not permitted for a person in ihram**.
+
+Which means we should say this plainly: **every New Star Seven product is fragranced.** The gel, the wax and the cream gel all carry a scent. So even where a product dissolves in water, the fragrance question is a separate one to ask before you enter ihram.
+
+## The short version
+
+- **The religious ruling** — ask people of knowledge. We are not a source for that.
+- **The physical fact** — our water-based gel dissolves in plain water with no shampoo. Wax and pomade do not; they are built on wax and repel water.
+
+If you want to look at the gel itself: [the whole range is here](/en/shop/gel), 60 to 100 EGP, cash on delivery.',
+   '', '', '', 'S7-G250-WHITE',
+   'published', now()),
+  ('homemade-gel', 'ar', 'homemade-gel',
+   'جل شعر طبيعي في البيت: الوصفة بالظبط، وحدودها',
+   'وصفة جل بذر الكتان كاملة بالمقادير والخطوات — وبعدين الكلام اللي محدش بيقوله: بيقعد ٥ أيام بس، وتثبيته ٢ من ٥.',
+   'كل شوية حد بيسأل عن جل شعر طبيعي يتعمل في البيت. والسؤال ده منطقي: الجل الجاهز غالي، وفيه ناس شعرها بيحسس من حاجات فيه، وفيه ناس عايزة تعرف بس هي بتحط إيه على راسها.
+
+فهنكتب الوصفة كاملة، من غير لف ودوران. وبعدين هنقول لك بالظبط هي بتعمل إيه وبتعملش إيه — لأن ده الجزء اللي محدش بيكتبه.
+
+## الوصفة: جل بذر الكتان
+
+دي الوصفة الوحيدة اللي بتطلع **جل حقيقي** مش خليط سايح. بذر الكتان لما بيتغلي بيطلع مادة لزجة طبيعية بتمسك الشعر.
+
+### المقادير
+
+- **ربع كوب بذر كتان** (حوالي ٤٠ جرام) — بيتباع في أي عطار.
+- **كوبين مياه**.
+- اختياري: **معلقة صغيرة جلسرين** أو زيت خفيف عشان يقلل النشفان.
+
+### الخطوات
+
+- حط البذر والمياه في حلة على نار متوسطة.
+- سيبه يغلي وقلّب باستمرار حوالي **٨ لـ١٠ دقايق**. هتلاحظ القوام بيتقل ويبقى شبه بياض البيض.
+- **دي أهم لحظة:** أول ما القوام يبقى زي العسل الخفيف، ارفعه فوراً. لو سبته أكتر هيبقى صعب تصفيته وهيتحول لجيلي متكتل.
+- صفّيه وهو **سخن** من خلال مصفاة ضيقة أو شاشة على طبق. وهو بارد مش هينزل.
+- سيبه يبرد تماماً، وبعدين حطه في برطمان نضيف في **التلاجة**.
+
+## بيقعد قد إيه — وده أهم سؤال
+
+**من ٥ لـ٧ أيام في التلاجة. وبس.**
+
+الوصفة دي مفيهاش مادة حافظة، ومياه وسكريات نباتية في برطمان دافي معناها بكتيريا وفطريات. لو شمّيت ريحة غريبة أو لقيت لون اتغير، ارميه — متحطهوش على شعرك.
+
+الجل الجاهز بيقعد سنتين على الرف لأن فيه مادة حافظة. دي مش «كيماويات مضافة عشان الشركات» — دي الحاجة الوحيدة اللي بتفرق بين برطمان بيقعد سنتين وبرطمان بيبوظ الأسبوع الجاي.
+
+## التثبيت: توقع إيه بالظبط
+
+نكون صريحين معاك: **تثبيت جل بذر الكتان حوالي ٢ من ٥**.
+
+- **بيشتغل حلو** مع الشعر الكيرلي والمويفي: بيعرّف الكيرلة ويقلل الهيشان من غير ما يخلي الشعر ناشف.
+- **مش هيشتغل** لو عايز سلِك باك يقف مكانه، أو كويف مرفوع، أو أي شكل محتاج تثبيت عالي. مش هيمسك، والحرارة والرطوبة في مصر هتوقّعه بدري.
+
+يعني لو شعرك كيرلي وعايز تعريف — الوصفة دي كويسة فعلاً. لو عايز تثبيت، دي مش المنتج.
+
+## امتى يستاهل تعمله، وامتى لأ
+
+**يستاهل** لو شعرك كيرلي، وعندك وقت كل أسبوع، وعايز حاجة عارف كل مكوّن فيها.
+
+**ميستاهلش** لو محتاج تثبيت عالي، أو مش هتلاقي وقت تعمله كل أسبوع، أو مش هيريحك إن منتج بيبوظ في التلاجة.
+
+ولو الحتة التانية دي هي حالتك، [الجل عندنا](/shop/gel) بيبدأ من **٦٠ جنيه** لعلبة ٤٠٠ مل، تثبيته ٥ من ٥، بيتشال بالمياه من غير شامبو، وبيقعد على الرف من غير تلاجة. مش لأنه أحسن من الطبيعي — لأنه بيعمل شغلانة تانية.',
+   '', '', 'curly', 'S7-SG250-WHITE',
+   'published', now()),
+  ('homemade-gel', 'en', 'homemade-gel',
+   'Homemade hair gel: the actual recipe, and what it cannot do',
+   'The full flaxseed gel recipe with quantities and method — then the part nobody writes: it keeps five days, and it holds at 2 out of 5.',
+   'Every so often someone asks how to make natural hair gel at home. It is a fair question: shelf gel costs money, some people react to something in it, and some just want to know what they are putting on their head.
+
+So here is the full recipe, no preamble. And then the part nobody writes: exactly what it does and what it does not.
+
+### The recipe: flaxseed gel
+
+This is the only home recipe that produces **actual gel** rather than a runny mixture. Boiled flaxseed releases a natural mucilage that holds hair.
+
+### What you need
+
+- **A quarter cup of flaxseed** (about 40g) — any herbalist sells it.
+- **Two cups of water.**
+- Optional: **a teaspoon of glycerine** or a light oil to reduce dryness.
+
+### Method
+
+- Put the seeds and water in a pan over medium heat.
+- Bring to the boil and stir constantly for **8 to 10 minutes**. You will see it thicken to roughly the consistency of egg white.
+- **This is the moment that matters:** the second it reaches a light-honey consistency, take it off. Leave it longer and it becomes impossible to strain and sets into lumpy jelly.
+- Strain it **while hot** through a fine sieve or muslin. Cold, it will not pass through.
+- Let it cool completely, then keep it in a clean jar **in the fridge**.
+
+## How long it keeps — the question that matters
+
+**Five to seven days in the fridge. That is all.**
+
+There is no preservative in this. Water and plant sugars in a warm jar means bacteria and mould. If it smells odd or changes colour, throw it out — do not put it on your hair.
+
+Shelf gel lasts two years because it contains a preservative. That is not "chemicals the companies add" — it is the single thing separating a jar that lasts two years from a jar that spoils next week.
+
+## Hold: what to actually expect
+
+Honestly: **flaxseed gel is about a 2 out of 5 for hold.**
+
+- **It works well** on curly and wavy hair: it defines curls and cuts frizz without leaving the hair dry.
+- **It will not work** if you want a slick back that stays put, a lifted quiff, or anything needing real hold. It will not grip, and Egyptian heat and humidity will drop it early.
+
+So if your hair is curly and you want definition, this recipe is genuinely good. If you want hold, this is not the product.
+
+## When it is worth making, and when it is not
+
+**Worth it** if your hair is curly, you have time each week, and you want something whose every ingredient you know.
+
+**Not worth it** if you need high hold, will not find that time weekly, or would rather not own a product that spoils in the fridge.
+
+If that second one is you, [our gel](/en/shop/gel) starts at **60 EGP** for a 400ml jar, holds at 5 of 5, rinses out in plain water with no shampoo, and keeps on a shelf without refrigeration. Not because it is better than natural — because it does a different job.',
+   '', '', 'curly', 'S7-SG250-WHITE',
    'published', now())
 ON CONFLICT (slug, lang) DO UPDATE SET
   group_key    = EXCLUDED.group_key,
