@@ -32,6 +32,19 @@ export const metadata = {
   },
   twitter: { card: 'summary_large_image' },
   robots: { index: true, follow: true },
+  /*
+   * Search Console ownership, as a meta tag on every page.
+   *
+   * The same token also works as the DNS TXT record for the Domain property,
+   * which is the better one to hold - it covers www, http and every subdomain,
+   * where this covers https://newstarseven.com only. The Domain property is
+   * added and waiting; it needs the TXT record at Bluehost, which is a login
+   * this repo does not have.
+   *
+   * Google asks that the token stay in place after verification: removing it
+   * un-verifies the property, silently, some time later.
+   */
+  verification: { google: 'UGHPhvSgQL8a3FENvjQ7nsdFTZt3RowAnM_OAft2O_M' },
 };
 
 /*
