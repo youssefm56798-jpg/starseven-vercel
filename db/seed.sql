@@ -1022,7 +1022,9 @@ Suits every hair type
      'كريم جل بشمع العسل وزيت جوز الهند. يمنح ثباتاً متوسطاً يدوم طوال اليوم مع كثافة ولمعان يدومان طويلاً.
 
 يحتوي على شمع العسل وزيت جوز الهند الذي يرطب الشعر ويقلل تقصفه. التركيبة مائية، فبتتغسل بسهولة وتقدر تعيد تصفيف شعرك في أي وقت من غير ما تسيب بقايا.',
-     '',
+     'A cream gel with beeswax and coconut oil. Medium hold that lasts all day, with lasting thickness and shine.
+
+Beeswax and coconut oil, which moisturises the hair and reduces breakage. The formula is water-based, so it washes out easily and you can restyle any time without residue.',
      '',
      '',
      'ثبات متوسط يدوم طوال اليوم
@@ -1030,12 +1032,18 @@ Suits every hair type
 تركيبة مائية، سهلة الغسل وإعادة التصفيف.
 يمكن استخدامه على الشعر الجاف او المبلل.
 عبوة ٢٥٠ مل',
-     ''),
+     'Medium hold, all day
+Beeswax and coconut oil
+Water-based, washes out easily
+Works on dry or damp hair
+250ml jar'),
     ('S7-W120-COCONU',
      'واكس بريميوم للشعر بـزيت جوز الهند. يحتوي على زيت جوز الهند الذي يرطب الشعرة من جوه ويقلل التقصف، فالشعر يفضل ليّن مع إنه متظبط.
 
 مرونة متوسطة ولمعان قوي، وسهل الاستخدام على كل أنواع الشعر.',
-     '',
+     'A premium wax with coconut oil. Coconut oil moisturises the strand from the inside and reduces breakage, so the hair stays soft while it holds its shape.
+
+Medium flexibility with strong shine, and easy to use on any hair type.',
      '',
      '',
      'مرونة متوسطة — لمعان قوي
@@ -1043,12 +1051,18 @@ Suits every hair type
 يرطب الشعر ويقلل التقصف ولا يترك أي بقايا.
 سهل الاستخدام ومناسب لجميع أنواع الشعر.
 برطمان ١٢٠ مل',
-     ''),
+     'Medium flex, strong shine
+Coconut oil
+Moisturises and reduces breakage, leaves no residue
+Easy to use on any hair type
+120ml jar'),
     ('S7-SH800-DRY',
      'شامبو وبلسم ٢×١ للشعر الجاف. بينضف الشعر وفروة الرأس بسرعة من غير ما يسيب الشعر ناشف، لأن البلسم موجود في نفس التركيبة — خطوة واحدة بدل اتنين.
 
 معمول للشعر الجاف والتالف تحديداً، وبيشيل أي منتج تصفيف من نيو ستار سفن بسهولة مع الحفاظ على رطوبة الشعر. عبوة ٨٠٠ مل تكفي فترة طويلة.',
-     '',
+     'A 2-in-1 shampoo and conditioner for dry hair. It cleans the hair and scalp quickly without leaving them dry, because the conditioner is in the same formula — one step instead of two.
+
+Made for dry and damaged hair, and it washes every New Star Seven styling product out easily while keeping the moisture in. An 800ml bottle lasts a long time.',
      '',
      '',
      '',
@@ -1057,7 +1071,9 @@ Suits every hair type
      'شامبو وبلسم ٢×١ للشعر العادي. بينضف الشعر وفروة الرأس بسرعة، والبلسم في نفس التركيبة فمش محتاج خطوة زيادة بعد الغسيل.
 
 بيشيل أي منتج تصفيف من نيو ستار سفن بسهولة مع الحفاظ على رطوبة الشعر. عبوة ٨٠٠ مل تكفي فترة طويلة.',
-     '',
+     'A 2-in-1 shampoo and conditioner for normal hair. It cleans the hair and scalp quickly, and the conditioner is in the same formula, so there is no extra step after the wash.
+
+It washes every New Star Seven styling product out easily while keeping the moisture in. An 800ml bottle lasts a long time.',
      '',
      '',
      '',
@@ -1066,7 +1082,9 @@ Suits every hair type
      'شامبو ضد القشرة. بينضف الشعر وفروة الرأس ويتخلص من القشرة، وبيسيب إحساس بالانتعاش والنشاط من أول استخدام.
 
 مناسب لكل أنواع الشعر، وبيشيل أي منتج تصفيف من نيو ستار سفن بسهولة مع انتعاش لفروة الرأس. عبوة ٨٠٠ مل تكفي فترة طويلة.',
-     '',
+     'An anti-dandruff shampoo. It cleans the hair and scalp and clears the dandruff, and leaves the scalp feeling fresh and awake from the first wash.
+
+Suits every hair type, and washes every New Star Seven styling product out easily. An 800ml bottle lasts a long time.',
      '',
      '',
      '',
@@ -1075,338 +1093,513 @@ Suits every hair type
      'كولونيا بعد الحلاقة برائحة أكوا. بتترش على الوش بعد الحلاقة على طول — بتنعش الجلد وبتسيب ريحة نضيفة تفضل معاك بعد ما تخرج من عند الحلاق.
 
 العبوة بخاخة ٢٠٠ مل، فالكمية بتتوزّع بالتساوي من غير ما تدهن إيدك أو تحطّ أكتر من اللازم.',
-     '',
+     'An after-shave cologne in Aqua. It goes on straight after the shave — it freshens the skin and leaves a clean scent that stays with you after you walk out of the barbershop.
+
+The 200ml bottle is a spray, so the amount lands evenly without coating your hands or putting on more than you meant to.',
      '',
      '',
      'كولونيا بعد الحلاقة — رائحة أكوا
 انتعاش فوري بعد الحلاقة مباشرة
 بخاخ يوزّع الكمية بالتساوي
 عبوة ٢٠٠ مل',
-     ''),
+     'After-shave cologne — Aqua
+Fresh straight after the shave
+Spray bottle lands it evenly
+200ml bottle'),
     ('S7-C180-ECHO',
      'كولونيا بعد الحلاقة برائحة إيكو. بتترش على الوش بعد الحلاقة على طول — بتنعش الجلد وبتسيب ريحة نضيفة تفضل معاك بعد ما تخرج من عند الحلاق.
 
 العبوة بخاخة ٢٠٠ مل، فالكمية بتتوزّع بالتساوي من غير ما تدهن إيدك أو تحطّ أكتر من اللازم.',
-     '',
+     'An after-shave cologne in Echo. It goes on straight after the shave — it freshens the skin and leaves a clean scent that stays with you after you walk out of the barbershop.
+
+The 200ml bottle is a spray, so the amount lands evenly without coating your hands or putting on more than you meant to.',
      '',
      '',
      'كولونيا بعد الحلاقة — رائحة إيكو
 انتعاش فوري بعد الحلاقة مباشرة
 بخاخ يوزّع الكمية بالتساوي
 عبوة ٢٠٠ مل',
-     ''),
+     'After-shave cologne — Echo
+Fresh straight after the shave
+Spray bottle lands it evenly
+200ml bottle'),
     ('S7-C180-ESSENC',
      'كولونيا بعد الحلاقة برائحة إيسنس. بتترش على الوش بعد الحلاقة على طول — بتنعش الجلد وبتسيب ريحة نضيفة تفضل معاك بعد ما تخرج من عند الحلاق.
 
 العبوة بخاخة ٢٠٠ مل، فالكمية بتتوزّع بالتساوي من غير ما تدهن إيدك أو تحطّ أكتر من اللازم.',
-     '',
+     'An after-shave cologne in Essence. It goes on straight after the shave — it freshens the skin and leaves a clean scent that stays with you after you walk out of the barbershop.
+
+The 200ml bottle is a spray, so the amount lands evenly without coating your hands or putting on more than you meant to.',
      '',
      '',
      'كولونيا بعد الحلاقة — رائحة إيسنس
 انتعاش فوري بعد الحلاقة مباشرة
 بخاخ يوزّع الكمية بالتساوي
 عبوة ٢٠٠ مل',
-     ''),
+     'After-shave cologne — Essence
+Fresh straight after the shave
+Spray bottle lands it evenly
+200ml bottle'),
     ('S7-C180-FRESH',
      'كولونيا بعد الحلاقة برائحة فريش. بتترش على الوش بعد الحلاقة على طول — بتنعش الجلد وبتسيب ريحة نضيفة تفضل معاك بعد ما تخرج من عند الحلاق.
 
 العبوة بخاخة ٢٠٠ مل، فالكمية بتتوزّع بالتساوي من غير ما تدهن إيدك أو تحطّ أكتر من اللازم.',
-     '',
+     'An after-shave cologne in Fresh. It goes on straight after the shave — it freshens the skin and leaves a clean scent that stays with you after you walk out of the barbershop.
+
+The 200ml bottle is a spray, so the amount lands evenly without coating your hands or putting on more than you meant to.',
      '',
      '',
      'كولونيا بعد الحلاقة — رائحة فريش
 انتعاش فوري بعد الحلاقة مباشرة
 بخاخ يوزّع الكمية بالتساوي
 عبوة ٢٠٠ مل',
-     ''),
+     'After-shave cologne — Fresh
+Fresh straight after the shave
+Spray bottle lands it evenly
+200ml bottle'),
     ('S7-C180-MAGIC',
      'كولونيا بعد الحلاقة برائحة ماجيك. بتترش على الوش بعد الحلاقة على طول — بتنعش الجلد وبتسيب ريحة نضيفة تفضل معاك بعد ما تخرج من عند الحلاق.
 
 العبوة بخاخة ٢٠٠ مل، فالكمية بتتوزّع بالتساوي من غير ما تدهن إيدك أو تحطّ أكتر من اللازم.',
-     '',
+     'An after-shave cologne in Magic. It goes on straight after the shave — it freshens the skin and leaves a clean scent that stays with you after you walk out of the barbershop.
+
+The 200ml bottle is a spray, so the amount lands evenly without coating your hands or putting on more than you meant to.',
      '',
      '',
      'كولونيا بعد الحلاقة — رائحة ماجيك
 انتعاش فوري بعد الحلاقة مباشرة
 بخاخ يوزّع الكمية بالتساوي
 عبوة ٢٠٠ مل',
-     ''),
+     'After-shave cologne — Magic
+Fresh straight after the shave
+Spray bottle lands it evenly
+200ml bottle'),
     ('S7-C180-SENSE',
      'كولونيا بعد الحلاقة برائحة سينس. بتترش على الوش بعد الحلاقة على طول — بتنعش الجلد وبتسيب ريحة نضيفة تفضل معاك بعد ما تخرج من عند الحلاق.
 
 العبوة بخاخة ٢٠٠ مل، فالكمية بتتوزّع بالتساوي من غير ما تدهن إيدك أو تحطّ أكتر من اللازم.',
-     '',
+     'An after-shave cologne in Sense. It goes on straight after the shave — it freshens the skin and leaves a clean scent that stays with you after you walk out of the barbershop.
+
+The 200ml bottle is a spray, so the amount lands evenly without coating your hands or putting on more than you meant to.',
      '',
      '',
      'كولونيا بعد الحلاقة — رائحة سينس
 انتعاش فوري بعد الحلاقة مباشرة
 بخاخ يوزّع الكمية بالتساوي
 عبوة ٢٠٠ مل',
-     ''),
+     'After-shave cologne — Sense
+Fresh straight after the shave
+Spray bottle lands it evenly
+200ml bottle'),
     ('S7-HS500-STRONG',
      'سبراي مثبت للشعر بثبات قوي. بيتحط في آخر خطوة بعد ما تكون ظبطت الاستايل، عشان يحافظ على الشكل من غير ما يتقل الشعر أو يخليه متكتّل.
 
 بيترش من مسافة، فالتوزيع بيبقى خفيف ومتساوي، والشعر يفضل ليّن تقدر تعدّله بإيدك. عبوة ٥٠٠ مل.',
-     '',
+     'A hair spray with a strong hold. It goes on last, once the style is where you want it, to hold the shape without weighing the hair down or turning it crunchy.
+
+Sprayed from a distance, so it lands light and even and the hair stays soft enough to rework by hand. 500ml bottle.',
      'ظبّط شعرك الأول زي ما إنت عايز
 امسك البخاخ على بعد شبر تقريباً
 رش رشّة خفيفة موزّعة على الشعر كله
 سيبه يجف لوحده من غير ما تلمسه',
-     '',
+     'Style your hair first, the way you want it
+Hold the can about a hand width away
+Mist lightly and evenly over the whole head
+Let it dry on its own without touching it',
      'ثبات قوي — آخر خطوة بعد التصفيف
 بيحافظ على الشكل من غير تقل
 توزيع خفيف ومتساوي
 مناسب لكل أنواع الشعر
 عبوة ٥٠٠ مل',
-     ''),
+     'Strong hold — the last step after styling
+Holds the shape without the weight
+Lands light and even
+Suits every hair type
+500ml bottle'),
     ('S7-HS500-ULTRAS',
      'سبراي مثبت للشعر بثبات قوي جداً — أقوى درجة في التشكيلة. للستايلات اللي محتاجة تفضل واقفة مكانها طول اليوم، زي الكويف والستايلات المرفوعة.
 
 نفس فكرة الرشّ الخفيف المتساوي، بس بثبات أعلى. لو شعرك تقيل أو الجو رطب، ده هو المناسب. عبوة ٥٠٠ مل.',
-     '',
+     'A hair spray with an ultra strong hold — the firmest in the range. For styles that have to stay standing all day, like a quiff or anything swept up.
+
+The same light, even mist, with more hold behind it. If your hair is heavy or the air is humid, this is the one. 500ml bottle.',
      'ظبّط شعرك الأول زي ما إنت عايز
 امسك البخاخ على بعد شبر تقريباً
 رش رشّة خفيفة موزّعة على الشعر كله
 سيبه يجف لوحده من غير ما تلمسه',
-     '',
+     'Style your hair first, the way you want it
+Hold the can about a hand width away
+Mist lightly and evenly over the whole head
+Let it dry on its own without touching it',
      'ثبات قوي جداً — أعلى درجة
 للستايلات المرفوعة اللي لازم تفضل مكانها
 مناسب للشعر التقيل والجو الرطب
 توزيع خفيف ومتساوي
 عبوة ٥٠٠ مل',
-     ''),
+     'Ultra strong hold — the firmest in the range
+For upswept styles that have to stay put
+Made for heavy hair and humid air
+Lands light and even
+500ml bottle'),
     ('S7-GS14-SACHET',
      'جل شعر في أكياس ١٤ مل — كيس للاستعمالة الواحدة. فكرته إنك تاخد معاك الكمية اللي تكفيك من غير ما تشيل برطمان، فهو مناسب للسفر وللشنطة وللحلاقين اللي بيخدموا زباين كتير.
 
 نفس تركيبة الجل: بيمسك الاستايل، وبيتغسل بالمياه من غير ما يسيب بقايا.',
-     '',
+     'Styling gel in 14ml sachets — one sachet, one use. The point is to carry the amount you need without carrying a jar, which makes it right for travelling, for a bag, and for barbers working through a lot of chairs.
+
+The same gel formula: it holds the style, and it washes out with water without leaving residue.',
      '',
      '',
      'كيس ١٤ مل للاستعمالة الواحدة
 مناسب للسفر وللشنطة
 بيتغسل بالمياه من غير بقايا
 نفس تركيبة جل نيو ستار سفن',
-     ''),
+     '14ml sachet, single use
+Right for travelling and for a bag
+Washes out with water, no residue
+The same New Star Seven gel formula'),
     ('S7-GS20-SACHET',
      'جل شعر في أكياس ٢٠ مل — كيس للاستعمالة الواحدة. فكرته إنك تاخد معاك الكمية اللي تكفيك من غير ما تشيل برطمان، فهو مناسب للسفر وللشنطة وللحلاقين اللي بيخدموا زباين كتير.
 
 نفس تركيبة الجل: بيمسك الاستايل، وبيتغسل بالمياه من غير ما يسيب بقايا.',
-     '',
+     'Styling gel in 20ml sachets — one sachet, one use. The point is to carry the amount you need without carrying a jar, which makes it right for travelling, for a bag, and for barbers working through a lot of chairs.
+
+The same gel formula: it holds the style, and it washes out with water without leaving residue.',
      '',
      '',
      'كيس ٢٠ مل للاستعمالة الواحدة
 مناسب للسفر وللشنطة
 بيتغسل بالمياه من غير بقايا
 نفس تركيبة جل نيو ستار سفن',
-     ''),
+     '20ml sachet, single use
+Right for travelling and for a bag
+Washes out with water, no residue
+The same New Star Seven gel formula'),
     ('S7-DW400-BEESWA',
      'قالب شمع لإزالة الشعر بـشمع العسل، وزن ٤٠٠ جم. بيتسيح في سخّان الشمع لحد ما يبقى قوامه سايل، وبيتوزّع على الجلد بالإسباتيولا وبيتشال بشرايط النزع.
 
 القالب حجمه بيكفي جلسات كتير، فهو الاختيار العملي للسنترات والصالونات أكتر من الاستعمال المرّة الواحدة.',
-     '',
+     'A block of depilatory wax with beeswax, 400g. It melts in a wax heater until it runs, spreads onto the skin with a spatula and comes away with removal strips.
+
+The block is big enough for many sessions, which makes it the practical choice for salons and clinics rather than a one-off.',
      'سيّح القالب في سخّان الشمع لحد ما يبقى سايل
 جرّب درجة حرارته على جزء صغير من الجلد الأول
 وزّعه بالإسباتيولا في اتجاه نمو الشعر
 حط شريحة النزع واسحبها عكس اتجاه الشعر',
-     '',
+     'Melt the block in a wax heater until it runs
+Test the temperature on a small patch of skin first
+Spread it with a spatula in the direction of growth
+Lay a strip and pull against the direction of growth',
      'قالب شمع لإزالة الشعر بـشمع العسل
 بيتسيح في سخّان الشمع ويتشال بشرايط
 حجم يكفي جلسات كتير
 مناسب للصالونات والسنترات
 قالب ٤٠٠ جم',
-     ''),
+     'Depilatory wax block with beeswax
+Melts in a heater, removed with strips
+Enough for many sessions
+Made for salons and clinics
+400g block'),
     ('S7-DW400-COAL',
      'قالب شمع لإزالة الشعر بـخلاصة الفحم، وزن ٤٠٠ جم. بيتسيح في سخّان الشمع لحد ما يبقى قوامه سايل، وبيتوزّع على الجلد بالإسباتيولا وبيتشال بشرايط النزع.
 
 القالب حجمه بيكفي جلسات كتير، فهو الاختيار العملي للسنترات والصالونات أكتر من الاستعمال المرّة الواحدة.',
-     '',
+     'A block of depilatory wax with coal, 400g. It melts in a wax heater until it runs, spreads onto the skin with a spatula and comes away with removal strips.
+
+The block is big enough for many sessions, which makes it the practical choice for salons and clinics rather than a one-off.',
      'سيّح القالب في سخّان الشمع لحد ما يبقى سايل
 جرّب درجة حرارته على جزء صغير من الجلد الأول
 وزّعه بالإسباتيولا في اتجاه نمو الشعر
 حط شريحة النزع واسحبها عكس اتجاه الشعر',
-     '',
+     'Melt the block in a wax heater until it runs
+Test the temperature on a small patch of skin first
+Spread it with a spatula in the direction of growth
+Lay a strip and pull against the direction of growth',
      'قالب شمع لإزالة الشعر بـخلاصة الفحم
 بيتسيح في سخّان الشمع ويتشال بشرايط
 حجم يكفي جلسات كتير
 مناسب للصالونات والسنترات
 قالب ٤٠٠ جم',
-     ''),
+     'Depilatory wax block with coal
+Melts in a heater, removed with strips
+Enough for many sessions
+Made for salons and clinics
+400g block'),
     ('S7-DW400-ROSE',
      'قالب شمع لإزالة الشعر بـخلاصة الورد، وزن ٤٠٠ جم. بيتسيح في سخّان الشمع لحد ما يبقى قوامه سايل، وبيتوزّع على الجلد بالإسباتيولا وبيتشال بشرايط النزع.
 
 القالب حجمه بيكفي جلسات كتير، فهو الاختيار العملي للسنترات والصالونات أكتر من الاستعمال المرّة الواحدة.',
-     '',
+     'A block of depilatory wax with rose, 400g. It melts in a wax heater until it runs, spreads onto the skin with a spatula and comes away with removal strips.
+
+The block is big enough for many sessions, which makes it the practical choice for salons and clinics rather than a one-off.',
      'سيّح القالب في سخّان الشمع لحد ما يبقى سايل
 جرّب درجة حرارته على جزء صغير من الجلد الأول
 وزّعه بالإسباتيولا في اتجاه نمو الشعر
 حط شريحة النزع واسحبها عكس اتجاه الشعر',
-     '',
+     'Melt the block in a wax heater until it runs
+Test the temperature on a small patch of skin first
+Spread it with a spatula in the direction of growth
+Lay a strip and pull against the direction of growth',
      'قالب شمع لإزالة الشعر بـخلاصة الورد
 بيتسيح في سخّان الشمع ويتشال بشرايط
 حجم يكفي جلسات كتير
 مناسب للصالونات والسنترات
 قالب ٤٠٠ جم',
-     ''),
+     'Depilatory wax block with rose
+Melts in a heater, removed with strips
+Enough for many sessions
+Made for salons and clinics
+400g block'),
     ('S7-RP100-COALOU',
      'عجينة بيضاء لإزالة الشعر بـخلاصة الفحم والعود، عبوة ١٠٠ جم. قوامها عجينة بتتوزّع على الجلد في طبقة رفيعة وبتتشال مع الشعر من غير ما تحتاج شرايط.
 
 العبوة الصغيرة مناسبة للمناطق المحدودة وللاستعمال في البيت، وريحتها خفيفة مش نفّاذة.',
-     '',
+     'A white hair-removal paste with coal and oud, 100g. It spreads onto the skin in a thin layer and lifts away with the hair, with no strips needed.
+
+The small tub suits smaller areas and use at home, and the scent is light rather than sharp.',
      'نضّف الجلد وجفّفه كويس قبل الاستخدام
 جرّب كمية صغيرة على جزء من الجلد الأول
 وزّع طبقة رفيعة في اتجاه نمو الشعر
 اسحبها عكس اتجاه الشعر بحركة واحدة',
-     '',
+     'Clean and dry the skin well before use
+Test a small amount on a patch of skin first
+Spread a thin layer in the direction of growth
+Pull it away against the direction of growth in one movement',
      'عجينة إزالة شعر بـخلاصة الفحم والعود
 بتتوزّع في طبقة رفيعة وتتشال من غير شرايط
 مناسبة للمناطق الصغيرة وللاستعمال المنزلي
 ريحة خفيفة
 عبوة ١٠٠ جم',
-     ''),
+     'Hair-removal paste with coal and oud
+Spreads thin and lifts away without strips
+For smaller areas and use at home
+Light scent
+100g tub'),
     ('S7-RP100-COCONU',
      'عجينة بيضاء لإزالة الشعر بـخلاصة جوز الهند، عبوة ١٠٠ جم. قوامها عجينة بتتوزّع على الجلد في طبقة رفيعة وبتتشال مع الشعر من غير ما تحتاج شرايط.
 
 العبوة الصغيرة مناسبة للمناطق المحدودة وللاستعمال في البيت، وريحتها خفيفة مش نفّاذة.',
-     '',
+     'A white hair-removal paste with coconut, 100g. It spreads onto the skin in a thin layer and lifts away with the hair, with no strips needed.
+
+The small tub suits smaller areas and use at home, and the scent is light rather than sharp.',
      'نضّف الجلد وجفّفه كويس قبل الاستخدام
 جرّب كمية صغيرة على جزء من الجلد الأول
 وزّع طبقة رفيعة في اتجاه نمو الشعر
 اسحبها عكس اتجاه الشعر بحركة واحدة',
-     '',
+     'Clean and dry the skin well before use
+Test a small amount on a patch of skin first
+Spread a thin layer in the direction of growth
+Pull it away against the direction of growth in one movement',
      'عجينة إزالة شعر بـخلاصة جوز الهند
 بتتوزّع في طبقة رفيعة وتتشال من غير شرايط
 مناسبة للمناطق الصغيرة وللاستعمال المنزلي
 ريحة خفيفة
 عبوة ١٠٠ جم',
-     ''),
+     'Hair-removal paste with coconut
+Spreads thin and lifts away without strips
+For smaller areas and use at home
+Light scent
+100g tub'),
     ('S7-RP100-PASSIO',
      'عجينة بيضاء لإزالة الشعر بـخلاصة فاكهة الباشون، عبوة ١٠٠ جم. قوامها عجينة بتتوزّع على الجلد في طبقة رفيعة وبتتشال مع الشعر من غير ما تحتاج شرايط.
 
 العبوة الصغيرة مناسبة للمناطق المحدودة وللاستعمال في البيت، وريحتها خفيفة مش نفّاذة.',
-     '',
+     'A white hair-removal paste with passion fruit, 100g. It spreads onto the skin in a thin layer and lifts away with the hair, with no strips needed.
+
+The small tub suits smaller areas and use at home, and the scent is light rather than sharp.',
      'نضّف الجلد وجفّفه كويس قبل الاستخدام
 جرّب كمية صغيرة على جزء من الجلد الأول
 وزّع طبقة رفيعة في اتجاه نمو الشعر
 اسحبها عكس اتجاه الشعر بحركة واحدة',
-     '',
+     'Clean and dry the skin well before use
+Test a small amount on a patch of skin first
+Spread a thin layer in the direction of growth
+Pull it away against the direction of growth in one movement',
      'عجينة إزالة شعر بـخلاصة فاكهة الباشون
 بتتوزّع في طبقة رفيعة وتتشال من غير شرايط
 مناسبة للمناطق الصغيرة وللاستعمال المنزلي
 ريحة خفيفة
 عبوة ١٠٠ جم',
-     ''),
+     'Hair-removal paste with passion fruit
+Spreads thin and lifts away without strips
+For smaller areas and use at home
+Light scent
+100g tub'),
     ('S7-RP100-POMEGR',
      'عجينة بيضاء لإزالة الشعر بـخلاصة الرمان، عبوة ١٠٠ جم. قوامها عجينة بتتوزّع على الجلد في طبقة رفيعة وبتتشال مع الشعر من غير ما تحتاج شرايط.
 
 العبوة الصغيرة مناسبة للمناطق المحدودة وللاستعمال في البيت، وريحتها خفيفة مش نفّاذة.',
-     '',
+     'A white hair-removal paste with pomegranate, 100g. It spreads onto the skin in a thin layer and lifts away with the hair, with no strips needed.
+
+The small tub suits smaller areas and use at home, and the scent is light rather than sharp.',
      'نضّف الجلد وجفّفه كويس قبل الاستخدام
 جرّب كمية صغيرة على جزء من الجلد الأول
 وزّع طبقة رفيعة في اتجاه نمو الشعر
 اسحبها عكس اتجاه الشعر بحركة واحدة',
-     '',
+     'Clean and dry the skin well before use
+Test a small amount on a patch of skin first
+Spread a thin layer in the direction of growth
+Pull it away against the direction of growth in one movement',
      'عجينة إزالة شعر بـخلاصة الرمان
 بتتوزّع في طبقة رفيعة وتتشال من غير شرايط
 مناسبة للمناطق الصغيرة وللاستعمال المنزلي
 ريحة خفيفة
 عبوة ١٠٠ جم',
-     ''),
+     'Hair-removal paste with pomegranate
+Spreads thin and lifts away without strips
+For smaller areas and use at home
+Light scent
+100g tub'),
     ('S7-RP100-WATERM',
      'عجينة بيضاء لإزالة الشعر بـخلاصة البطيخ والنعناع، عبوة ١٠٠ جم. قوامها عجينة بتتوزّع على الجلد في طبقة رفيعة وبتتشال مع الشعر من غير ما تحتاج شرايط.
 
 العبوة الصغيرة مناسبة للمناطق المحدودة وللاستعمال في البيت، وريحتها خفيفة مش نفّاذة.',
-     '',
+     'A white hair-removal paste with watermelon and mint, 100g. It spreads onto the skin in a thin layer and lifts away with the hair, with no strips needed.
+
+The small tub suits smaller areas and use at home, and the scent is light rather than sharp.',
      'نضّف الجلد وجفّفه كويس قبل الاستخدام
 جرّب كمية صغيرة على جزء من الجلد الأول
 وزّع طبقة رفيعة في اتجاه نمو الشعر
 اسحبها عكس اتجاه الشعر بحركة واحدة',
-     '',
+     'Clean and dry the skin well before use
+Test a small amount on a patch of skin first
+Spread a thin layer in the direction of growth
+Pull it away against the direction of growth in one movement',
      'عجينة إزالة شعر بـخلاصة البطيخ والنعناع
 بتتوزّع في طبقة رفيعة وتتشال من غير شرايط
 مناسبة للمناطق الصغيرة وللاستعمال المنزلي
 ريحة خفيفة
 عبوة ١٠٠ جم',
-     ''),
+     'Hair-removal paste with watermelon and mint
+Spreads thin and lifts away without strips
+For smaller areas and use at home
+Light scent
+100g tub'),
     ('S7-SP100-BEESWA',
      'معجون سويت لإزالة الشعر بـشمع العسل، عبوة ١٠٠ جم. ده النوع اللي قريب من الحلاوة: بيتعجن بالإيد وبيتشال بحركة واحدة عكس اتجاه الشعر، من غير شرايط.
 
 بيتغسل بالمياه الدافية على طول، فالتنضيف بعده أسهل من الشمع العادي.',
-     '',
+     'A sweet hair-removal paste with beeswax, 100g. This is the sugaring kind: you work it in your hands and lift it away in one movement against the direction of growth, with no strips.
+
+It rinses off with warm water straight away, so clearing up after it is easier than with ordinary wax.',
      'دفّي المعجون شوية لحد ما يبقى ليّن وسهل العجن
 نضّف الجلد وجفّفه كويس
 وزّعه في اتجاه نمو الشعر
 اسحبه عكس اتجاه الشعر بحركة واحدة',
-     '',
+     'Warm the paste a little until it is soft enough to work
+Clean and dry the skin well
+Spread it in the direction of growth
+Pull it away against the direction of growth in one movement',
      'معجون سويت لإزالة الشعر بـشمع العسل
 بيتعجن بالإيد ويتشال من غير شرايط
 بيتغسل بالمياه الدافية
 مناسب للاستعمال المنزلي
 عبوة ١٠٠ جم',
-     ''),
+     'Sweet hair-removal paste with beeswax
+Worked by hand, no strips needed
+Rinses off with warm water
+Made for use at home
+100g tub'),
     ('S7-SP100-COAL',
      'معجون سويت لإزالة الشعر بـخلاصة الفحم، عبوة ١٠٠ جم. ده النوع اللي قريب من الحلاوة: بيتعجن بالإيد وبيتشال بحركة واحدة عكس اتجاه الشعر، من غير شرايط.
 
 بيتغسل بالمياه الدافية على طول، فالتنضيف بعده أسهل من الشمع العادي.',
-     '',
+     'A sweet hair-removal paste with coal, 100g. This is the sugaring kind: you work it in your hands and lift it away in one movement against the direction of growth, with no strips.
+
+It rinses off with warm water straight away, so clearing up after it is easier than with ordinary wax.',
      'دفّي المعجون شوية لحد ما يبقى ليّن وسهل العجن
 نضّف الجلد وجفّفه كويس
 وزّعه في اتجاه نمو الشعر
 اسحبه عكس اتجاه الشعر بحركة واحدة',
-     '',
+     'Warm the paste a little until it is soft enough to work
+Clean and dry the skin well
+Spread it in the direction of growth
+Pull it away against the direction of growth in one movement',
      'معجون سويت لإزالة الشعر بـخلاصة الفحم
 بيتعجن بالإيد ويتشال من غير شرايط
 بيتغسل بالمياه الدافية
 مناسب للاستعمال المنزلي
 عبوة ١٠٠ جم',
-     ''),
+     'Sweet hair-removal paste with coal
+Worked by hand, no strips needed
+Rinses off with warm water
+Made for use at home
+100g tub'),
     ('S7-WR100-BEESWA',
      'شمع إزالة شعر رول بـشمع العسل، عبوة ١٠٠ مل. الرول بيتدفّى في سخّان الرول، وبعدين بتمرّره على الجلد على طول — الطبقة بتطلع رفيعة ومتساوية من غير إسباتيولا ولا تنقيط.
 
 ده أسرع نظام في التشكيلة للمساحات الكبيرة زي الرجل والدراع.',
-     '',
+     'A roll-on depilatory wax with beeswax, 100ml. The roll warms in a roll-on heater, then you run it straight over the skin — the layer comes out thin and even, with no spatula and no dripping.
+
+It is the fastest system in the range for larger areas like legs and arms.',
      'دفّي الرول في سخّان الرول حسب التعليمات
 جرّب درجة حرارته على جزء صغير من الجلد الأول
 مرّر الرول في اتجاه نمو الشعر
 حط شريحة النزع واسحبها عكس اتجاه الشعر',
-     '',
+     'Warm the roll in a roll-on heater as instructed
+Test the temperature on a small patch of skin first
+Run the roll in the direction of growth
+Lay a strip and pull against the direction of growth',
      'رول شمع لإزالة الشعر بـشمع العسل
 طبقة رفيعة ومتساوية من غير إسباتيولا
 أسرع للمساحات الكبيرة زي الرجل والدراع
 محتاج سخّان رول
 عبوة ١٠٠ مل',
-     ''),
+     'Roll-on depilatory wax with beeswax
+Thin, even layer with no spatula
+Fastest for large areas like legs and arms
+Needs a roll-on heater
+100ml roll'),
     ('S7-WR100-COAL',
      'شمع إزالة شعر رول بـخلاصة الفحم، عبوة ١٠٠ مل. الرول بيتدفّى في سخّان الرول، وبعدين بتمرّره على الجلد على طول — الطبقة بتطلع رفيعة ومتساوية من غير إسباتيولا ولا تنقيط.
 
 ده أسرع نظام في التشكيلة للمساحات الكبيرة زي الرجل والدراع.',
-     '',
+     'A roll-on depilatory wax with coal, 100ml. The roll warms in a roll-on heater, then you run it straight over the skin — the layer comes out thin and even, with no spatula and no dripping.
+
+It is the fastest system in the range for larger areas like legs and arms.',
      'دفّي الرول في سخّان الرول حسب التعليمات
 جرّب درجة حرارته على جزء صغير من الجلد الأول
 مرّر الرول في اتجاه نمو الشعر
 حط شريحة النزع واسحبها عكس اتجاه الشعر',
-     '',
+     'Warm the roll in a roll-on heater as instructed
+Test the temperature on a small patch of skin first
+Run the roll in the direction of growth
+Lay a strip and pull against the direction of growth',
      'رول شمع لإزالة الشعر بـخلاصة الفحم
 طبقة رفيعة ومتساوية من غير إسباتيولا
 أسرع للمساحات الكبيرة زي الرجل والدراع
 محتاج سخّان رول
 عبوة ١٠٠ مل',
-     ''),
+     'Roll-on depilatory wax with coal
+Thin, even layer with no spatula
+Fastest for large areas like legs and arms
+Needs a roll-on heater
+100ml roll'),
     ('S7-WR100-ROSE',
      'شمع إزالة شعر رول بـخلاصة الورد، عبوة ١٠٠ مل. الرول بيتدفّى في سخّان الرول، وبعدين بتمرّره على الجلد على طول — الطبقة بتطلع رفيعة ومتساوية من غير إسباتيولا ولا تنقيط.
 
 ده أسرع نظام في التشكيلة للمساحات الكبيرة زي الرجل والدراع.',
-     '',
+     'A roll-on depilatory wax with rose, 100ml. The roll warms in a roll-on heater, then you run it straight over the skin — the layer comes out thin and even, with no spatula and no dripping.
+
+It is the fastest system in the range for larger areas like legs and arms.',
      'دفّي الرول في سخّان الرول حسب التعليمات
 جرّب درجة حرارته على جزء صغير من الجلد الأول
 مرّر الرول في اتجاه نمو الشعر
 حط شريحة النزع واسحبها عكس اتجاه الشعر',
-     '',
+     'Warm the roll in a roll-on heater as instructed
+Test the temperature on a small patch of skin first
+Run the roll in the direction of growth
+Lay a strip and pull against the direction of growth',
      'رول شمع لإزالة الشعر بـخلاصة الورد
 طبقة رفيعة ومتساوية من غير إسباتيولا
 أسرع للمساحات الكبيرة زي الرجل والدراع
 محتاج سخّان رول
 عبوة ١٠٠ مل',
-     '')
+     'Roll-on depilatory wax with rose
+Thin, even layer with no spatula
+Fastest for large areas like legs and arms
+Needs a roll-on heater
+100ml roll')
 ) AS v(sku, long_ar, long_en, howto_ar, howto_en, highlights_ar, highlights_en)
 WHERE p.sku = v.sku;
 
