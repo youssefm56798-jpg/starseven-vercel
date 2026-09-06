@@ -143,7 +143,13 @@ test('db/seed.sql is the seeds, the copy update, the article wave, the link fix,
   // rebuilt database lost all eighteen without saying so. It sits with the
   // articles rather than at the end of the file because it is part of seeding
   // them, not a correction to a product - see the slice below.
-  assert.equal(out.length, 66);
+  //
+  // 73, up from 66: the twenty-eight Arabic copy rows went INTO the catalogue
+  // block above rather than adding a statement, so the seven here are all
+  // corrections - six that make the colognes 200ml, which is what the catalogue
+  // page and the bottle labels both say, and one that stops the beeswax cream
+  // gel calling itself "beeswax and beeswax".
+  assert.equal(out.length, 73);
   assert.ok(out[0].includes('INSERT INTO products') && out[0].includes('ON CONFLICT (sku)'));
   assert.ok(out[1].includes('INSERT INTO offers') && out[1].includes('ON CONFLICT (code)'));
   // Both article statements must target the (slug, lang) index. The old
@@ -194,8 +200,14 @@ test('db/seed.sql is the seeds, the copy update, the article wave, the link fix,
       `${col} is not guarded in the catalogue copy block`
     );
   }
-  assert.equal((catalogueCopy.match(/^    \('S7-[A-Z0-9-]+',$/gm) || []).length, 30,
-    'the catalogue copy block should carry exactly 30 products');
+  // 58, up from 30: the twenty-eight products that had no Arabic copy at all -
+  // the six colognes, the thirteen depilatory items, the two gel sachets, the
+  // two sprays, the three shampoos and the two coconut variants. They are in
+  // this block rather than a new statement because they are the same kind of
+  // thing it already holds, and because extending it leaves every statement
+  // index below untouched.
+  assert.equal((catalogueCopy.match(/^    \('S7-[A-Z0-9-]+',$/gm) || []).length, 58,
+    'the catalogue copy block should carry exactly 58 products');
   // It must not touch price, stock or active. Copy is copy.
   for (const col of ['price', 'stock', 'active']) {
     assert.ok(!new RegExp(`\b${col}\s*=`).test(catalogueCopy),
@@ -341,7 +353,7 @@ test('the corrections are guarded on the value they are replacing', {
    * the admin, and no cheaper check finds that.
    */
   const corrections = out.slice(14);
-  assert.equal(corrections.length, 52);
+  assert.equal(corrections.length, 59);
 
   for (const stmt of corrections) {
     assert.match(stmt, /^UPDATE products/m, `not an UPDATE: ${stmt.slice(0, 60)}`);
