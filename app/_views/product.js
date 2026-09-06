@@ -69,10 +69,15 @@ export async function productMetadata(slug, lang) {
    * - a spray genuinely has a hold - and so does everything that styles.
    */
   const holds = ['wax', 'gel', 'gelwax', 'cream', 'spray'].includes(p.kind);
-  const hold = ar ? `تثبيت درجة ${p.hold_level}/5، ` : `Hold ${p.hold_level}/5, `;
+  // The English tail carries the sentence case, so it changes with the clause
+  // in front of it: dropping the hold left "400g. delivery and cash on
+  // receipt." in the snippet. Arabic has no case and needs no such branch.
+  const tail = ar
+    ? (holds ? `تثبيت درجة ${p.hold_level}/5، توصيل ودفع عند الاستلام.` : 'توصيل ودفع عند الاستلام.')
+    : (holds ? `Hold ${p.hold_level}/5, delivery and cash on receipt.` : 'Delivery and cash on receipt.');
   const desc = ar
-    ? `${name} من نيو ستار سفن. ${sub}. ${holds ? hold : ''}توصيل ودفع عند الاستلام.`
-    : `${name} by New Star Seven. ${sub}. ${holds ? hold : ''}delivery and cash on receipt.`;
+    ? `${name} من نيو ستار سفن. ${sub}. ${tail}`
+    : `${name} by New Star Seven. ${sub}. ${tail}`;
 
   return {
     title: name,
