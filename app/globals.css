@@ -398,6 +398,15 @@ button{font:inherit;cursor:pointer}
 .wa-float{position:fixed;bottom:24px;inset-inline-end:24px;z-index:300;width:58px;height:58px;
   border-radius:50%;background:#25D366;display:grid;place-items:center;box-shadow:0 10px 30px -6px rgba(37,211,102,.5)}
 .wa-float svg{width:30px;height:30px;fill:#fff}
+/* Not on checkout.
+
+   It is position:fixed at the inline end, which in Arabic is the LEFT of the
+   screen, and the checkout is a column of full-width controls — so at some
+   scroll position it covers one. Measured on a 375px screen: the corner of the
+   required governorate select, and the left end of the confirm button. A chat
+   link is worth less there than either of the two things it was sitting on,
+   and support is still one tap away from every other page on the site. */
+.co-page ~ .wa-float{display:none}
 
 .empty-note{text-align:center;padding:60px 20px;color:var(--grey);font-weight:700}
 
@@ -412,13 +421,21 @@ button{font:inherit;cursor:pointer}
   /* The links used to be display:none here, which left phones with no way to
      reach Shop or Articles at all. They become a scrollable strip under the
      logo row instead — no burger, no JavaScript. */
-  .s7nav .inner{flex-wrap:wrap;height:auto;padding-top:12px;padding-bottom:0;row-gap:10px}
+  .s7nav .inner{flex-wrap:wrap;height:auto;padding-top:12px;padding-bottom:0;row-gap:6px}
   .s7nav .logo{order:1}
   .nav-right{order:2;margin-inline-start:auto}
-  .nav-links{order:3;flex-basis:100%;gap:2px;overflow-x:auto;padding-bottom:8px;
+  .nav-links{order:3;flex-basis:100%;gap:2px;overflow-x:auto;padding-bottom:4px;
     scrollbar-width:none;-webkit-overflow-scrolling:touch}
   .nav-links::-webkit-scrollbar{display:none}
-  .nav-links a{padding:7px 12px;font-size:13.5px}
+  /* 44px of touchable height, which these were 7px short of.
+
+     It is bought back rather than added: the strip's padding-bottom and the
+     row-gap above each give up 4px, so the header is the height it always was
+     and only the target grew. The text stays where it is - the link is already
+     an inline-flex centring its own content. */
+  .nav-links a{padding:7px 12px;font-size:13.5px;min-height:44px}
+  /* The wordmark is a 30px image in a link, so the link was a 30px target. */
+  .s7nav .logo{display:inline-flex;align-items:center;min-height:44px}
   /* A hover submenu is meaningless on touch; the strip shows the top level and
      the shop page has its own filter chips. */
   .nav-item.has-sub > a svg,.nav-sub{display:none}

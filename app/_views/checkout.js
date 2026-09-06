@@ -38,7 +38,7 @@ export default async function CheckoutView({ lang, searchParams }) {
   return (
     <Dir lang={lang}>
       <Nav lang={lang} path="checkout" />
-      <main id="content">
+      <main id="content" className="co-page">
 
       <div className="wrap">
         <div className="phead" style={{ padding: '34px 0 0' }}>
