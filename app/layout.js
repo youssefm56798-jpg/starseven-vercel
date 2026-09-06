@@ -22,7 +22,24 @@ export const metadata = {
   },
   description:
     'نيو ستار سفن: واكس وجل شعر بريميوم للرجالة. تثبيت ميجا، ريحة نضيفة، سعر مظبوط. اطلب أونلاين والدفع عند الاستلام.',
-  icons: { icon: '/assets/favicon.png' },
+  /*
+   * Three declarations, because three different things ask.
+   *
+   * The PNG is 192 square: Google draws a favicon beside a search result only
+   * when it is square and a multiple of 48, and the old 64x64 was neither, so
+   * the listing would have shown a blank globe. The .ico exists because
+   * /favicon.ico was a 404 and some clients still ask for that first. The Apple
+   * one is what iOS puts on a home screen, and it had no declaration at all.
+   *
+   * All three are written by scripts/gen-icons.mjs from the star mark, on the
+   * paper ground rather than on transparency - a black mark on a transparent
+   * background disappears into a dark browser tab.
+   */
+  icons: {
+    icon: '/assets/favicon.png',
+    shortcut: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
+  },
   openGraph: {
     type: 'website',
     siteName: site.name,
