@@ -25,7 +25,7 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import {
-  originals, missing, emailName, EMAIL_WIDTH, CATALOG, OUT_DIR, LOGO_OUT,
+  originals, missing, emailName, EMAIL_WIDTH, CATALOG, OUT_DIR, LOGO_OUT, LOGO_MAIL,
 } from '../scripts/gen-email-images.mjs';
 import { emailImageUrl } from '../lib/product-image.js';
 import { tplOrder } from '../lib/mail.js';
@@ -38,7 +38,7 @@ test('the catalogue is found at all', () => {
 });
 
 test('every catalogue image has a mail copy on disk', () => {
-  const gaps = missing().map(emailName);
+  const gaps = missing().map(([, f]) => emailName(f));
   assert.deepEqual(gaps, [],
     `missing mail images - run: node scripts/gen-email-images.mjs\n${gaps.join('\n')}`);
 });
@@ -47,6 +47,9 @@ test('the white wordmark the shell asks for is there', () => {
   // shell() hardcodes /assets/logo-s7-light.png. It is generated rather than
   // drawn, so it is exactly the kind of file a clean checkout can be missing.
   assert.ok(existsSync(LOGO_OUT), 'assets/logo-s7-light.png is missing - run scripts/gen-email-images.mjs');
+  // The header is this one now: the mark on its own ink pill, so a client that
+  // drops background colours still shows a logo rather than white on white.
+  assert.ok(existsSync(LOGO_MAIL), 'assets/logo-s7-mail.png is missing - run scripts/gen-email-images.mjs');
 });
 
 test('the URL the helper builds names a file that exists', () => {
@@ -56,8 +59,8 @@ test('the URL the helper builds names a file that exists', () => {
    * Two independent spellings of one filename is the arrangement that drifts,
    * so the URL is resolved back to a path and looked for.
    */
-  for (const file of originals()) {
-    const url = emailImageUrl(`assets/catalog/${file}`, BASE);
+  for (const [dir, file] of originals()) {
+    const url = emailImageUrl(dir === CATALOG ? `assets/catalog/${file}` : `assets/${file}`, BASE);
     assert.ok(url.startsWith(`${BASE}/assets/catalog/email/`), `unexpected mail URL: ${url}`);
     const rel = url.slice(`${BASE}/assets/catalog/email/`.length);
     assert.ok(existsSync(join(OUT_DIR, rel)), `the mail URL points at a file that is not there: ${url}`);
@@ -68,7 +71,7 @@ test('every mail copy is a PNG, because Word cannot read WebP', () => {
   // Sniffed rather than trusted from the extension: a .png that is really a
   // webp is exactly the mistake this is guarding against, and it would not
   // change the filename.
-  for (const file of originals()) {
+  for (const [, file] of originals()) {
     const p = join(OUT_DIR, emailName(file));
     const head = readFileSync(p).subarray(0, 8);
     assert.deepEqual([...head], [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a],
@@ -82,10 +85,10 @@ test('a mail copy is small enough to send', () => {
    * around 51KB each; anything here that is not comfortably under that is a
    * resize that did not happen.
    */
-  for (const file of originals()) {
+  for (const [dir, file] of originals()) {
     const size = statSync(join(OUT_DIR, emailName(file))).size;
     assert.ok(size < 30 * 1024, `${emailName(file)} is ${(size / 1024).toFixed(0)}KB`);
-    assert.ok(size < statSync(join(CATALOG, file)).size * 1.5,
+    assert.ok(size < statSync(join(dir, file)).size * 1.5,
       `${emailName(file)} is not meaningfully smaller than the 900px original`);
   }
 });
@@ -108,7 +111,9 @@ test('anything without a committed mail copy gets no URL at all', () => {
    */
   assert.equal(emailImageUrl('assets/logo-s7.png', BASE), '');
   assert.equal(emailImageUrl('assets/catalog/x.jpg', BASE), '', 'only webp has a mail copy');
-  assert.equal(emailImageUrl('assets/gel-blue.webp', BASE), '', 'only the catalogue has mail copies');
+  // The launch eight are the exception and are covered by the generator.
+  assert.match(emailImageUrl('assets/gel-blue.webp', BASE), /\/assets\/catalog\/email\/gel-blue-192\.png$/);
+  assert.equal(emailImageUrl('assets/barbershop.webp', BASE), '', 'only product photographs have mail copies');
   assert.equal(emailImageUrl('', BASE), '');
   assert.equal(emailImageUrl(null, BASE), '');
   assert.equal(emailImageUrl('javascript:alert(1)', BASE), '');

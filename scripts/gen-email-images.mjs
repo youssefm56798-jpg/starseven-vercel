@@ -64,6 +64,8 @@ export const OUT_DIR = join(CATALOG, 'email');
 /** The wordmark, and the white copy generated from it. */
 export const LOGO_SRC = join(ROOT, 'public', 'assets', 'logo-s7.png');
 export const LOGO_OUT = join(ROOT, 'public', 'assets', 'logo-s7-light.png');
+/** The same mark on its own ink pill, for the mail header. */
+export const LOGO_MAIL = join(ROOT, 'public', 'assets', 'logo-s7-mail.png');
 
 /**
  * 192 for a 96px row: mail is read on phones, and every phone is at least 2x.
@@ -78,18 +80,34 @@ const VARIANTS = [300, 600];
 /** `wax-135-argan.webp` -> `wax-135-argan-192.png` */
 export const emailName = file => file.replace(/\.webp$/i, `-${EMAIL_WIDTH}.png`);
 
-/** Catalogue originals: the 900px files, never the variants themselves. */
+/** The launch eight live one level up, at public/assets/wax-*.webp and gel-*.webp. */
+export const ASSETS = join(ROOT, 'public', 'assets');
+const LAUNCH = /^(wax|gel)-[a-z]+\.webp$/;
+
+/**
+ * Every product photograph that needs a mail copy, as [dir, file] pairs.
+ *
+ * Two homes, not one: the catalogue folder holds the 55 the client sent, and
+ * the eight launch products still sit at public/assets/. The first cut of this
+ * only walked the catalogue, so an order for the best-selling wax went out
+ * with no picture at all.
+ */
 export function originals(dir = CATALOG) {
-  if (!existsSync(dir)) return [];
-  return readdirSync(dir)
-    .filter(f => f.endsWith('.webp'))
-    .filter(f => !VARIANTS.some(w => f.endsWith(`-${w}.webp`)))
-    .sort();
+  const out = [];
+  if (existsSync(dir)) {
+    for (const f of readdirSync(dir)) {
+      if (f.endsWith('.webp') && !VARIANTS.some(w => f.endsWith(`-${w}.webp`))) out.push([dir, f]);
+    }
+  }
+  if (dir === CATALOG && existsSync(ASSETS)) {
+    for (const f of readdirSync(ASSETS)) if (LAUNCH.test(f)) out.push([ASSETS, f]);
+  }
+  return out.sort((a, b) => a[1].localeCompare(b[1]));
 }
 
-/** Which mail copies are missing, as file names of the originals. */
+/** Which mail copies are missing, as [dir, file] pairs of the originals. */
 export function missing(dir = CATALOG, out = OUT_DIR) {
-  return originals(dir).filter(f => !existsSync(join(out, emailName(f))));
+  return originals(dir).filter(([, f]) => !existsSync(join(out, emailName(f))));
 }
 
 /* ------------------------------------------------------------------ cli */
@@ -98,11 +116,11 @@ if (process.argv[1]?.endsWith('gen-email-images.mjs')) {
   const check = process.argv.includes('--check');
   const force = process.argv.includes('--force');
   const gaps = force ? originals() : missing();
-  const needLogo = force || !existsSync(LOGO_OUT);
+  const needLogo = force || !existsSync(LOGO_OUT) || !existsSync(LOGO_MAIL);
 
   if (check) {
     const notes = [];
-    if (gaps.length) notes.push(`${gaps.length} mail image(s) missing:\n${gaps.map(f => `    ${emailName(f)}`).join('\n')}`);
+    if (gaps.length) notes.push(`${gaps.length} mail image(s) missing:\n${gaps.map(([, f]) => `    ${emailName(f)}`).join('\n')}`);
     if (needLogo) notes.push('the white wordmark is missing: assets/logo-s7-light.png');
     console.log(notes.length
       ? `\n  ${notes.join('\n  ')}\n`
@@ -129,17 +147,30 @@ if (process.argv[1]?.endsWith('gen-email-images.mjs')) {
      */
     const { width, height } = await sharp(LOGO_SRC).metadata();
     const alpha = await sharp(LOGO_SRC).ensureAlpha().extractChannel('alpha').toBuffer();
-    await sharp({ create: { width, height, channels: 3, background: '#ffffff' } })
-      .joinChannel(alpha)
-      .png({ compressionLevel: 9 })
-      .toFile(LOGO_OUT);
+    const white = await sharp({ create: { width, height, channels: 3, background: '#ffffff' } })
+      .joinChannel(alpha).png().toBuffer();
+    await sharp(white).png({ compressionLevel: 9 }).toFile(LOGO_OUT);
     console.log(`  wrote assets/logo-s7-light.png (${width}x${height})`);
+
+    /*
+     * The mail header used to be this white mark on a CSS-painted ink bar.
+     * Gmail in dark mode, and a few clients that drop background colours, keep
+     * the white mark and lose the bar - a white logo on a white card. So the
+     * ink goes INTO the image: the mark on its own rounded ink pill, drawn at
+     * 2x, and the header cell can be any colour the client likes.
+     */
+    const padX = Math.round(width * 0.09), padY = Math.round(height * 0.55);
+    const pw = width + padX * 2, ph = height + padY * 2, r = Math.round(ph * 0.22);
+    const pill = Buffer.from(`<svg width="${pw}" height="${ph}"><rect width="${pw}" height="${ph}" rx="${r}" fill="#12100B"/></svg>`);
+    await sharp(pill).composite([{ input: white, left: padX, top: padY }])
+      .png({ compressionLevel: 9 }).toFile(LOGO_MAIL);
+    console.log(`  wrote assets/logo-s7-mail.png (${pw}x${ph})`);
   }
 
   let before = 0;
   let after = 0;
-  for (const file of gaps) {
-    const src = join(CATALOG, file);
+  for (const [dir, file] of gaps) {
+    const src = join(dir, file);
     const dest = join(OUT_DIR, emailName(file));
     await sharp(src)
       // Cut the transparent margin off, then letterbox back to a square on
