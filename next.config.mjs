@@ -50,6 +50,10 @@ const gaImg = ga ? ' https://*.google-analytics.com https://*.googletagmanager.c
 const clarity = (process.env.NEXT_PUBLIC_CLARITY_ID || '').trim();
 const clarityScript = clarity ? ' https://www.clarity.ms https://*.clarity.ms' : '';
 const clarityConnect = clarity ? ' https://*.clarity.ms' : '';
+// c.clarity.ms/c.gif, the upload beacon it falls back to. Left out of the first
+// cut of this, and the browser said so: the pixel was blocked on every page the
+// tag ran on. The same shape as gaImg above, and for the same reason.
+const clarityImg = clarity ? ' https://*.clarity.ms' : '';
 
 const csp = [
   "default-src 'self'",
@@ -69,7 +73,7 @@ const csp = [
   // not scripts, not frames, not styles - from a host Vercel controls, and it
   // only matters at all to somebody who can already inject HTML into these
   // pages. The rest of the policy is what stops that.
-  `img-src 'self' data: https://*.public.blob.vercel-storage.com${gaImg}`,
+  `img-src 'self' data: https://*.public.blob.vercel-storage.com${gaImg}${clarityImg}`,
   "font-src 'self' data:",
   `connect-src 'self'${gaConnect}${clarityConnect}`,
   "form-action 'self'",
