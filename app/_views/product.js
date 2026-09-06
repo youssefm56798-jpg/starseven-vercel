@@ -60,9 +60,19 @@ export async function productMetadata(slug, lang) {
 
   const name = ar ? p.name_ar : p.name_en;
   const sub = ar ? p.sub_ar : p.sub_en;
+  /*
+   * The hold level only goes in the description for something that HOLDS.
+   *
+   * It used to be printed for every product, so a 400g block of hair-removal
+   * wax, an after-shave cologne and an anti-dandruff shampoo each advertised
+   * "hold 3/5" in the one line Google shows under the link. Hair spray keeps it
+   * - a spray genuinely has a hold - and so does everything that styles.
+   */
+  const holds = ['wax', 'gel', 'gelwax', 'cream', 'spray'].includes(p.kind);
+  const hold = ar ? `تثبيت درجة ${p.hold_level}/5، ` : `Hold ${p.hold_level}/5, `;
   const desc = ar
-    ? `${name} من نيو ستار سفن. ${sub}. تثبيت درجة ${p.hold_level}/5، توصيل ودفع عند الاستلام.`
-    : `${name} by New Star Seven. ${sub}. Hold ${p.hold_level}/5, delivery and cash on receipt.`;
+    ? `${name} من نيو ستار سفن. ${sub}. ${holds ? hold : ''}توصيل ودفع عند الاستلام.`
+    : `${name} by New Star Seven. ${sub}. ${holds ? hold : ''}delivery and cash on receipt.`;
 
   return {
     title: name,
