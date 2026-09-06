@@ -106,14 +106,52 @@ function GoogleAnalytics({ id }) {
  * Returning the event rather than null keeps the page view: what is dropped is
  * the token, not the visit.
  */
+/**
+ * Microsoft Clarity - session replay and heatmaps.
+ *
+ * NEXT_PUBLIC_CLARITY_ID gates it, and the same variable gates the clarity.ms
+ * hosts in the CSP in next.config.mjs, for the reason written there: no ID
+ * means no tag AND no allowance.
+ *
+ * ---------------------------------------------------------------------------
+ * Why it is not loaded on an order page
+ *
+ * Clarity records the URL, and an order page carries the access token in its
+ * query string. That is the same defect lib/analytics-url.js exists to fix for
+ * GA and for Vercel - except Clarity offers no beforeSend, so the URL cannot be
+ * rewritten on the way out. The only reliable control is not to start it there.
+ *
+ * The honest limit of this: it is checked when the tag would be injected, so it
+ * protects a COLD load of an order page, which is the only way anyone actually
+ * reaches one - the link is in an email, and nothing on the site navigates to a
+ * token-bearing URL. A client-side navigation from an ordinary page to one
+ * would leave an already-running recorder in place. If a link like that is ever
+ * added, this needs revisiting rather than trusting.
+ */
+function Clarity({ id }) {
+  const pathname = usePathname();
+  if (/^\/(?:en\/)?order(?:\/|$)/.test(pathname || '')) return null;
+
+  return (
+    <Script id="clarity-init" strategy="afterInteractive">
+      {`(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};`
+        + `t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;`
+        + `y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})`
+        + `(window,document,"clarity","script",${JSON.stringify(id)});`}
+    </Script>
+  );
+}
+
 export default function Telemetry() {
   const gaId = (process.env.NEXT_PUBLIC_GA_ID || '').trim();
+  const clarityId = (process.env.NEXT_PUBLIC_CLARITY_ID || '').trim();
 
   return (
     <>
       <Analytics beforeSend={redactEvent} />
       <SpeedInsights beforeSend={redactEvent} />
       {gaId ? <GoogleAnalytics id={gaId} /> : null}
+      {clarityId ? <Clarity id={clarityId} /> : null}
     </>
   );
 }

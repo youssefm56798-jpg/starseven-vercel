@@ -456,7 +456,11 @@ export default function CheckoutClient({ lang, add, catalog, shipping, currency 
     <div className="checkout">
       <div className="co-main">
         <h2>{ar ? 'بيانات التوصيل' : 'Delivery details'}</h2>
-        <form onSubmit={submit} noValidate>
+        {/* Clarity records the DOM. This form is a name, a phone, an
+            address and an email, so it is masked at the root rather than
+            trusting a dashboard setting nobody here controls. The
+            attribute is inert when Clarity is not configured. */}
+        <form onSubmit={submit} noValidate data-clarity-mask="true">
           {/* role=alert so a failure that lands at the top of the form is spoken,
               rather than only appearing above a button already scrolled past. */}
           {top && <div className="formmsg" role="alert">{top}</div>}

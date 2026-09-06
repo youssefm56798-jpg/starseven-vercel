@@ -37,13 +37,27 @@ const gaScript = ga ? ' https://www.googletagmanager.com' : '';
 const gaConnect = ga ? ' https://www.google-analytics.com https://*.analytics.google.com https://*.google-analytics.com' : '';
 const gaImg = ga ? ' https://*.google-analytics.com https://*.googletagmanager.com' : '';
 
+/*
+ * Microsoft Clarity, on exactly the same terms as GA above: one variable gates
+ * the tag AND its allowance, so an unconfigured site carries no hole for a
+ * third party it never calls.
+ *
+ * The loader is served from www.clarity.ms and it then pulls its own worker
+ * from a regional sibling, so the wildcard is the script host as well as the
+ * collector. What it admits is script and XHR from hosts Microsoft controls,
+ * to a site that has already chosen to hand Microsoft its session recordings.
+ */
+const clarity = (process.env.NEXT_PUBLIC_CLARITY_ID || '').trim();
+const clarityScript = clarity ? ' https://www.clarity.ms https://*.clarity.ms' : '';
+const clarityConnect = clarity ? ' https://*.clarity.ms' : '';
+
 const csp = [
   "default-src 'self'",
   // 'unsafe-eval' only in development: Next's dev server hydrates HMR and React
   // Fast Refresh through eval, and a production build does not - so the deployed
   // policy never carries it. Guarding on NODE_ENV keeps the shipped CSP tight
   // while letting the dev server run.
-  `script-src 'self' 'unsafe-inline'${gaScript}${process.env.NODE_ENV === 'production' ? '' : " 'unsafe-eval'"}`,
+  `script-src 'self' 'unsafe-inline'${gaScript}${clarityScript}${process.env.NODE_ENV === 'production' ? '' : " 'unsafe-eval'"}`,
   "style-src 'self' 'unsafe-inline'",
   // Product photographs uploaded from the admin panel live on Vercel Blob,
   // which serves them from one subdomain per store. Named as a wildcard
@@ -57,7 +71,7 @@ const csp = [
   // pages. The rest of the policy is what stops that.
   `img-src 'self' data: https://*.public.blob.vercel-storage.com${gaImg}`,
   "font-src 'self' data:",
-  `connect-src 'self'${gaConnect}`,
+  `connect-src 'self'${gaConnect}${clarityConnect}`,
   "form-action 'self'",
   "base-uri 'self'",
   "frame-ancestors 'self'",
