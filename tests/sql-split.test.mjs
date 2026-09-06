@@ -133,11 +133,17 @@ test('db/seed.sql is the seeds, the copy update, the article wave, the link fix,
   // subtitles and the highlights list as well as in size_ml, and fixing only
   // the column left the page contradicting itself.
   //
-  // 65, up from 64: the shampoo line of September 2026, one INSERT at out[8],
+  // 65, up from 64: the shampoo line of September 2026, one INSERT at out[9],
   // straight after the catalogue block. Its own statement rather than three
   // more rows in that block because it is switched on at price 0, which the
   // block is held to never doing - see below.
-  assert.equal(out.length, 65);
+  //
+  // 66, up from 65: the search titles and descriptions, one UPDATE at out[7].
+  // They were set straight against the database and lived nowhere else, so a
+  // rebuilt database lost all eighteen without saying so. It sits with the
+  // articles rather than at the end of the file because it is part of seeding
+  // them, not a correction to a product - see the slice below.
+  assert.equal(out.length, 66);
   assert.ok(out[0].includes('INSERT INTO products') && out[0].includes('ON CONFLICT (sku)'));
   assert.ok(out[1].includes('INSERT INTO offers') && out[1].includes('ON CONFLICT (code)'));
   // Both article statements must target the (slug, lang) index. The old
@@ -146,6 +152,15 @@ test('db/seed.sql is the seeds, the copy update, the article wave, the link fix,
   assert.ok(out[2].includes('INSERT INTO articles'));
   assert.ok(out[2].includes('ON CONFLICT (slug, lang)'),
     'the first article seed must conflict on (slug, lang)');
+
+  /*
+   * The metas, out[7]. Two columns the article INSERT above does not carry, so
+   * re-running this file can never blank them; it only ever writes them back.
+   * Keyed by (slug, lang) because a slug alone is two different articles.
+   */
+  assert.ok(out[7].includes('UPDATE articles a'), 'the metas are not at out[7]');
+  assert.ok(out[7].includes('a.slug = m.slug') && out[7].includes('a.lang = m.lang'),
+    'the metas must be keyed on slug AND lang, or one language overwrites the other');
 
   // The copy update must stay non-destructive: every column it touches is
   // guarded so a re-run cannot overwrite wording edited in the admin.
@@ -221,7 +236,7 @@ test('db/seed.sql is the seeds, the copy update, the article wave, the link fix,
   // The rest of the range. It must stay DO NOTHING and it must stay inactive:
   // these rows carry price 0 because the manufacturer feed has no prices, and
   // a zero-price product that reached the storefront would be free.
-  const catalogue = out[7];
+  const catalogue = out[8];
   assert.ok(catalogue.includes('INSERT INTO products'));
   assert.ok(catalogue.includes('ON CONFLICT (sku) DO NOTHING'),
     'the catalogue seed must never overwrite a row the client has priced');
@@ -234,7 +249,7 @@ test('db/seed.sql is the seeds, the copy update, the article wave, the link fix,
     'every catalogue row must be seeded inactive');
 
   /*
-   * The shampoo line, out[8]. Three rows that do exactly what the block above
+   * The shampoo line, out[9]. Three rows that do exactly what the block above
    * is forbidden, on purpose: they are active at price 0. The client wants the
    * line on the storefront before it is priced, and since the catalogue block
    * was written the shop learned to render an unpriced row as unavailable
@@ -242,7 +257,7 @@ test('db/seed.sql is the seeds, the copy update, the article wave, the link fix,
    * the price does. Its own statement because the block above has to keep
    * refusing that shape for the fifty-five rows it carries.
    */
-  const shampoo = out[8];
+  const shampoo = out[9];
   assert.ok(shampoo.includes('INSERT INTO products'));
   assert.ok(shampoo.includes('ON CONFLICT (sku) DO NOTHING'),
     'the shampoo seed must never overwrite a price the client has set');
@@ -264,14 +279,14 @@ test('db/seed.sql is the seeds, the copy update, the article wave, the link fix,
   // The two pricing statements that follow. Both must stay guarded on
   // price = 0 AND active = false, so a row is priced once and a price the
   // client later sets in the admin is never overwritten by a redeploy.
-  for (const stmt of out.slice(9, 11)) {
+  for (const stmt of out.slice(10, 12)) {
     assert.match(stmt, /UPDATE products/);
     assert.match(stmt, /price = 0 AND active = FALSE/,
       'a pricing statement is unguarded and would overwrite an admin edit');
   }
 
   // And neither may reach a format whose size makes the copied price wrong.
-  const priced = out.slice(9, 11).join('\n');
+  const priced = out.slice(10, 12).join('\n');
   assert.ok(!/'spray'|'cologne'|'depilatory'/.test(priced),
     'a format with no priced sibling is being given a copied price');
   assert.ok(/size_ml = 250/.test(priced),
@@ -315,13 +330,17 @@ test('the corrections are guarded on the value they are replacing', {
    * 13, not 12: the shampoo line went in as its own INSERT after the
    * catalogue block, for the reason given beside its assertions above.
    *
+   * 14, not 13: the article metas went in at out[7], among the statements that
+   * seed the articles. They are not a correction to a product and would fail
+   * every rule below, which is exactly why they belong above this line.
+   *
    * This index is positional and it will move again the next time anything is
    * added to the top of the file. That is a real weakness of this test and it
    * is kept anyway - the thing it catches is a correction written as a bulk
    * UPDATE with no SKU and no guard, which is how the seed starts overwriting
    * the admin, and no cheaper check finds that.
    */
-  const corrections = out.slice(13);
+  const corrections = out.slice(14);
   assert.equal(corrections.length, 52);
 
   for (const stmt of corrections) {

@@ -2167,6 +2167,359 @@ So if your hair is curly and you want definition, this recipe is genuinely good.
 
 If that second one is you, [our gel](/en/shop/gel) starts at **60 EGP** for a 400ml jar, holds at 5 of 5, rinses out in plain water with no shampoo, and keeps on a shelf without refrigeration. Not because it is better than natural — because it does a different job.',
    '', '', 'curly', 'S7-SG250-WHITE',
+   'published', now()),
+  ('hold-levels-guide', 'en', 'hold-levels',
+   'Hold 3, 4 or 5? Hair wax and gel hold levels for men',
+   'Every product in the range carries a hold level out of 5. What that number means, the real gap between 3, 4 and 5, and which one to buy by.',
+   'You stand at the shelf and every tub says "strong hold". You buy one, and two hours later your hair is back where it started.
+
+The problem is that "strong" is not a number. So every product in our men''s styling range carries a hold level out of 5 — eight products, three levels, each doing a different job. This guide is so you buy by the number, not the adjective.
+
+## What a hold level is
+
+The number says one thing only: how firmly the product holds a shape against what your hair does on its own. Four things it is not:
+
+- **Not a quality score.** Hold 3 is not "worse" than 5. Some hair is ruined by a 5 and needs a 3.
+- **Not shine.** Separate axes. Golden gel is hold 5 and very glossy; Black wax is hold 3 and also glossy; Pro X is hold 4 with a quiet natural finish.
+- **Not a count of hours.** We do not print "48-hour hold" because we do not measure that.
+- **Not the price.** Every wax is the same price and size, and so is every gel. Money is out of the equation.
+
+## Three steps to your number
+
+The number is the last step, not the first:
+
+- **Start with the look.** Wet and glossy, natural, or an open defined wave? The look settles the finish, and that rules out half the range.
+- **Then the format.** Gel goes on damp hair and dries into the shape. Wax goes on dry hair and stays workable under your hand.
+- **Only then the number.** Every gel is a 5, every wax is a 3 or a 4. By now you are choosing between two or three products, not eight.
+
+Not sure of your hair type? Start with the [hair types guide](/en/hair-types).
+
+## Hold 3 — the flexible waxes
+
+A 3 holds the shape but still moves with you: you can fix it by hand mid-afternoon without it cracking. That makes it a deliberate choice, not a compromise.
+
+- **[Shea Butter](/en/product/premium-wax-shea)** — soft finish, for [coily](/en/hair-types/coily), [curly](/en/hair-types/curly) and [thick](/en/hair-types/thick) hair.
+- **[Argan](/en/product/premium-wax-argan)** — nourishing, for curly, coily and [wavy](/en/hair-types/wavy) hair.
+- **[Black](/en/product/premium-wax-black)** — covers grey with a glossy black tone. High shine, not matte.
+
+## Hold 4 — the strong waxes
+
+The strongest waxes we make: more grip than a 3, a shape that stays put longer, still adjustable. Thick hair, or a wave that slips loose quickly, lives here.
+
+- **[Pro X](/en/product/premium-wax-pro-x)** — the Wave & Groom formula, natural finish, for wavy and thick hair.
+- **[Pro](/en/product/premium-wax-pro)** — the everyday strong hold, for thick, straight and wavy hair, and fine hair in a small amount.
+
+The [whole wax range](/en/shop/wax) is here.
+
+## Hold 5 — the gels
+
+All three gels are hold 5 of 5, the top of the range, and all listed for [fine, straight hair](/en/hair-types/straight) — the type that holds nothing on its own. A 5 locks once dry: a win if you set it in the morning and forget it, a loss if you fix your hair by hand every hour.
+
+Same hold across all three, so the choice is shine and scent: **[Golden](/en/product/premium-gel-golden)** for the wet look, **[Green](/en/product/premium-gel-green)** for a clean scent, **[Blue](/en/product/premium-gel-blue)** as the all-day classic. See [the full gel range](/en/shop/gel).
+
+## The full comparison
+
+Strongest first:
+
+- **[Golden](/en/product/premium-gel-golden)** — gel · 5/5 · 250ml · 80 EGP · straight · wet look
+- **[Green](/en/product/premium-gel-green)** — gel · 5/5 · 250ml · 80 EGP · straight · clean scent
+- **[Blue](/en/product/premium-gel-blue)** — gel · 5/5 · 250ml · 80 EGP · straight · all day
+- **[Pro X](/en/product/premium-wax-pro-x)** — wax · 4/5 · 120ml · 80 EGP · wavy, thick · natural finish
+- **[Pro](/en/product/premium-wax-pro)** — wax · 4/5 · 120ml · 80 EGP · thick, straight, wavy, fine · everyday
+- **[Shea Butter](/en/product/premium-wax-shea)** — wax · 3/5 · 120ml · 80 EGP · coily, curly, thick · soft finish
+- **[Argan](/en/product/premium-wax-argan)** — wax · 3/5 · 120ml · 80 EGP · curly, coily, wavy · nourishing
+- **[Black](/en/product/premium-wax-black)** — wax · 3/5 · 120ml · 80 EGP · wavy, thick · covers grey
+
+Every wax is 120ml at 80 EGP, every gel 250ml at 80 EGP. The choice is hair type and hold, nothing else.
+
+## Which number for which hair type
+
+- [Fine, straight](/en/hair-types/straight) — hold 5, which means gel.
+- [Wavy](/en/hair-types/wavy) — hold 4, with a 3 as the more flexible option.
+- [Curly](/en/hair-types/curly) and [coily](/en/hair-types/coily) — hold 3.
+- [Fine](/en/hair-types/fine) — hold 4 in a very small amount.
+- [Thick](/en/hair-types/thick) — hold 4.
+
+## Does a high hold damage hair?
+
+The number is about grip, not the health of your hair. We do not claim a level is safer or riskier, and we sell no treatment for any scalp problem — these are styling products, full stop. More on [the brand page](/en/brand). What shapes your day is the amount and the application, and both are in your hands.
+
+## Amount: the most important thing after the number
+
+Heavy or greasy early is usually the amount, not the level.
+
+- **Start with a pea.** Warm it between your palms, work in from the back forward, add a little only if it is not holding. What is on the hair does not come off without a wash.
+- **Stay off the roots.** Product on the scalp adds no hold; it only makes hair look heavy faster.
+- **Gel goes on damp hair.** Bone-dry, it will not spread and you will use more than you should.
+
+## Frequently asked questions
+
+**What is the strongest product you sell?**
+The gel — Golden, Green and Blue are all hold 5. The strongest waxes are Pro and Pro X at 4. Gel versus wax is not a strength question anyway: gel locks, wax stays workable.
+
+**Does hold 3 mean the wax is weak?**
+No. It holds but stays flexible. If you restyle during the day, or your hair needs definition rather than a lock, 3 is the right level.
+
+**Do you have a clay or a pomade with a matte hold?**
+Both are made and are the matte pair — but neither is on the shop yet. Every wax listed today finishes with shine; the lowest-shine is Shea in a small amount.
+
+**Price and delivery?**
+Wax is 80 EGP for 120ml, gel 80 EGP for 250ml. Delivery is 30 EGP, free over 300 EGP. Cash on delivery, inside Egypt only. See [all products](/en/shop).',
+   'assets/articles/hold-levels-guide.webp', 'A flat hand pressing down on a tall styled quiff, the hair holding its shape under the pressure', '', '',
+   'published', now()),
+  ('how-much-wax-to-use', 'en', 'dosage',
+   'How much hair wax to use — and how to apply it unseen',
+   'Most wax problems are a dosage problem, not a product problem. The right amount, wax on dry hair and gel on damp, and why it turns white.',
+   'You put wax in, and a while later the hair is heavy, sticky and greasy-looking — or there are white flakes at the roots. In most cases the product is not the problem. The amount is, and so is the order you apply it in.
+
+Nobody explains this part. A tub carries a name and a hold level and nothing else — which is exactly how a man ends up saying "this wax is no good" while taking far more than he needs.
+
+## The rule: a pea, then add
+
+Start small and add if you need to. The reverse is impossible — there is no taking excess wax back out without a wash.
+
+- **Short hair:** a pea.
+- **Medium hair:** a hazelnut.
+- **Long or very thick hair:** a hazelnut, then a second pea if it is still not holding.
+
+The second amount goes in after you have spread the first and seen the result. Put both in at once and you never learn what you actually needed.
+
+A commercial point, honestly: our wax is 120ml at 80 EGP. At a pea a day the tub lasts far longer than two fingers every morning, and the extra never bought you extra hold — only a greasy look.
+
+## Warm it in your hands first
+
+The most important step and the most forgotten. Straight from the tub, wax is dense; on the hair as it is, it lands in clumps. Rub it between your palms for ten to fifteen seconds until it is a thin film across both hands with no lumps. Spread evenly on your palms, it spreads evenly on your hair. Cold and stiff? Rub longer. Do not take more.
+
+## Wax on dry, gel on damp
+
+The practical difference between the two formats:
+
+- **Wax** on wet hair spreads badly and the hold seems to drop. Put it on hair that is **fully dry or barely damp** after a good towel-dry.
+- **Gel** spreads best on **damp or half-dry** hair, and that is where it gives the cleanest result.
+
+So out of the shower and in a hurry, [gel](/en/shop/gel) is what works right now — Golden, Green and Blue, hold 5 of 5, 250ml at 80 EGP. For the wet, glossy look, [Golden](/en/product/premium-gel-golden) is the one built for it. Set on [wax](/en/shop/wax)? Dry your hair first and wait. That one change fixes half of all hold complaints.
+
+## Start at the back; roots last
+
+Your hand goes to the front first, which is exactly why the front ends up heavy and the back gets nothing.
+
+- **Back of the head** first, hand open, fingers spread.
+- Then the **sides**, then the **top**.
+- **Front and fringe last**, with whatever is left — less than you think, and that is correct.
+- Roots at the very end. Product at the roots flattens hair and gives no shape.
+
+Then finger-comb from the roots outwards to open the sections, and set the shape. Still not holding? **Now** is when the second pea goes in.
+
+## Why it turns white
+
+White flakes are not a fault in the product. Three real causes:
+
+- **Too much** — wax with no hair to grip sits on the surface and dries white.
+- **Not warmed** — a small lump stays a lump.
+- **Wet hair** — the spread breaks up and collects in patches.
+
+Same fix for all three: less product, more rubbing in the palm, dry hair. Try that once before you change product.
+
+Do not confuse white residue with shine. If your hair looks glossy, that is the formula, not the amount: every wax we sell is built on wax and petrolatum and finishes with shine. What genuinely lowers it is less product on fully dry hair.
+
+## Signs you used too much
+
+- You push the hair and it does not move or spring back — too much product, not high hold.
+- Your hands still have wax on them when you are done.
+- Wide stuck-together clumps instead of fine sections, and the hair looks darker.
+- You can feel product on your finger at the scalp.
+
+No need to wash it all out: wipe the roots with a slightly damp towel and finger-comb outwards. Tomorrow, start with half.
+
+## Three mistakes that make hair look greasy
+
+- **Starting at the roots** — they take the biggest share and are already the oiliest part.
+- **Adding instead of redistributing** — spread what is on your hands again before you open the tub.
+- **Layering over yesterday''s wax** — layer on layer on unwashed hair is guaranteed grease.
+
+## Fine hair: half the amount
+
+Take **half of the above** — less than a pea — and warm it longer, until it is a very thin film. Apply from the top and the outside only, well away from the roots, which give you volume and lose it first. Need more? Add a little tomorrow, not today. Finger-comb from underneath upwards so you do not flatten it. Which formula suits you is on the [fine hair](/en/hair-types/fine) page.
+
+Thick hair is the opposite case — a bigger amount, same rule: a hazelnut, spread, then look. Your hold level is on the [thick hair](/en/hair-types/thick) page; the options are [Pro X](/en/product/premium-wax-pro-x), hold 4 of 5 on the Wave & Groom formula, and [Pro](/en/product/premium-wax-pro), hold 4 of 5 for every day.
+
+## Frequently asked questions
+
+**Wax on wet or dry hair?**
+Dry. On wet hair the spread breaks up and the hold feels weaker. Towel-dry and wait — or use gel, which is the format made for damp hair.
+
+**Can I use wax and gel together?**
+Yes, in order: gel on damp hair, let it dry, then a very small amount of wax to define. Useful for thick hair that drops under its own weight. Otherwise one product at the right amount is enough.
+
+**Do you have a cream, a clay or a pomade?**
+Cream, yes: [cream gel 250ml](/en/shop/cream-gel) and [gel wax 140ml](/en/shop/gel-wax). The clay and the pomade are made but not on the shop yet.
+
+**Prices and delivery?**
+Wax 80 EGP, premium gel 80 EGP. Delivery 30 EGP, free over 300 EGP. Cash on delivery, inside Egypt only. See [the whole range](/en/shop).',
+   'assets/articles/how-much-wax-to-use.webp', 'Extreme close-up of a fingertip holding a fingertip-sized dab of matte hair wax against a pale background', '', 'S7-WAX-RED',
+   'published', now()),
+  ('how-to-remove-wax', 'en', 'removal',
+   'How to remove hair wax without damaging your hair',
+   'Styling wax does not rinse out with water alone. The order that works: oil first, warm water second, two light washes instead of one hard scrub.',
+   'End of the day, hair still clumped and sticky, and you wash it once, twice, and the wax is still there. You are not washing wrong and the product is not bad — styling wax simply does not come out with water alone.
+
+Here is the order that gets hold wax out of men''s hair without scrubbing your scalp raw or washing five times.
+
+## Why wax is hard to remove
+
+Put your head under the shower with nothing else and the water runs straight over the top. When the hair dries it is still heavy and stuck at the roots. Wax is not sweat or dust that rinses off — it needs a little more work.
+
+Gel is a much easier story: [gel comes out in an ordinary wash](/en/shop/gel) with nothing before or after. That is a real difference between the two formats, spelled out in [wax or gel](/en/article/wax-or-gel). And the more you put in, the harder it is to get out — read [how much wax to use](/en/article/how-much-wax-to-use) and half the problem is solved before you reach the bathroom.
+
+## The right order: oil first, water second
+
+- **Start with dry hair.** Wet it first and the water sits between the oil and the wax, and the oil never reaches it.
+- **A little oil in your hands** — whatever is in the house: olive, coconut or baby oil. We do not sell oil, so nothing is being sold to you in this step.
+- **Massage with your fingertips for a minute or two**, concentrating on the clumped patches and the roots.
+- **Only then** go to the water and your usual shampoo.
+
+The oil loosens the wax and gets it moving; the shampoo lifts it out. Without that step you are scrubbing at something that is not going anywhere.
+
+## Warm water, not hot
+
+Warm water softens the wax so it moves. Very hot water removes nothing extra — it only leaves the hair dry and frizzy and makes you scrub harder. As warm as your hands are comfortable with, no more. On the last rinse turn it down a little; the hair looks smoother when it dries.
+
+## Two washes beat one hard one
+
+What damages hair here is not the wax, it is the scrubbing — nails, full force, everything in one go. The result is breakage and frizz.
+
+- **A light first wash** — a little shampoo, fingertips not nails, rinse.
+- **An even lighter second wash** — this is the one that really cleans, once the first has lifted the oil and the wax.
+- **Do not attack it with the towel.** Press, do not rub.
+
+Two calm washes remove more than one violent one, for half the effort.
+
+If your hair is [fine and straight](/en/hair-types/straight), any leftover wax shows the next day, so the two light washes are the whole difference for you. If it is [thick](/en/hair-types/thick), give the oil a little longer so it reaches every layer, not just the top.
+
+## If you can still feel it after washing
+
+Before a third, harder wash, look at what actually happened:
+
+- **Heavy at the roots only?** The oil never reached them. Next time massage from underneath upwards.
+- **White bits or flakes?** Too much product in the morning, spread badly. The fix is the amount, not the washing.
+- **Stuck together and stiff?** Over-scrubbing with hot water. Let it dry on its own and stop.
+
+Do not rewash violently three and four times in one day. Leave it until tomorrow and start with the oil.
+
+## When to leave it until the next day
+
+You do not have to remove it every day. A small amount, and a day not spent in dust or sweat, can stay: wet your hands, run them through, and reshape — the wax that is left goes back to work.
+
+Only leave it if the amount was small, the scalp is not itching, the hair does not look heavy, and you were not outdoors or at the gym all day. Heavy, stuck to the scalp, or showing white? Wash it. Do not stack two or three days.
+
+## When you buy your next wax
+
+What makes removal easier from the start is the right amount of a wax whose hold is enough for you, instead of a lot of one that is not holding. [Pro X](/en/product/premium-wax-pro-x) is hold 4 of 5 with a natural finish, and [Pro](/en/product/premium-wax-pro) is the same hold but easier to spread. Both are 120ml at 80 EGP; compare [the whole wax range](/en/shop/wax) by hair type.
+
+Delivery is 30 EGP and free over 300 EGP, cash on delivery, anywhere in Egypt.
+
+## Frequently asked questions
+
+**Does wax come out with water alone?**
+No. Oil first and then shampoo, or at the very least two light shampoo washes back to back.
+
+**Do I have to wash every day if I use wax?**
+No. A small amount can be restyled the next day with a little water. Just do not let it build up beyond that.
+
+**Is gel easier to remove than wax?**
+Yes, clearly. [Gel comes out in an ordinary wash](/en/shop/gel); wax needs the extra step. If that matters in your routine, weigh it when you choose.
+
+**Does vinegar or lemon juice help?**
+You do not need them. Oil does the job, and it is already in every house.
+
+**Does wax cause hair or scalp problems?**
+We are not doctors and will not talk medicine. These are styling products only, and the one rule is not to leave any styling product building up for days. A problem with your hair or scalp is a question for a doctor, not for a website that sells wax.',
+   'assets/articles/how-to-remove-wax.webp', 'A barber rinsing shampoo lather from a young man’s hair over a salon basin with a handheld shower', '', 'S7-WAX-RED',
+   'published', now()),
+  ('matte-or-shine', 'en', 'matte-or-shine',
+   'Matte or shine hair wax for men? Choose by the look',
+   'Matte, shine and the wet look — which one suits you. Our matte pair is a clay wax and a pomade, and neither is on the shop yet.',
+   'Styling men''s hair is not one decision, it is two. You put the wax in, go out, and two hours later the mirror shows a shine you never asked for — or the opposite: you want that gloss, and everything you try comes out dull.
+
+The problem is not your technique. You chose on hold alone and left out the second half: the finish, matte or shine. And that decides how you look on the street more than the hold number does.
+
+Said now so you do not waste your time: **our matte products are the clay wax and the pomade, and both are made but not on the shop yet.** Everything listed today is wax and gel, built on wax and petrolatum, with no silica, starch or clay — and those are what make a matte finish. This page tells you what to do until they land. It will not sell you something else under their name.
+
+## What matte means and who needs it
+
+Matte means the product does not reflect light. You style, and the hair keeps its natural look as if nothing is in it — while still being held. Matte does not mean dry: the hair stays soft; only the gloss is gone.
+
+Who needs it:
+
+- Formal work, or in front of people all day, and no "just out of the shower" look
+- Texture and a deliberately messy shape rather than a combed, glossy one
+- Hair that gets oily early and is given away by extra shine
+- Anyone photographed a lot — flash and hard light exaggerate gloss
+
+If that is you, what you need is the **clay wax** — made, not listed yet. The closest thing you can buy today is [Shea Butter wax](/en/product/premium-wax-shea): the lowest shine of anything listed, hold 3 of 5 and flexible. But it still shines — less, not zero.
+
+## What shine does to a hairstyle
+
+Shine is how light comes back off your hair. A glossy surface bounces it in one direction, so the eye reads the hair as one tidy piece. A matte surface scatters it, so the eye separates one strand from the next — which is exactly what we call texture. The same cut can look neat and glossy, or messy and textured, without touching the hold. The decision is in the finish.
+
+Density and curl decide whether shine works for you or against you. Unsure of your type? Start with [hair types](/en/hair-types) — [fine hair](/en/hair-types/fine) in particular plays by different rules.
+
+## How to cut the shine until the clay arrives
+
+The shine is part of the formula and you will not remove it, but three things bring it down noticeably:
+
+- **Half the amount.** The biggest difference you can make. A pea instead of a hazelnut.
+- **Fully dry hair.** Water raises the shine and keeps the product on the surface.
+- **Stay off the roots.** Shine shows most at the scalp, where it mixes with natural oil and reads as grease.
+
+Together those get you to a reasonable natural look. Not matte, but not glossy enough to bother you.
+
+## Shine and the wet look: who it suits
+
+Nothing is wrong with shine. The neat, glossy wet look is still the first formal look in Egypt: weddings, work, an occasion, a sharp side part. It suits classic parted styles, hair you want pulled together with a clean line, and occasions where it should be obvious your hair is done.
+
+One warning: if your hair gets oily quickly, shine makes it show sooner, because the eye cannot tell product gloss from oil gloss. Cut the amount and stay right off the roots.
+
+The wet look in our range is [Golden gel](/en/product/premium-gel-golden) — 250ml at 80 EGP, hold 5 of 5, high shine.
+
+## Shea versus Golden gel
+
+The lowest and the highest shine in the range:
+
+- **Finish** — Shea is a quiet shine and a soft finish. Golden is an unmistakable wet look.
+- **Hold** — Shea is 3 of 5 and reworkable all day. Golden is 5 of 5 and dries into the shape.
+- **Hair type** — Shea for coily, curly and thick. Golden for straight.
+- **Format, size and price** — Shea is a 120ml wax at 80 EGP. Golden is a 250ml gel at 80 EGP.
+
+Our advice, not a spec on the tub: start with a very small amount and add later. Coming back from too little is easy; from too much, the only fix is a wash. Still torn? Compare [all the waxes](/en/shop/wax) and [all the gels](/en/shop/gel) by hold and finish.
+
+## A word about Black wax
+
+For a while Black was labelled "matte" on our shop. That was our mistake, and we corrected it. [Black wax](/en/product/premium-wax-black) is **high shine**, hold 3 of 5, and its real job is something else: **it covers grey**. The only colourant in the formula is CI 77266 black, so it leaves a glossy black tone as you work it in. Came to Black for matte? Not the one. Have grey to cover while you style? Exactly the one.
+
+## Honestly: the clay and the pomade are made, and not listed
+
+Do you have a clay or a pomade? Made, but not on the shop yet. What is listed today is wax, gel, gel wax and cream gel, and all of them shine. The clay wax and the pomade are the matte pair, and they are on the way.
+
+Whoever asks for the clay wants the same thing: a matte look with texture. If that is really what you are after, do not buy a wax assuming it will do it — wait for the clay, or try Shea at half the amount knowing you are getting close to the look, not reaching it. We will not call a wax "clay" to make a sale.
+
+## Frequently asked questions
+
+**Can I make a shiny wax matte?**
+Not really. Less product on fully dry hair brings the shine down, but it is part of the formula and you will not remove it.
+
+**Do you have any fully matte product?**
+Two — the clay wax and the pomade — but neither is listed yet. Everything on sale today finishes with shine, with no matting agent in the formula.
+
+**Can I use wax and gel together?**
+Nothing against it. But gel raises the shine, it does not lower it. If shine bothers you, stay with wax alone in a small amount.
+
+**My hair is thick and I want matte. What do I do?**
+The pomade in particular is set up for medium and thick hair. Until it lands, the closest is [Shea](/en/product/premium-wax-shea) in a small amount on dry hair — it is listed for [thick hair](/en/hair-types/thick).
+
+**Delivery and payment?**
+Delivery is 30 EGP, free over 300 EGP. Cash on delivery, inside Egypt.',
+   'assets/articles/matte-or-shine.webp', 'Two profiles side by side of slicked-back dark hair — a dry matte finish on the left, a high-gloss finish on the right', '', 'S7-WAX-PUR',
    'published', now())
 ON CONFLICT (slug, lang) DO UPDATE SET
   group_key    = EXCLUDED.group_key,
@@ -2203,6 +2556,40 @@ UPDATE articles
    SET body = replace(body, '](/#hair)', CASE WHEN lang = 'en' THEN '](/en/hair-types)' ELSE '](/hair-types)' END),
        updated_at = now()
  WHERE body LIKE '%](/#hair)%';
+
+-- ---------------------------------------------------------------------------
+--  Search titles and descriptions
+--
+--  These were set straight against the database once and lived nowhere else,
+--  which meant a rebuilt database lost every one of them without saying so.
+--  They belong here, with the articles they describe. The INSERT above does
+--  not carry these two columns, so re-running this file never clears them.
+-- ---------------------------------------------------------------------------
+
+UPDATE articles a
+   SET meta_title = m.meta_title,
+       meta_desc  = m.meta_desc
+  FROM (VALUES
+    ('choose-hair-product-by-hair-type', 'ar', 'منتج الشعر المناسب لنوع شعرك', 'اعرف نوع شعرك وهتعرف تشتري إيه: واكس ولا جل، وأنهي تثبيت. دليل مختصر لكل نوع شعر، من نيو ستار سفن.'),
+    ('choose-hair-product-by-hair-type', 'en', 'Choosing a hair product by hair type', 'Know your hair type and you know what to buy: wax or gel, and which hold. A short guide for every type.'),
+    ('gel-and-wudu', 'ar', 'هل جل الشعر يمنع الوضوء؟', 'الحكم لأهل العلم. إنما هل الجل بيعمل طبقة بتصد المياه ولا بيذوب فيها؟ ده سؤال ليه إجابة، وتقدر تختبره بنفسك.'),
+    ('gel-and-wudu', 'en', 'Does hair gel block wudu?', 'The ruling belongs to scholars. But does gel form a water-repelling layer, or dissolve? That has an answer you can test yourself.'),
+    ('hold-levels-guide', 'ar', 'درجات تثبيت الواكس والجل ٣ و٤ و٥', 'كل منتج مكتوب عليه تثبيت من ٥. الدليل ده بيقول يعني إيه الرقم ده، والفرق بين ٣ و٤ و٥، وأنهي واحد تشتري.'),
+    ('hold-levels-guide', 'en', 'Hair Wax & Gel Hold Levels: 3, 4 or 5?', 'Every New Star Seven product carries a hold level out of 5. What the number means, the real gap between 3, 4 and 5, and which one to buy by.'),
+    ('homemade-gel', 'ar', 'جل شعر طبيعي في البيت: الوصفة', 'وصفة جل بذر الكتان كاملة بالمقادير والخطوات — وبعدين الحقيقة: بيقعد ٥ أيام بس، وتثبيته ٢ من ٥.'),
+    ('homemade-gel', 'en', 'Homemade hair gel: the real recipe', 'The full flaxseed gel recipe with quantities — then the part nobody writes: it keeps five days and holds 2 out of 5.'),
+    ('how-much-wax-to-use', 'ar', 'كمية الواكس الصح للشعر', 'أغلب الناس بتحط واكس أكتر من اللازم، فالشعر بيتقل ويبان دهون. الكمية الصح، وإزاي تظبطها على طول شعرك.'),
+    ('how-much-wax-to-use', 'en', 'How Much Hair Wax to Use — The Right Amount', 'Too much wax leaves hair greasy and heavy; too little does nothing. The fingertip rule by hair length and thickness, and how to fix an overdose.'),
+    ('how-to-remove-wax', 'ar', 'إزاي تشيل الواكس من شعرك', 'الواكس أساسه شمع فمش بيروح بالمياه لوحدها. الطريقة الصح تشيله بيها من غير ما تجفف شعرك أو تأذيه.'),
+    ('how-to-remove-wax', 'en', 'How to Remove Hair Wax Properly', 'Wax that will not wash out leaves buildup, flakes and an itchy scalp. The right order to rinse, what actually breaks wax down, and what to avoid.'),
+    ('make-your-style-last-all-day', 'ar', 'خلي الستايل يفضل لآخر اليوم', 'الستايل بيقع بعد ساعتين؟ السبب غالباً مش المنتج — دي أربع حاجات بتخلي الشعر يفضل مظبوط لآخر اليوم.'),
+    ('make-your-style-last-all-day', 'en', 'Make your style last all day', 'Style dropping after two hours? Usually it is not the product. Four things that keep hair holding until the evening.'),
+    ('matte-or-shine', 'ar', 'واكس مطفي ولا لامع؟', 'المطفي بيدي شعر طبيعي كإنك مش حاطط حاجة، واللامع بيدي شكل مرتب ومبلول. أنهي واحد يناسب شكلك وشعرك.'),
+    ('matte-or-shine', 'en', 'Matte or Shine? Choosing a Hair Finish', 'Glossy or dry-look? What finish each New Star Seven wax and gel gives, which suits your hair and the occasion, and why shine is not a hold level.'),
+    ('wax-or-gel', 'ar', 'واكس ولا جل؟ الفرق الحقيقي', 'الجل بيتحط على شعر مبلول وبينشف على الشكل. الواكس بيتحط على شعر ناشف وبيفضل ماشي مع إيدك. أنهي واحد ليك.'),
+    ('wax-or-gel', 'en', 'Hair wax or gel? The real difference', 'Gel goes on wet and dries into shape. Wax goes on dry and stays movable all day. Which one is right for your hair.')
+  ) AS m(slug, lang, meta_title, meta_desc)
+ WHERE a.slug = m.slug AND a.lang = m.lang;
 
 
 -- ---------------------------------------------------------------------------
