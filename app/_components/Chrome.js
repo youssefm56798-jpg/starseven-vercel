@@ -288,6 +288,10 @@ export async function Footer({ lang = 'ar' }) {
               © {new Date().getFullYear()}{' '}
               {ar ? 'نيو ستار سفن. كل الحقوق محفوظة.' : 'New Star Seven. All rights reserved.'}
             </span>
+            <span className="site-credit">
+              {ar ? 'تصميم وتطوير' : 'Site by'}{' '}
+              <a href="https://ymsstudio.com/" target="_blank" rel="noopener noreferrer" dir="ltr">YMS Studio</a>
+            </span>
           </div>
         </div>
       </footer>
