@@ -7,6 +7,7 @@
 
 import { fail } from '../../../lib/http.js';
 import { site } from '../../../lib/config.js';
+export { isEmail } from '../../../lib/customer-email.js';
 
 /** Escapes a value for HTML text or a double-quoted attribute. */
 export const esc = s =>
@@ -27,16 +28,6 @@ export const str = (v, max = 255) =>
  * the bias has to be towards letting doubtful values past.
  */
 export const trapped = v => (typeof v === 'string' && v.trim() !== '') || v === true;
-
-/**
- * Deliberately permissive: the confirmation email is the real deliverability
- * test, so this only rejects shapes that cannot possibly be addresses.
- * 190 is the practical cap the subscribers.email column was sized for.
- */
-export const isEmail = v => {
-  const s = String(v ?? '');
-  return s.length <= 190 && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(s);
-};
 
 /** Uniform 429, bilingual like every other customer-visible message. */
 export const tooMany = lang =>

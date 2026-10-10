@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { readCart, addToCart, setQty as setCartQty, clearCart } from '../../lib/cart.js';
 import { track } from '../../lib/track.js';
 import { readConsent } from '../../lib/consent.js';
+import { isEmail } from '../../lib/customer-email.js';
 import { cartTotals } from '../../lib/pricing.js';
 import { formatRef } from '../../lib/order-number.js';
 import { SERVED, SERVED_LABELS } from '../../lib/delivery-eta.js';
@@ -209,7 +210,7 @@ const RULES = {
   // Required. There are no accounts, so this address is the only way the
   // customer can reach their order again - to check it or to cancel it.
   email: (v, T) =>
-    (/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim()) ? '' : T.e_email),
+    (isEmail(v.trim()) ? '' : T.e_email),
 };
 
 export default function CheckoutClient({ lang, add, catalog, shipping, currency }) {
