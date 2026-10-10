@@ -16,6 +16,7 @@ import { maxOrderLines, orderHoldHours, limits } from '../lib/config.js';
 
 const ROOT = new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1');
 const ORDER_ROUTE = readFileSync(`${ROOT}app/api/order/route.js`, 'utf8');
+const ADMIN_DASHBOARD = readFileSync(`${ROOT}app/admin/(panel)/page.js`, 'utf8');
 
 /* ----------------------------------------------------------- how it reads */
 
@@ -45,6 +46,12 @@ test('normalising is what makes a printed number findable', () => {
   for (const stored of ['10001', '999999', 'S7-2708-12345']) {
     assert.equal(normaliseRef(formatRef(stored)), stored);
   }
+});
+
+test('the admin dashboard imports the order formatter it renders', () => {
+  assert.match(ADMIN_DASHBOARD,
+    /import\s*{[^}]*\bformatRef\b[^}]*}\s*from\s*['"]\.\.\/\.\.\/\.\.\/lib\/order-number\.js['"]/,
+    'the dashboard renders formatRef() without importing it');
 });
 
 test('both shapes are recognised, and nothing else is', () => {

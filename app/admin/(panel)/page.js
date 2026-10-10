@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { sql } from '../../../lib/db.js';
 import { bySlug } from '../../../lib/hairtypes.js';
+import { formatRef } from '../../../lib/order-number.js';
 import { requireAdmin } from '../_lib/guard.js';
 import { dt, Flash, money, num } from '../_lib/ui.js';
 
