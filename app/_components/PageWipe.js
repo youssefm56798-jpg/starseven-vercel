@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useCallback } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { privateAnalyticsUrl } from '../../lib/consent.js';
 
 /**
  * The page transition — a warm-paper panel carrying the star mark. Leaving a
@@ -187,10 +188,19 @@ export default function PageWipe() {
 
   /* ---------------------------------------------------------- leaving */
   useEffect(() => {
-    if (reduced()) return;
-
     const onClick = e => {
       const a = e.target.closest?.('a');
+      // Cross the recording boundary with a fresh document, before Next changes
+      // history or renders sensitive content. This also applies without motion.
+      if (a?.origin === window.location.origin && !e.defaultPrevented
+        && e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey
+        && (!a.target || a.target === '_self') && !a.hasAttribute('download')
+        && privateAnalyticsUrl(a.href) !== privateAnalyticsUrl(window.location.href)) {
+        e.preventDefault();
+        window.location.assign(a.href);
+        return;
+      }
+      if (reduced()) return;
       if (!a || leaving.current || !isPlainInternalLink(a, e)) return;
 
       e.preventDefault();

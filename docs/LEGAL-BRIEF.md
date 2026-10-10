@@ -7,6 +7,23 @@ questions the engineering could not settle.
 
 **Written by the engineering side, August 2026. Not legal advice.**
 
+**Engineering update — 10 October 2026:** the storefront now gates all optional
+analytics behind an equal-choice accept/reject banner. Consent is saved locally
+for 180 days; footer settings allow withdrawal. Microsoft Clarity is disclosed,
+checkout fields are masked, and admin/order pages are excluded using document
+navigation boundaries. The public policies use verified brand/telephone details
+instead of unfinished placeholders; no legal identity, register/tax number or
+email address has been invented. Removing placeholders does **not** settle the
+business-identity disclosure requirements below. The owner must still verify
+registered identity/address disclosures, processor arrangements, cross-border
+permissions and applicable licensing with Egyptian counsel. Existing historical
+Clarity recordings have not been deleted or retrospectively redacted.
+
+Returns wording now includes the 30-day defective-goods right and preserves
+statutory rights when packaging has been opened, based on the
+[Consumer Protection Agency guidance](https://cpa.gov.eg/ar-eg/%D8%A8%D9%8A%D8%A7%D9%86%D8%A7%D8%AA-%D8%A7%D8%B9%D9%84%D8%A7%D9%85%D9%8A%D8%A9/ArtMID/654/ArticleID/6790).
+Consent signaling follows [Microsoft ConsentV2](https://learn.microsoft.com/en-us/clarity/setup-and-installation/clarity-consent-api-v2).
+
 ---
 
 ## 1. What the business is

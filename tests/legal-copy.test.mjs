@@ -163,18 +163,37 @@ test('the returns clause is not narrower than the statutory right', () => {
 
 /* --------------------------------------------------- the things still owed */
 
-test('every placeholder still owed is marked so it can be found', () => {
-  // [[...]] is the marker, and it is greppable on purpose. This test does not
-  // fail while they are present — they are honest — it fails if somebody
-  // invents a company registration number to make the page look finished.
-  const markers = ALL.flatMap(([, body]) => body.match(/\[\[[^\]]+\]\]/g) || []);
-  assert.ok(markers.length > 0, 'the placeholders vanished — were they filled in, or deleted?');
-
+test('public legal copy uses verified contacts without placeholders or invented registrations', () => {
   for (const [name, body] of ALL) {
+    assert.doesNotMatch(body, /\[\[/, `${name} exposes an internal drafting placeholder`);
+    assert.match(body, /01028282216/, `${name} has no usable contact`);
     // A registration number that is not a placeholder must not be a guess.
     const invented = body.match(/(?:commercial register|سجل تجاري)\s+(?!\[\[)(\S+)/i);
     assert.equal(invented, null,
       `${name} states a commercial register value (${invented?.[1]}) that nobody supplied`);
+  }
+});
+
+test('policies explain rejection, withdrawal and distinct marketing consent', () => {
+  assert.match(LEGAL.privacy.en.body, /disabled until you accept/);
+  assert.match(LEGAL.privacy.en.body, /180 days/);
+  assert.match(LEGAL.privacy.en.body, /Withdrawal stops new tracking/);
+  assert.match(LEGAL.privacy.ar.body, /180 يوم/);
+  assert.match(LEGAL.terms.en.body, /does not grant analytics or marketing consent/);
+  assert.match(LEGAL.terms.en.body, /Defective products within 30 days/);
+  assert.match(LEGAL.terms.ar.body, /المنتج المعيب خلال 30 يوم/);
+});
+
+test('configured Clarity is disclosed in both policies', () => {
+  const res = spawnSync(process.execPath, ['--input-type=module', '-e',
+    `import { LEGAL } from './app/_components/legalCopy.js'; console.log(JSON.stringify(LEGAL.privacy));`], {
+    cwd: ROOT, encoding: 'utf8', env: { ...process.env, NEXT_PUBLIC_CLARITY_ID: 'TESTONLY' },
+  });
+  assert.equal(res.status, 0, res.stderr);
+  const policies = JSON.parse(res.stdout);
+  for (const body of [policies.en.body, policies.ar.body]) {
+    assert.match(body, /Microsoft Clarity/);
+    assert.match(body, /_clck/);
   }
 });
 

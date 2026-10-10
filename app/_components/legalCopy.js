@@ -17,11 +17,8 @@
  * drift from the code that implements it, because it IS the code that
  * implements it.
  *
- * Three things still need YOU, and they are marked [[...]] in the text so they
- * are impossible to miss and easy to grep for:
- *   - the registered company name, address, commercial register and tax number
- *   - a real privacy contact address, rather than only a WhatsApp number
- *   - a lawyer, on the two questions in docs/LEGAL-BRIEF.md
+ * Verified brand and contact details only. Outstanding business identity and
+ * cross-border legal questions stay in docs/LEGAL-BRIEF.md. No invented numbers.
  *
  * It is not legal advice. What it is, is accurate — every claim below was
  * checked against the code, and the places where the law is unsettled say so
@@ -53,12 +50,12 @@ const GA_NOTE = {
   ar: gaOn
     ? `
 
-كمان الموقع بيشغّل **Google Analytics 4**. ده منتج جوجل، يعني زيارتك بتتقاس عند جوجل مش عندنا بس، وبيحطّ كوكيز خاصة بيه (\`_ga\`) على متصفحك.`
+بعد موافقتك بس، بنستخدم **Google Analytics 4** لقياس الزيارات، وبيحطّ كوكيز (\`_ga\`) على متصفحك. بيانات نموذج الطلب مش بتتبعت لجوجل.`
     : '',
   en: gaOn
     ? `
 
-This site also runs **Google Analytics 4**. It is a Google product, so your visit is measured by Google as well as by us, and it sets its own cookies (\`_ga\`) in your browser.`
+Only after your permission, we use **Google Analytics 4** to measure visits. It sets cookies (\`_ga\`) in your browser. Checkout form details are not sent to Google.`
     : '',
 };
 
@@ -70,6 +67,16 @@ This site also runs **Google Analytics 4**. It is a Google product, so your visi
  * describing a deadline that no longer expires would be worse than no term, so
  * the clause goes when the sweep does.
  */
+const clarityOn = Boolean((process.env.NEXT_PUBLIC_CLARITY_ID || '').trim());
+const CLARITY_NOTE = {
+  ar: clarityOn ? `
+
+بعد موافقتك بس، بنستخدم **Microsoft Clarity** لتسجيل تفاعلات التصفح وعمل خرائط النقر والتمرير لتحسين الاستخدام. بيانات نموذج الطلب مخفية عن التسجيل. Clarity ممكن يستخدم كوكيز \`_clck\` و\`_clsk\` للتحليلات؛ بنرسل موافقة للتحليلات ورفض لتخزين الإعلانات. Microsoft بيعالج البيانات وفق [سياسة خصوصيته](https://privacy.microsoft.com/privacystatement). التسجيل مقفول على صفحات الإدارة ومتابعة الطلب.` : '',
+  en: clarityOn ? `
+
+Only after your permission, we use **Microsoft Clarity** for browsing interaction recordings and click/scroll heatmaps to improve usability. Checkout form details are masked. Clarity may set \`_clck\` and \`_clsk\` analytics cookies; we grant analytics storage and deny advertising storage. Microsoft processes data under its [privacy statement](https://privacy.microsoft.com/privacystatement). Recordings are disabled on admin and order-status pages.` : '',
+};
+
 const HOLD_CLAUSE = {
   ar: orderHoldHours
     ? `
@@ -85,9 +92,9 @@ export const LEGAL = {
   privacy: {
     ar: {
       title: 'سياسة الخصوصية',
-      body: `آخر تحديث: سبتمبر 2026
+      body: `آخر تحديث: أكتوبر 2026
 
-نيو ستار سفن (علامة تابعة لـ **أوفانزا كوزمتيكس** — [[الاسم القانوني المسجل]]، [[العنوان]]، سجل تجاري [[رقم]]، بطاقة ضريبية [[رقم]]) بتحترم خصوصيتك. الصفحة دي بتشرح بالظبط إيه اللي بنجمعه، ليه، وفين بيتخزن.
+نيو ستار سفن علامة تابعة لـ **أوفانزا كوزمتيكس**. الصفحة دي بتشرح إيه البيانات اللي بنجمعها لتشغيل الموقع وتنفيذ الطلبات، ليه، وفين بتتخزن. للتواصل بخصوص الخصوصية: واتساب أو تليفون 01028282216.
 
 ## البيانات اللي بنجمعها
 
@@ -105,12 +112,13 @@ export const LEGAL = {
 
 ## الكوكيز والتحليلات
 
-نكون صرحاء معاك: الموقع بيستخدم **Vercel Web Analytics** و**Vercel Speed Insights**. دول بيقيسوا الصفحات اللي بتتفتح وسرعة التحميل. مبيستخدموش كوكيز إعلانية ومفيش إعلانات على الموقع، لكنهم برضه أدوات طرف تالت — وده حقك تعرفه.${GA_NOTE.ar}
+بموافقتك بس، بنستخدم **Vercel Web Analytics** و**Vercel Speed Insights** لقياس الصفحات وسرعة التحميل. الأدوات دي من غير كوكيز، لكنها بتستقبل بيانات استخدام تقنية. التحليلات الاختيارية مقفولة لحد ما توافق.${GA_NOTE.ar}${CLARITY_NOTE.ar}
 
-قبل ما أي عنوان صفحة يتبعت لأي أداة تحليلات، بنشيل منه توكن الدخول بتاع الأوردر. يعني اللينك اللي بيفتح أوردرك عمره ما بيوصل لجوجل ولا لـ Vercel.
+صفحات الإدارة ومتابعة الطلب مستبعدة من التحليلات الاختيارية. بيانات نموذج الطلب مش بتتبعت كأحداث تحليلات، وروابط الدخول السرية وأرقام الطلبات بتتشال من عناوين الصفحات اللي بتتقاس.
 
-- **تخزين محلي في متصفحك:** السلة، ومفتاح بيمنع تكرار الأوردر لو دوست مرتين. البيانات دي بتفضل على جهازك.
-- **الكوكيز:** العميل ${gaOn ? 'بياخد كوكيز جوجل أناليتكس المذكورة فوق وبس' : 'مبياخدش أي كوكي من الموقع'}. لوحة التحكم ليها كوكيز خاصة بيها — كوكي دخول، وكوكي التحقق بخطوتين، وكوكي حماية — وكلها محصورة على مسار /admin، يعني عمرها ما بتتبعت لعميل.
+- **التخزين الضروري في متصفحك:** السلة، ومفتاح إعادة محاولة الطلب، واختيارك للخصوصية. ده لتشغيل الطلب وحفظ اختيارك، ومش موافقة على الدعاية.
+- **اختيار التحليلات:** تقدر تقبل أو ترفض بنفس السهولة وتغيّر اختيارك من «إعدادات الخصوصية» في آخر الصفحة. الرفض مش بيمنع الشراء. بنحفظ الاختيار على جهازك لمدة 180 يوم وبعدها بنطلبه تاني. سحب الموافقة بيوقف التتبع الجديد وبيمسح كوكيز التحليلات اللي يقدر الموقع يمسحها، لكنه مش بيمسح تلقائياً بيانات اتجمعت قبل كده. لطلب حذفها تواصل معانا.
+- **الكوكيز:** ${gaOn || clarityOn ? 'كوكيز التحليلات المذكورة فوق بتشتغل بعد الموافقة بس.' : 'التحليلات المفعّلة حالياً من غير كوكيز.'} كوكيز الدخول والتحقق بخطوتين والحماية خاصة بالإدارة ومحصورة على /admin.
 
 ## فين بتتخزن بياناتك
 
@@ -130,18 +138,18 @@ export const LEGAL = {
 
 ## حقوقك
 
-تقدر تطلب نسخة من بياناتك، أو تصححها، أو تمسحها، أو تلغي العروض. ابعتلنا على [[إيميل الخصوصية]] أو كلّمنا واتساب على 01028282216، وهنرد عليك في مدة أقصاها 30 يوم.
+تقدر تطلب نسخة من بياناتك أو تصحيحها أو حذفها أو تلغي العروض. كلّمنا واتساب أو تليفون على 01028282216، وهنرد خلال 30 يوم. ممكن نطلب التحقق من هويتك ونحتفظ بالبيانات المطلوبة قانوناً. اختيار التحليلات منفصل عن موافقة العروض الاختيارية في الطلب.
 
 ## تواصل
 
-[[الاسم القانوني المسجل]] — [[العنوان]] — [[إيميل الخصوصية]] — واتساب 01028282216.`,
+أوفانزا كوزمتيكس / نيو ستار سفن — واتساب وتليفون 01028282216.`,
     },
 
     en: {
       title: 'Privacy Policy',
-      body: `Last updated: September 2026
+      body: `Last updated: October 2026
 
-New Star Seven (a brand of **Ovanza Cosmetics** — [[registered legal name]], [[address]], commercial register [[number]], tax card [[number]]) respects your privacy. This page explains exactly what we collect, why, and where it is stored.
+New Star Seven is a brand of **Ovanza Cosmetics**. This policy explains how we handle data to operate the site and fulfil orders. For privacy enquiries, contact us by WhatsApp or telephone on 01028282216.
 
 ## What we collect
 
@@ -159,12 +167,13 @@ New Star Seven (a brand of **Ovanza Cosmetics** — [[registered legal name]], [
 
 ## Cookies and analytics
 
-Plainly: this site runs **Vercel Web Analytics** and **Vercel Speed Insights**. They measure which pages are opened and how fast they load. They set no advertising cookies and there are no ads on this site — but they are third-party tools, and you are entitled to know that.${GA_NOTE.en}
+Only with your permission, we use **Vercel Web Analytics** and **Vercel Speed Insights** to measure pages and loading speed. These tools are cookieless, but receive technical browsing data. All optional analytics remain disabled until you accept.${GA_NOTE.en}${CLARITY_NOTE.en}
 
-Before any page address is reported to any analytics tool, the order access token is stripped out of it. The link that opens your order never reaches Google or Vercel.
+Admin and order-status pages are excluded from optional analytics. Checkout form details are not sent as analytics events, and secret access tokens and order references are removed from measured page addresses.
 
-- **Local storage in your browser:** your cart, and a key that stops a double tap creating two orders. Both stay on your device.
-- **Cookies:** ${gaOn ? 'the Google Analytics cookies described above, and nothing else' : 'customers are given none at all'}. The admin panel sets its own — a login cookie, a two-factor cookie and a CSRF cookie — and all three are scoped to /admin, so a customer is never sent one.
+- **Necessary browser storage:** your cart, a checkout retry key and your privacy choice. These support shopping and remember your choice; they do not constitute marketing consent.
+- **Your analytics choice:** accept or reject with equal ease, and change your choice through Privacy settings in the footer. Rejecting does not prevent purchases. The choice is stored on your device for 180 days, then requested again. Withdrawal stops new tracking and removes analytics cookies accessible to this site; it does not automatically erase previously collected data. Contact us to request deletion.
+- **Cookies:** ${gaOn || clarityOn ? 'analytics cookies described above are used only after consent.' : 'currently enabled analytics tools are cookieless.'} Admin login, two-factor and CSRF cookies are necessary for the back office and scoped to /admin.
 
 ## Where your data is stored
 
@@ -184,20 +193,20 @@ A job runs every night and removes whatever is past its date. These are the actu
 
 ## Your rights
 
-You can ask for a copy of your data, correct it, delete it, or stop the offers. Write to [[privacy email]] or message WhatsApp 01028282216, and we will respond within 30 days.
+You can request a copy, correction or deletion of your data, or stop offers. Contact us by WhatsApp or telephone on 01028282216; we will respond within 30 days. We may verify your identity and retain records required by law. Analytics consent is separate from optional email marketing at checkout.
 
 ## Contact
 
-[[registered legal name]] — [[address]] — [[privacy email]] — WhatsApp 01028282216.`,
+Ovanza Cosmetics / New Star Seven — WhatsApp and telephone 01028282216.`,
     },
   },
 
   terms: {
     ar: {
       title: 'الشروط والأحكام',
-      body: `آخر تحديث: سبتمبر 2026
+      body: `آخر تحديث: أكتوبر 2026
 
-باستخدامك موقع نيو ستار سفن والطلب منه، إنت موافق على الشروط دي. البايع هو [[الاسم القانوني المسجل]]، [[العنوان]]، سجل تجاري [[رقم]]، بطاقة ضريبية [[رقم]].
+الشروط دي بتنظم استخدام موقع نيو ستار سفن والشراء منه. نيو ستار سفن علامة تابعة لأوفانزا كوزمتيكس. للاستفسار أو الشكاوى: واتساب أو تليفون 01028282216. تأكيد الطلب قبول لشروط الشراء، لكنه مش موافقة على التحليلات أو العروض.
 
 ## الأوردر والدفع
 
@@ -219,8 +228,8 @@ You can ask for a copy of your data, correct it, delete it, or stop the offers. 
 ## الاسترجاع والاستبدال
 
 - **الاستبدال والاسترجاع خلال 14 يوم:** من حقك تطلب استبدال المنتج أو استرجاعه خلال 14 يوم من تاريخ الاستلام، بشرطين: يكون المنتج في حالته الأصلية ومتستخدمش، والعلبة الأصلية وكل الملحقات بحالتها الكاملة.
-- **لو وصلك منتج غير اللي طلبته، أو وصل تالف:** كلّمنا على 01028282216 وهنستبدله بالصح أو نرجّعلك فلوسك، والشحن في الحالتين على حسابنا.
-- المنتجات اللي اتفتحت أو اتستخدمت مش بتتقبل في الاسترجاع، لأسباب صحية — إلا لو كانت هي نفسها الغلط أو التالف.
+- **المنتج المعيب خلال 30 يوم:** من حقك تطلب استبداله أو استرجاع قيمته خلال 30 يوم من الاستلام من غير تكلفة إضافية. كلّمنا على 01028282216، وهنعالج الاستبدال أو الاسترداد خلال أسبوع من طلبك وفق القانون. لو وصلك منتج غلط، هنصحح الطلب على حسابنا.
+- استرجاع تغيير الرأي بيخضع للاستثناءات اللي القانون بيسمح بيها لو طبيعة المنتج أو حالته أو تغليفه تمنع إرجاعه لحالته الأصلية. فتح العبوة مش بيلغي حقوقك لو المنتج معيب. مفيش بند هنا بيقلل حقوقك القانونية كمستهلك.
 
 ## أكواد الخصم
 
@@ -232,7 +241,7 @@ You can ask for a copy of your data, correct it, delete it, or stop the offers. 
 
 ## الشكاوى
 
-- أي شكوى: [[إيميل الشكاوى]] أو واتساب 01028282216. لو مرضيتش، من حقك تتقدم بشكوى لجهاز حماية المستهلك.
+- أي شكوى: واتساب أو تليفون 01028282216. لو المشكلة متحلتش، من حقك تتقدم بشكوى لجهاز حماية المستهلك.
 
 ## القانون الواجب التطبيق
 
@@ -241,9 +250,9 @@ You can ask for a copy of your data, correct it, delete it, or stop the offers. 
 
     en: {
       title: 'Terms & Conditions',
-      body: `Last updated: September 2026
+      body: `Last updated: October 2026
 
-By using the New Star Seven site and ordering from it, you agree to these terms. The seller is [[registered legal name]], [[address]], commercial register [[number]], tax card [[number]].
+These terms govern the New Star Seven storefront and purchases from it. New Star Seven is a brand of Ovanza Cosmetics. For enquiries or complaints, contact us by WhatsApp or telephone on 01028282216. Placing an order accepts the purchase terms; it does not grant analytics or marketing consent.
 
 ## Orders & payment
 
@@ -265,8 +274,8 @@ By using the New Star Seven site and ordering from it, you agree to these terms.
 ## Returns & exchanges
 
 - **Exchange or return within 14 days:** you may ask to exchange or return a product within 14 days of receiving it, on two conditions: it is in its original condition and unused, and the original box and all accessories are complete.
-- **If you receive the wrong product, or it arrives damaged:** call 01028282216 and we will exchange it for the right one or refund you, with delivery at our cost either way.
-- Opened or used products cannot be returned, for hygiene reasons — unless they are the wrong or damaged item itself.
+- **Defective products within 30 days:** request replacement or a refund within 30 days of receiving a defective product, at no additional cost. Contact 01028282216; we will handle replacement or refund within one week of your request as required by law. If we send the wrong item, we will correct the order at our cost.
+- Change-of-mind returns are subject to legally permitted exceptions where the product's nature, condition or packaging prevents restoration to its original state. Opening packaging does not remove your rights for a defective product. Nothing in these terms limits your statutory consumer rights.
 
 ## Discount codes
 
@@ -278,7 +287,7 @@ By using the New Star Seven site and ordering from it, you agree to these terms.
 
 ## Complaints
 
-- Any complaint: [[complaints email]] or WhatsApp 01028282216. If you are not satisfied, you have the right to complain to the Consumer Protection Agency.
+- Contact us by WhatsApp or telephone on 01028282216. If your complaint is not resolved, you may contact the Egyptian Consumer Protection Agency.
 
 ## Governing law
 

@@ -1,10 +1,11 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { localePath } from '../../lib/urls.js';
 import Link from 'next/link';
-import { readCart, writeCart, setQty as setCartQty, clearCart } from '../../lib/cart.js';
+import { readCart, addToCart, setQty as setCartQty, clearCart } from '../../lib/cart.js';
+import { track } from '../../lib/track.js';
+import { readConsent } from '../../lib/consent.js';
 import { cartTotals } from '../../lib/pricing.js';
 import { formatRef } from '../../lib/order-number.js';
 import { SERVED, SERVED_LABELS } from '../../lib/delivery-eta.js';
@@ -215,7 +216,6 @@ export default function CheckoutClient({ lang, add, catalog, shipping, currency 
   const T = COPY[lang] || COPY.ar;
   const ar = lang === 'ar';
   const L = p => localePath(p, lang);
-  const router = useRouter();
 
   const [cart, setCart] = useState([]);
   const [ready, setReady] = useState(false);
@@ -257,10 +257,7 @@ export default function CheckoutClient({ lang, add, catalog, shipping, currency 
   useEffect(() => {
     let next = readCart();
     if (add) {
-      const row = next.find(c => c.sku === add);
-      if (row) row.qty = Math.min(20, row.qty + 1);
-      else next = [...next, { sku: add, qty: 1 }];
-      writeCart(next);
+      next = addToCart(add);
       // Drop ?add= so a refresh doesn't add the product again.
       window.history.replaceState(null, '', L(`/checkout`));
     }
@@ -280,6 +277,22 @@ export default function CheckoutClient({ lang, add, catalog, shipping, currency 
 
   const subtotalNow = lines.reduce((n, l) => n + l.price * l.qty, 0);
   const t = cartTotals(subtotalNow, applied ? applied.amount : 0, shipping.fee, shipping.freeOver);
+
+  const checkoutTracked = useRef(false);
+  useEffect(() => {
+    if (!ready || !lines.length) return;
+    const begin = () => {
+      if (checkoutTracked.current || readConsent() !== 'accepted') return;
+      checkoutTracked.current = true;
+      track('begin_checkout', {
+        currency: 'EGP', value: subtotalNow,
+        items: lines.map(l => ({ item_id: l.sku, quantity: l.qty })),
+      });
+    };
+    begin();
+    window.addEventListener('s7consent', begin);
+    return () => window.removeEventListener('s7consent', begin);
+  }, [ready, lines.length, subtotalNow]);
 
   const upd = k => v => {
     setF(s => ({ ...s, [k]: v }));
@@ -342,6 +355,7 @@ export default function CheckoutClient({ lang, add, catalog, shipping, currency 
     }
     setErrs(next);
     if (Object.keys(next).length) {
+      track('checkout_validation_error');
       /* Put the caret on the first thing that is wrong. Without this the page
          does not move, nothing is announced, and the only feedback a keyboard
          user gets is that the button did nothing. */
@@ -379,7 +393,7 @@ export default function CheckoutClient({ lang, add, catalog, shipping, currency 
        * still be able to take an order. `lines` is read rather than `res`
        * because the reply carries totals, not the basket.
        */
-      window.gtag?.('event', 'purchase', {
+      track('purchase', {
         transaction_id: res.ref,
         value: Number(res.total) || 0,
         shipping: Number(res.shipping) || 0,
@@ -396,21 +410,11 @@ export default function CheckoutClient({ lang, add, catalog, shipping, currency 
       setCart([]);
       setDone(res);
 
-      /*
-       * router.replace, not push.
-       *
-       * The order is written and the cart is gone, so the form behind this is
-       * not a page anybody can use again - and push would leave the browser's
-       * back button pointing straight at it, showing a submitted form over an
-       * empty basket. replace takes /checkout out of the history entirely, so
-       * back goes to whatever the customer was looking at before they checked
-       * out, which is the shop.
-       *
-       * setDone still runs, so the panel renders for the instant before the
-       * navigation lands and there is no blank frame in between.
-       */
-      router.replace(L(`/order/thanks?ref=${encodeURIComponent(res.ref)}`));
+      // Fresh document: an active replay must not follow into order pages.
+      // Replace removes the submitted checkout from the customer's history.
+      window.location.replace(L(`/order/thanks?ref=${encodeURIComponent(res.ref)}`));
     } catch (e) {
+      track(e.message === NET ? 'checkout_network_error' : 'checkout_server_error');
       // A refusal is still an answer: the server saw this attempt and decided,
       // so it is over and the next submit is a new one with a new key. Only a
       // request that got NO answer keeps its key, because that is the case

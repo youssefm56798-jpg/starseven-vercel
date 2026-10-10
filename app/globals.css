@@ -883,3 +883,13 @@ button{font:inherit;cursor:pointer}
   /* So the last of the page is not permanently hidden behind the bar. */
   .pdp-has-buybar{padding-bottom:96px}
 }
+
+/* Consent controls borrow the existing palette, typography and button shapes. */
+.cookie-banner{position:fixed;inset:auto 16px 16px;z-index:500;display:flex;align-items:center;gap:24px;padding:20px 24px;background:var(--paper);color:var(--ink);border:1.5px solid var(--ink);border-radius:18px;box-shadow:0 8px 32px #12100b26;max-height:80vh;overflow:auto;font-family:var(--font-cairo),sans-serif}
+.cookie-banner h2{font-size:18px;font-weight:900;margin:0 0 6px}
+.cookie-banner p{font-size:13px;line-height:1.7;margin:0 0 6px;max-width:820px}
+.cookie-banner a{font-size:13px;text-decoration:underline;text-underline-offset:3px}
+.cookie-actions{display:flex;flex-wrap:wrap;gap:10px;flex-shrink:0}
+.cookie-actions .btn{font-size:13px;padding:11px 18px;min-height:44px;justify-content:center}
+.cookie-close{font:inherit;font-size:13px;background:none;border:0;text-decoration:underline;cursor:pointer;min-height:44px;padding:8px}
+@media(max-width:800px){.cookie-banner{inset:auto 12px 12px;display:block;padding:16px}.cookie-actions{margin-top:12px}.cookie-actions .btn{flex:1;white-space:nowrap}}

@@ -133,7 +133,9 @@ const nextConfig = {
         { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains' },
         { key: 'X-Content-Type-Options', value: 'nosniff' },
         { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
-        { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+        // Never carry credential-bearing query strings to another document,
+        // including same-origin pages where a replay may read document.referrer.
+        { key: 'Referrer-Policy', value: 'strict-origin' },
         /*
          * Powerful browser features this site does not use, switched off rather
          * than left available.
@@ -165,7 +167,10 @@ const nextConfig = {
          */
         { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
       ],
-    }, {
+    }, ...['/admin/:path*', '/order/:path*', '/en/order/:path*'].map(source => ({
+      source,
+      headers: [{ key: 'Referrer-Policy', value: 'no-referrer' }],
+    })), {
       /*
        * The JSON endpoints get their own, tighter policy.
        *

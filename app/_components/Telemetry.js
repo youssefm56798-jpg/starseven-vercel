@@ -1,157 +1,128 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import Script from 'next/script';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { redactUrl, redactEvent } from '../../lib/analytics-url.js';
+import { CONSENT_KEY, readConsent, saveConsent, clearAnalyticsCookies, privateAnalyticsUrl } from '../../lib/consent.js';
 
-/**
- * Every script on this site that reports where a visitor is, in one place.
- *
- * It is one component rather than three tags in the layout because all three
- * have the same defect and it has to be fixed the same way in all three: each
- * reports a page view as a full `location.href`, and this site puts an order's
- * access token in the query string. lib/analytics-url.js is the whole argument;
- * this file is the three call sites.
- *
- * A client component, and it has to be. `beforeSend` is a function prop on a
- * client component, and a function cannot be handed from a Server Component to
- * a client one — the layout that used to render <Analytics /> directly is a
- * server component, so there was nowhere to put the redaction until this file
- * existed.
- */
-
-/**
- * Google Analytics 4, and nothing at all when it is not configured.
- *
- * NEXT_PUBLIC_GA_ID gates it, and the same variable gates the Google hosts in
- * the CSP in next.config.mjs. That pairing is the point: with no ID there is no
- * script AND no allowance, so the policy never carries a hole for a third party
- * the site does not call. Set the variable in Vercel and redeploy — both halves
- * are read at build time.
- *
- * ---------------------------------------------------------------------------
- * send_page_view is false, and the page view is fired below instead
- *
- * The default configuration sends a page view from inside gtag.js, reading
- * `location.href` itself, and there is no hook to change what it reads. On an
- * order page that is the access token, posted to Google. The only way to
- * control the value is to turn the automatic one off and send the event from
- * code — which is what the effect below does, through redactUrl().
- *
- * That is the security reason and it is sufficient on its own. There is a
- * second benefit worth naming so nobody "simplifies" this back: the automatic
- * page view fires once, when gtag.js loads. This is an App Router site where
- * almost every navigation is client-side, so GA4 as it was configured would
- * have reported the landing page and then nothing for the rest of the visit.
- * The effect below fires on every route change, which is what a funnel needs.
- *
- * afterInteractive rather than beforeInteractive: nothing on the page waits on
- * analytics, and this is a storefront where the Largest Contentful Paint is a
- * product photograph.
- */
 function GoogleAnalytics({ id }) {
   const pathname = usePathname();
   const search = useSearchParams();
-
-  /*
-   * The referrer belongs to the page that was left, not to the one being
-   * entered, so it is only true for the FIRST view of a visit. Sending
-   * document.referrer on every client-side navigation would report the site
-   * that started the session as the source of every page in it.
-   */
   const first = useRef(true);
-
-  useEffect(() => {
-    if (typeof window === 'undefined' || typeof window.gtag !== 'function') return;
-
+  const report = () => {
+    if (typeof window.gtag !== 'function') return;
     const params = { page_location: redactUrl(window.location.href) };
     if (first.current) {
       first.current = false;
-      const ref = redactUrl(document.referrer);
-      if (ref) params.page_referrer = ref;
+      params.page_referrer = redactUrl(document.referrer);
     }
-
-    window.gtag('event', 'page_view', params);
-    // `search` is read so that /shop?sort=price is a different view from /shop.
-    // It is in the dependency list rather than the body for that reason alone.
-  }, [pathname, search]);
-
-  return (
-    <>
-      <Script
-        src={`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(id)}`}
-        strategy="afterInteractive"
-      />
-      <Script id="ga4-init" strategy="afterInteractive">
-        {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}`
-          + `gtag('js',new Date());`
-          + `gtag('config',${JSON.stringify(id)},{send_page_view:false});`}
-      </Script>
-    </>
-  );
-}
-
-/**
- * Vercel Web Analytics and Speed Insights.
- *
- * Both are on unconditionally — they need no key and no consent banner, and
- * Web Analytics is cookieless — so both have been reporting order URLs since
- * the day they were added. `beforeSend` is the documented hook for exactly
- * this, and redactEvent is shared between them because the two SDKs take the
- * identical `{ type, url }` shape.
- *
- * Returning the event rather than null keeps the page view: what is dropped is
- * the token, not the visit.
- */
-/**
- * Microsoft Clarity - session replay and heatmaps.
- *
- * NEXT_PUBLIC_CLARITY_ID gates it, and the same variable gates the clarity.ms
- * hosts in the CSP in next.config.mjs, for the reason written there: no ID
- * means no tag AND no allowance.
- *
- * ---------------------------------------------------------------------------
- * Why it is not loaded on an order page
- *
- * Clarity records the URL, and an order page carries the access token in its
- * query string. That is the same defect lib/analytics-url.js exists to fix for
- * GA and for Vercel - except Clarity offers no beforeSend, so the URL cannot be
- * rewritten on the way out. The only reliable control is not to start it there.
- *
- * The honest limit of this: it is checked when the tag would be injected, so it
- * protects a COLD load of an order page, which is the only way anyone actually
- * reaches one - the link is in an email, and nothing on the site navigates to a
- * token-bearing URL. A client-side navigation from an ordinary page to one
- * would leave an already-running recorder in place. If a link like that is ever
- * added, this needs revisiting rather than trusting.
- */
-function Clarity({ id }) {
-  const pathname = usePathname();
-  if (/^\/(?:en\/)?order(?:\/|$)/.test(pathname || '')) return null;
-
-  return (
-    <Script id="clarity-init" strategy="afterInteractive">
-      {`(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};`
-        + `t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;`
-        + `y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})`
-        + `(window,document,"clarity","script",${JSON.stringify(id)});`}
+    try { window.gtag('event', 'page_view', params); } catch { /* Optional service. */ }
+  };
+  useEffect(() => { report(); }, [pathname, search]);
+  return <>
+    <Script src={`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(id)}`} strategy="afterInteractive" />
+    <Script id="ga4-init" strategy="afterInteractive" onReady={report}>
+      {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}`
+        + `gtag('js',new Date());`
+        + `gtag('consent','default',{analytics_storage:'granted',ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied'});`
+        + `gtag('config',${JSON.stringify(id)},{send_page_view:false});`}
     </Script>
-  );
+  </>;
 }
 
+function Clarity({ id }) {
+  return <Script id="clarity-init" strategy="afterInteractive">
+    {`(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};`
+      + `c[a]('consentv2',{analytics_Storage:'granted',ad_Storage:'denied'});`
+      + `t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;`
+      + `y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})`
+      + `(window,document,"clarity","script",${JSON.stringify(id)});`}
+  </Script>;
+}
+
+/** No optional analytics before consent, or anywhere in the back office/order tree. */
 export default function Telemetry() {
+  const pathname = usePathname();
+  const search = useSearchParams();
+  const ar = !/^\/en(?:\/|$)/.test(pathname || '');
+  const [choice, setChoice] = useState(null);
+  const [open, setOpen] = useState(false);
+  const [ready, setReady] = useState(false);
   const gaId = (process.env.NEXT_PUBLIC_GA_ID || '').trim();
   const clarityId = (process.env.NEXT_PUBLIC_CLARITY_ID || '').trim();
+  const privatePage = privateAnalyticsUrl(`${pathname}?${search || ''}`);
 
-  return (
-    <>
+  useEffect(() => {
+    const saved = readConsent();
+    setChoice(saved);
+    const url = new URL(window.location.href);
+    if (url.searchParams.has('privacy-settings')) {
+      setOpen(true);
+      url.searchParams.delete('privacy-settings');
+      window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
+    }
+    setReady(true);
+    if (saved !== 'accepted') clearAnalyticsCookies();
+    const settings = e => {
+      if (e.defaultPrevented || !e.target.closest?.('[data-cookie-settings]')) return;
+      e.preventDefault();
+      setOpen(true);
+      requestAnimationFrame(() => document.getElementById('cookie-reject')?.focus());
+    };
+    const changed = e => {
+      if (e.key === CONSENT_KEY || e.key === null) window.location.reload();
+    };
+    document.addEventListener('click', settings, true);
+    window.addEventListener('storage', changed);
+    return () => {
+      document.removeEventListener('click', settings, true);
+      window.removeEventListener('storage', changed);
+    };
+  }, []);
+
+  function decide(value) {
+    saveConsent(value);
+    if (value === 'rejected') clearAnalyticsCookies();
+    // Removing a script tag cannot unload a recorder. A fresh document can.
+    if (choice === 'accepted' && value !== 'accepted') {
+      window.location.reload();
+      return;
+    }
+    setChoice(value);
+    setOpen(false);
+    window.setTimeout(() => window.dispatchEvent(new Event('s7consent')), 0);
+    if (open) document.querySelector('[data-cookie-settings]')?.focus();
+  }
+
+  if (!ready || privatePage) return null;
+  return <>
+    {choice === 'accepted' && <>
       <Analytics beforeSend={redactEvent} />
       <SpeedInsights beforeSend={redactEvent} />
       {gaId ? <GoogleAnalytics id={gaId} /> : null}
       {clarityId ? <Clarity id={clarityId} /> : null}
-    </>
-  );
+    </>}
+    {(!choice || open) && <section className="cookie-banner" role="dialog" aria-labelledby="cookie-title"
+      lang={ar ? 'ar' : 'en'} dir={ar ? 'rtl' : 'ltr'}>
+      <div>
+        <h2 id="cookie-title">{ar ? 'اختيارات الخصوصية' : 'Your privacy choices'}</h2>
+        <p>{ar
+          ? 'السلة والطلب بيشتغلوا من غير تحليلات. بموافقتك بس، بنستخدم تحليلات وMicrosoft Clarity لفهم استخدام الموقع وتسجيل تفاعلات التصفح بعد إخفاء بيانات النموذج. تقدر ترفض أو تغيّر اختيارك من «إعدادات الخصوصية» في أي وقت.'
+          : 'Your cart and checkout work without analytics. Only with your permission, we use analytics and Microsoft Clarity to understand browsing and record interactions with form details masked. Reject or change your choice anytime through Privacy settings.'}</p>
+        <a href={ar ? '/privacy' : '/en/privacy'} data-no-transition="">{ar ? 'سياسة الخصوصية والكوكيز' : 'Privacy and cookies policy'}</a>
+      </div>
+      <div className="cookie-actions">
+        <button id="cookie-reject" type="button" className="btn btn-line" onClick={() => decide('rejected')}>
+          {ar ? 'رفض التحليلات' : 'Reject analytics'}</button>
+        <button type="button" className="btn btn-line" onClick={() => decide('accepted')}>
+          {ar ? 'قبول التحليلات' : 'Accept analytics'}</button>
+        {open && choice && <button type="button" className="cookie-close" onClick={() => {
+          setOpen(false); document.querySelector('[data-cookie-settings]')?.focus();
+        }}>{ar ? 'رجوع' : 'Back'}</button>}
+      </div>
+    </section>}
+  </>;
 }

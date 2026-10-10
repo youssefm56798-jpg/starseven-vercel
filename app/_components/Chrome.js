@@ -255,6 +255,9 @@ export async function Footer({ lang = 'ar' }) {
                 <li><Link href={L('/brand')}>{ar ? 'عن البراند' : 'About us'}</Link></li>
                 <li><Link href={L('/privacy')}>{ar ? 'سياسة الخصوصية' : 'Privacy'}</Link></li>
                 <li><Link href={L('/terms')}>{ar ? 'الشروط والأحكام' : 'Terms'}</Link></li>
+                <li><a href={L('/privacy?privacy-settings=1')} data-cookie-settings="" data-no-transition="">
+                  {ar ? 'إعدادات الخصوصية' : 'Privacy settings'}
+                </a></li>
               </ul>
             </div>
 

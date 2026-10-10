@@ -222,6 +222,7 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
   /* Set by pickHair, read by the effect below: only a deliberate pick scrolls,
      so the first render does not yank a visitor who has not touched anything. */
   const wantScroll = useRef(false);
+  const [hairPick, setHairPick] = useState(0);
   useEffect(() => {
     const el = root.current;
     if (!el) return;
@@ -334,6 +335,7 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
   // finder itself works whether or not this call succeeds.
   function pickHair(slug) {
     setHair(slug);
+    setHairPick(n => n + 1);
 
     // Take the visitor to the answer. The panel is below six tiles, so on a
     // phone picking a type changed something entirely off-screen and the finder
@@ -376,7 +378,7 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
     const smooth = !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     const fits = el.getBoundingClientRect().height < window.innerHeight - 90;
     el.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: fits ? 'center' : 'start' });
-  }, [hair]);
+  }, [hair, hairPick]);
 
   function pickHold(f) {
     setFilter(f);
@@ -416,7 +418,7 @@ export default function Landing({ lang, products, hairTypes, shipping, freeOver 
             <div className="orbit o2"><i>★</i></div>
 
             <Link className="jar-wrap" href={L(`/product/premium-wax-pro-x`)} aria-label="Premium Wax Pro X">
-              <img src="/assets/wax-red.webp" alt="Star Seven Premium Wax Pro X" width="390" height="390" />
+              <img src="/assets/wax-red.webp" alt="Star Seven Premium Wax Pro X" width="390" height="390" fetchPriority="high" decoding="async" />
             </Link>
 
             {/* Three formats, not three colours of one format. The small jar
