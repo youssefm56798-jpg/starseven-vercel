@@ -122,9 +122,14 @@ test('home fallback requires first eight sorted active products without requirin
 });
 test('default/help/verify CLI never loads or queries a configured database, and bad manifest destinations stop before prepare',()=>{
  const require=createRequire(import.meta.url),moduleRoot=path.resolve(path.dirname(require.resolve('htmlparser2')),'../..');
- const env={NODE_PATH:moduleRoot,DATABASE_URL:'postgresql://synthetic:DO_NOT_ECHO@invalid/neondb'};
+ const env={NODE_PATH:moduleRoot,DATABASE_URL:'postgresql://synthetic:DO_NOT_ECHO@invalid/neondb',NEXT_PUBLIC_SITE_URL:'https://newstarseven.com'};
  for(const [key,value]of Object.entries(process.env))if(['SYSTEMROOT','WINDIR','COMSPEC','PATH','PATHEXT','TEMP','TMP','USERPROFILE','APPDATA','LOCALAPPDATA'].includes(key.toUpperCase()))env[key]=value;
  const script=fileURLToPath(new URL('../scripts/verify-catalog-build.mjs',import.meta.url));
+ for(const site of [undefined,'http://localhost:3000','https://unreviewed.invalid']){
+  const invalidOriginEnv={...env};if(site===undefined)delete invalidOriginEnv.NEXT_PUBLIC_SITE_URL;else invalidOriginEnv.NEXT_PUBLIC_SITE_URL=site;
+  const child=spawnSync(process.execPath,[script,'prepare'],{env:invalidOriginEnv,encoding:'utf8',windowsHide:true});assert.notEqual(child.status,0);assert.match(child.stderr,/CATALOGUE_SITE_ORIGIN_REFUSED/);assert.doesNotMatch(child.stdout+child.stderr,/DO_NOT_ECHO|CATALOGUE_SOURCE_QUERY_FAILED/);
+ }
+ const approvedOrigin=spawnSync(process.execPath,[script,'verify','--manifest','.vercel/catalogue-source-manifest-missing-test.json'],{env:{...env,NEXT_PUBLIC_SITE_URL:'https://www.newstarseven.com/'},encoding:'utf8',windowsHide:true});assert.notEqual(approvedOrigin.status,0);assert.match(approvedOrigin.stderr,/CATALOGUE_MANIFEST_FILE_REFUSED/);assert.doesNotMatch(approvedOrigin.stdout+approvedOrigin.stderr,/DO_NOT_ECHO|CATALOGUE_SITE_ORIGIN_REFUSED|CATALOGUE_SOURCE_QUERY_FAILED/);
  for(const args of [[],['--help']]){const child=spawnSync(process.execPath,[script,...args],{env,encoding:'utf8',windowsHide:true});assert.equal(child.status,0);assert.equal(JSON.parse(child.stdout).defaultQuery,false);assert.doesNotMatch(child.stdout+child.stderr,/DO_NOT_ECHO|CATALOGUE_SOURCE_QUERY_FAILED/);}
  const bad=spawnSync(process.execPath,[script,'prepare','--manifest','package.json'],{env,encoding:'utf8',windowsHide:true});assert.notEqual(bad.status,0);assert.match(bad.stderr,/CATALOGUE_MANIFEST_PATH_REFUSED/);assert.doesNotMatch(bad.stdout+bad.stderr,/DO_NOT_ECHO/);
  const verifyChild=spawnSync(process.execPath,[script,'verify','--manifest','.vercel/catalogue-source-manifest-missing-test.json'],{env,encoding:'utf8',windowsHide:true});assert.notEqual(verifyChild.status,0);assert.match(verifyChild.stderr,/CATALOGUE_MANIFEST_FILE_REFUSED/);assert.doesNotMatch(verifyChild.stdout+verifyChild.stderr,/DO_NOT_ECHO|CATALOGUE_SOURCE_QUERY_FAILED/);

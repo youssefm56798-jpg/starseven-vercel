@@ -18,7 +18,7 @@ export async function runCatalogueGuard(argv=process.argv.slice(2)){
  const mode=argv.shift();
  if(!mode||mode==='--help'){console.log(JSON.stringify({status:'usage',commands:['prepare','verify'],defaultQuery:false}));return;}
  if(!['prepare','verify'].includes(mode))throw new CatalogueBuildError('CATALOGUE_MODE_REFUSED');
- const options={manifest:'.vercel/catalogue-source-manifest.json',buildDir:'.next',siteOrigin:'https://newstarseven.com'};
+ const options={manifest:'.vercel/catalogue-source-manifest.json',buildDir:'.next',siteOrigin:process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/,'')};
  const names={'--manifest':'manifest','--build-dir':'buildDir','--site-origin':'siteOrigin'};
  const seen=new Set();
  while(argv.length){const key=argv.shift();if(!names[key]||seen.has(key)||!argv.length)throw new CatalogueBuildError('CATALOGUE_ARGUMENT_REFUSED');seen.add(key);options[names[key]]=argv.shift();}
