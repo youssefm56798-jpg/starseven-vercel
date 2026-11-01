@@ -5,7 +5,7 @@
   "description": "New Star Seven — storefront, checkout and admin, on Vercel + Neon Postgres",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "node scripts/verify-catalog-build.mjs prepare && next build && node scripts/verify-catalog-build.mjs verify",
     "start": "next start",
     "db:setup": "node scripts/setup-db.mjs",
     "backup": "node scripts/backup-db.mjs",
@@ -22,7 +22,7 @@
     "verify:products": "node scripts/verify-product-admin.mjs",
     "verify:accounts": "node scripts/verify-admin-accounts.mjs",
     "verify:grants": "node scripts/verify-grants.mjs",
-    "vercel-build": "node scripts/setup-db.mjs && next build",
+    "vercel-build": "npm run build",
     "verify:retention": "node scripts/verify-retention.mjs",
     "verify:mail": "node scripts/verify-order-mail.mjs"
   },

@@ -3,7 +3,9 @@ import { csrfOk, csrfToken } from '../../../../lib/auth.js';
 import { sql } from '../../../../lib/db.js';
 import ConfirmButton from '../../_lib/confirm-button.js';
 import { requirePermission } from '../../_lib/guard.js';
-import { dayShort, dt, Flash, money, trimNum } from '../../_lib/ui.js';
+import { dt, Flash, money, trimNum } from '../../_lib/ui.js';
+import { createValidatedOffer, effectiveOfferStatus, offerDateTime, validateOfferInput } from '../../../../lib/offer-admin.mjs';
+import OfferForm from './OfferForm.js';
 import BroadcastButton from './broadcast.js';
 
 /*
@@ -20,67 +22,22 @@ export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 export const metadata = { title: 'Offers — Star Seven admin' };
 
-const TYPES = ['percent', 'fixed', 'none'];
-
-/**
- * A redemption cap, as the database wants it: a positive integer, or NULL.
- *
- * Blank means unlimited and has to survive as NULL rather than becoming 0. The
- * difference is the whole meaning of the field — 0 is a code nobody may ever
- * use, NULL is a code anybody may use as often as they like — and `Number('')`
- * is 0, so leaving this to the usual `Number(x) || 0` idiom used elsewhere on
- * this form would silently create dead codes every time the box was left empty.
- *
- * Anything that is not a positive whole number is also read as unlimited rather
- * than refused. These two boxes are optional extras beside the fields that
- * actually define an offer, and failing the whole form because somebody typed
- * "none" into one of them would be a worse answer than the one the placeholder
- * already promises.
- */
-function capOf(raw) {
-  const s = String(raw ?? '').trim();
-  if (!s) return null;
-  const n = Math.trunc(Number(s));
-  return Number.isFinite(n) && n > 0 ? n : null;
-}
-
-async function createOffer(formData) {
+async function createOffer(previous, formData) {
   'use server';
   await requirePermission('offers:write');
-
   if (!(await csrfOk(formData.get('_csrf')))) redirect('/admin/offers?m=csrf');
 
-  const titleAr = String(formData.get('title_ar') || '').trim();
-  const bodyAr = String(formData.get('body_ar') || '').trim();
-  if (!titleAr || !bodyAr) redirect('/admin/offers?m=offer_needs_text');
-
-  const type = TYPES.includes(String(formData.get('discount_type'))) ? String(formData.get('discount_type')) : 'percent';
-  const value = Math.max(0, Number(formData.get('discount_value')) || 0);
-  const minTotal = Math.max(0, Number(formData.get('min_total')) || 0);
-  const code = String(formData.get('code') || '').trim().toUpperCase();
-  const starts = String(formData.get('starts_at') || '') || null;
-  const ends = String(formData.get('ends_at') || '') || null;
-
-  const maxUses = capOf(formData.get('max_uses'));
-  const perCustomer = capOf(formData.get('per_customer'));
-
-  // The datetime-local input gives a wall clock with no zone; it is the shop's
-  // wall clock, so it is read as Cairo time before being stored as UTC.
-  await sql`
-    INSERT INTO offers (title_ar, title_en, body_ar, body_en, code, discount_type,
-                        discount_value, min_total, starts_at, ends_at, active,
-                        max_uses, per_customer)
-    VALUES (${titleAr},
-            ${String(formData.get('title_en') || '').trim()},
-            ${bodyAr},
-            ${String(formData.get('body_en') || '').trim()},
-            ${code}, ${type}, ${value}, ${minTotal},
-            ${starts}::timestamp AT TIME ZONE 'Africa/Cairo',
-            ${ends}::timestamp AT TIME ZONE 'Africa/Cairo',
-            true,
-            ${maxUses}::int, ${perCustomer}::int)`;
-
-  redirect('/admin/offers?m=offer_created');
+  let result;
+  try {
+    result = await createValidatedOffer(sql, formData);
+  } catch (error) {
+    const code = /^[A-Z0-9]{5}$/.test(error?.code || '') ? error.code : 'DB_ERROR';
+    console.error('[s7] Offer creation failed:', code);
+    result = { fields: validateOfferInput(formData).fields, errors: { form: 'Could not create the offer. Please try again.' } };
+  }
+  if (result.ok) redirect('/admin/offers?m=offer_created');
+  const attempt = Number.isSafeInteger(previous?.attempt) && previous.attempt < Number.MAX_SAFE_INTEGER ? previous.attempt + 1 : 1;
+  return { fields: result.fields, errors: result.errors, attempt };
 }
 
 async function offerAction(formData) {
@@ -112,6 +69,8 @@ export default async function OffersPage({ searchParams }) {
   const offers = await sql`SELECT * FROM offers ORDER BY id DESC`;
   const [{ c }] = await sql`SELECT COUNT(*)::int AS c FROM subscribers WHERE status = 'active'`;
   const activeSubs = Number(c);
+  const now = Date.now();
+  const offerRows = offers.map(offer => ({ ...offer, availability: effectiveOfferStatus(offer, now) }));
 
   return (
     <>
@@ -127,83 +86,7 @@ export default async function OffersPage({ searchParams }) {
       <div className="panel">
         <h2>New offer</h2>
         <div className="pad">
-          <form action={createOffer}>
-            <input type="hidden" name="_csrf" value={token} />
-            <div className="grid2">
-              <div className="field">
-                <label htmlFor="title_ar">Title (Arabic) *</label>
-                <input id="title_ar" name="title_ar" required placeholder="خصم 15% على الواكس" dir="rtl" />
-              </div>
-              <div className="field">
-                <label htmlFor="title_en">Title (English)</label>
-                <input id="title_en" name="title_en" placeholder="15% off all wax" />
-              </div>
-            </div>
-            <div className="grid2">
-              <div className="field">
-                <label htmlFor="body_ar">Body (Arabic) *</label>
-                <textarea id="body_ar" name="body_ar" rows={3} required dir="rtl" />
-              </div>
-              <div className="field">
-                <label htmlFor="body_en">Body (English)</label>
-                <textarea id="body_en" name="body_en" rows={3} />
-              </div>
-            </div>
-            <div className="grid2">
-              <div className="field">
-                <label htmlFor="code">Discount code</label>
-                <input id="code" name="code" placeholder="WAX15" style={{ textTransform: 'uppercase' }} />
-              </div>
-              <div className="field">
-                <label htmlFor="discount_type">Type</label>
-                <select id="discount_type" name="discount_type" defaultValue="percent">
-                  <option value="percent">Percent off</option>
-                  <option value="fixed">Fixed EGP off</option>
-                  <option value="none">No code — announcement only</option>
-                </select>
-              </div>
-            </div>
-            <div className="grid2">
-              <div className="field">
-                <label htmlFor="discount_value">Value</label>
-                <input id="discount_value" type="number" name="discount_value" step="0.01" min="0" defaultValue="10" />
-              </div>
-              <div className="field">
-                <label htmlFor="min_total">Minimum order (EGP)</label>
-                <input id="min_total" type="number" name="min_total" step="0.01" min="0" defaultValue="0" />
-              </div>
-            </div>
-            <div className="grid2">
-              <div className="field">
-                <label htmlFor="max_uses">Total redemptions</label>
-                <input id="max_uses" type="number" name="max_uses" min="1" step="1"
-                  placeholder="unlimited" />
-              </div>
-              <div className="field">
-                <label htmlFor="per_customer">Per customer</label>
-                <input id="per_customer" type="number" name="per_customer" min="1" step="1"
-                  placeholder="unlimited" />
-              </div>
-            </div>
-            <p className="muted" style={{ margin: '0 0 14px', fontSize: '13px' }}>
-              Leave both blank for a code anyone can use as often as they like. <b>Total</b> is the
-              cap across everybody — once it is reached the code stops working for the next person
-              who tries. <b>Per customer</b> is counted against the phone number on the order, so
-              “1” is how you write “first order only”. A cancelled order gives its redemption back
-              on both counts.
-            </p>
-            <div className="grid2">
-              <div className="field">
-                <label htmlFor="starts_at">Starts</label>
-                <input id="starts_at" type="datetime-local" name="starts_at" />
-              </div>
-              <div className="field">
-                <label htmlFor="ends_at">Ends</label>
-                <input id="ends_at" type="datetime-local" name="ends_at" />
-              </div>
-            </div>
-            <button className="btn red" type="submit">Create offer</button>
-          </form>
+          <OfferForm action={createOffer} csrf={token} />
         </div>
       </div>
 
@@ -215,16 +98,17 @@ export default async function OffersPage({ searchParams }) {
           <div className="table-scroll">
             <table>
               <thead>
-                <tr><th>Offer</th><th>Code</th><th>Discount</th><th>Window</th><th>Sent</th><th></th></tr>
+                <tr><th>Offer</th><th>Code</th><th>Discount</th><th>Window (Cairo time)</th><th>Sent</th><th></th></tr>
               </thead>
               <tbody>
-                {offers.map(o => (
+                {offerRows.map(o => (
                   <tr key={o.id}>
                     <td>
                       <b dir="rtl">{o.title_ar}</b>
                       {o.title_en ? <div className="muted">{o.title_en}</div> : null}
                       {' '}
-                      <span className={o.active ? 'pill active' : 'pill cancelled'}>{o.active ? 'live' : 'off'}</span>
+                      <span className={o.availability.key === 'active' ? 'pill active' : o.availability.key === 'scheduled' ? 'pill pending' : 'pill cancelled'}>{o.availability.label}</span>
+                      <div className="muted">{o.active ? 'Enabled' : 'Disabled'}</div>
                     </td>
                     <td>{o.code ? <b>{o.code}</b> : <span className="muted">—</span>}</td>
                     <td className="muted">
@@ -236,13 +120,13 @@ export default async function OffersPage({ searchParams }) {
                           code is the common one and saying "unlimited" on every
                           row would bury the two that are capped. */}
                       {o.max_uses != null ? (
-                        <div>{Number(o.used_count)}/{Number(o.max_uses)} used</div>
+                        <div>{Number(o.used_count)}/{Number(o.max_uses)} used · {o.availability.remainingUses} remaining</div>
                       ) : null}
                       {o.per_customer != null ? (
-                        <div>max {Number(o.per_customer)} per customer</div>
+                        <div>max {Number(o.per_customer)} {Number(o.per_customer) === 1 ? 'use' : 'uses'} per phone</div>
                       ) : null}
                     </td>
-                    <td className="muted">{dayShort(o.starts_at)} → {dayShort(o.ends_at)}</td>
+                    <td className="muted"><div>Starts: {offerDateTime(o.starts_at)}</div><div>Ends: {offerDateTime(o.ends_at)}</div></td>
                     <td className="muted">
                       {Number(o.sent_count)}
                       {o.sent_at ? <div>{dt(o.sent_at)}</div> : null}

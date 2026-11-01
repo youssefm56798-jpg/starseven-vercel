@@ -112,7 +112,7 @@ export default async function Dashboard({ searchParams }) {
           <b>{num(ordersNew)}</b><span>Orders to action</span>
         </div>
         <div className="kpi"><b>{num(kpi.orders_today)}</b><span>Orders today</span></div>
-        <div className="kpi"><b>{num(kpi.rev_month)}</b><span>Revenue this month (EGP)</span></div>
+        <div className="kpi"><b>{num(kpi.rev_month)}</b><span>Booked order value this month (EGP)</span><p className="muted">Non-cancelled totals, including uncollected COD orders.</p></div>
         <div className="kpi"><b>{num(kpi.aov)}</b><span>Average order (EGP)</span></div>
         <div className="kpi"><b>{num(kpi.subs_active)}</b><span>Subscribers</span></div>
         <div className="kpi"><b>{num(kpi.subs_pending)}</b><span>Awaiting confirmation</span></div>
@@ -210,7 +210,7 @@ export default async function Dashboard({ searchParams }) {
           <div className="table-scroll">
             <table>
               <thead>
-                <tr><th>Product</th><th>Units</th><th>Revenue</th></tr>
+                <tr><th>Product</th><th>Units</th><th>Item value before discounts</th></tr>
               </thead>
               <tbody>
                 {top.map(t => (

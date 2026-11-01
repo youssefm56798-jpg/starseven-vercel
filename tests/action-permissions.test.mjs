@@ -69,6 +69,7 @@ const TABLE_PERMISSION = {
  * otherwise moving one statement into a function is a way to shed a permission.
  */
 const HELPER_PERMISSION = {
+  createValidatedOffer: 'offers:write',
   transitionAndNotify: 'orders:write',
   logEvent: 'orders:write',
   saveOrderEdit: 'orders:write',

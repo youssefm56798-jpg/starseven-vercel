@@ -273,6 +273,9 @@ export async function POST(req) {
 
   let discount = 0;
   let couponCode = '';
+  // Bind the later spend to the exact database offer/price policy quoted here.
+  // A code can be deleted and reused while this request is still in flight.
+  let couponQuote = null;
   /**
    * The per-customer cap this code carries, or null for none.
    *
@@ -285,7 +288,7 @@ export async function POST(req) {
 
   if (coupon) {
     const offers = await sql`
-      SELECT discount_type, discount_value, min_total, max_uses, used_count, per_customer
+      SELECT id, discount_type, discount_value, min_total, max_uses, used_count, per_customer
         FROM offers
        WHERE code = ${coupon}
          AND active = true
@@ -364,6 +367,12 @@ export async function POST(req) {
 
     discount = discountFor(subtotal, off);
     couponCode = coupon;
+    couponQuote = {
+      id: off.id,
+      type: off.discount_type,
+      value: off.discount_value,
+      minimum: off.min_total,
+    };
   }
 
   /* ----------------------------------------------------------------- email */
@@ -532,19 +541,25 @@ export async function POST(req) {
         SELECT 1 / count(*)::int AS guard FROM taken`);
     }
 
-    // Spend the coupon inside the same transaction as the order. The UPDATE
-    // only matches while the code is under its cap, and the divide-by-count
-    // turns a no-match into a division by zero, so an order that would push a
-    // capped code past its limit rolls back whole rather than being placed at a
-    // discount the code was not entitled to give. A NULL cap always matches, so
-    // an uncapped code just counts up.
+    // Spend the exact quoted offer inside the order transaction. The row UPDATE
+    // still serializes coupon claims; it also refuses a replaced/repriced offer
+    // or a changed per-phone policy, and rechecks eligibility at transaction
+    // time. A no-match divides by zero and rolls back the whole order.
     if (couponCode) {
       stmts.push(sql`
         WITH spent AS (
           UPDATE offers
              SET used_count = used_count + 1
            WHERE code = ${couponCode}
+             AND id = ${couponQuote.id}::int
              AND active = true
+             AND discount_type = ${couponQuote.type}::text
+             AND discount_value = ${couponQuote.value}::numeric
+             AND min_total = ${couponQuote.minimum}::numeric
+             AND per_customer IS NOT DISTINCT FROM ${couponPerCustomer}::int
+             AND min_total <= ${subtotal}::numeric
+             AND (starts_at IS NULL OR starts_at <= now())
+             AND (ends_at IS NULL OR ends_at >= now())
              AND (max_uses IS NULL OR used_count < max_uses)
           RETURNING id
         )
@@ -677,18 +692,42 @@ export async function POST(req) {
       const lost = await replayed();
       if (lost) return lost;
 
-      /*
-       * No claim in the way, so it was the stock guard, the coupon cap guard or
-       * the per-customer redemption guard. The stock is the one a customer can
-       * act on, so that is the message.
-       *
-       * The two coupon cases are only reachable by losing a race — both have a
-       * courteous check above that catches every sequential attempt and answers
-       * precisely — so the wrong-but-harmless wording here is paid by a
-       * vanishingly rare caller whose next move ("try again") is the same
-       * either way. Distinguishing them would cost two more queries on an error
-       * path to improve a sentence almost nobody reads.
-       */
+      // The batch has rolled back. This read only chooses useful wording from
+      // current eligibility; it cannot prove which guard failed a moment ago.
+      if (couponQuote) {
+        let current;
+        try {
+          [current] = await sql`
+          SELECT EXISTS (
+            SELECT 1 FROM offers f
+             WHERE f.id = ${couponQuote.id}::int
+               AND f.code = ${couponCode}
+               AND f.active = true
+               AND f.discount_type = ${couponQuote.type}::text
+               AND f.discount_value = ${couponQuote.value}::numeric
+               AND f.min_total = ${couponQuote.minimum}::numeric
+               AND f.per_customer IS NOT DISTINCT FROM ${couponPerCustomer}::int
+               AND f.min_total <= ${subtotal}::numeric
+               AND (f.starts_at IS NULL OR f.starts_at <= now())
+               AND (f.ends_at IS NULL OR f.ends_at >= now())
+               AND (f.max_uses IS NULL OR f.used_count < f.max_uses)
+               AND (f.per_customer IS NULL OR (
+                 SELECT count(*) FROM offer_redemptions r
+                  WHERE r.code = f.code AND r.phone = ${phone}
+               ) < f.per_customer)
+          ) AS eligible`;
+        } catch {
+          // Wording is optional; the rolled-back order still refuses below.
+        }
+        if (current && !current.eligible) {
+          return fail(
+            ar ? 'كود الخصم اتغيّر أو مش متاح دلوقتي. راجعه وجرّب تاني.'
+               : 'The discount code changed or is no longer available. Check it and try again.',
+            422, { field: 'coupon' },
+          );
+        }
+      }
+
       return fail(
         ar ? 'واحد من المنتجات خلص من المخزن دلوقتي. راجع السلة وجرّب تاني.'
            : 'One of those items just sold out. Check your cart and try again.',

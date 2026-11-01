@@ -137,6 +137,10 @@
   letter-spacing: .06em; color: var(--grey); margin-bottom: 6px;
 }
 .s7admin .field { margin-bottom: 15px; }
+.s7admin .field [aria-invalid="true"] { border-color: var(--red); }
+.s7admin .field-error { color: #8E1409; font-size: 13px; margin-top: 6px; }
+.s7admin .offer-error-summary ul { padding-inline-start: 20px; margin-top: 6px; }
+.s7admin .offer-error-summary a { text-decoration: underline; text-underline-offset: 3px; }
 .s7admin .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
 .s7admin .pad { padding: 20px; }
 .s7admin .empty { padding: 40px 20px; text-align: center; color: var(--grey); font-weight: 700; }
