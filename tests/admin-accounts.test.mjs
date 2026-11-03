@@ -311,9 +311,9 @@ test('the owner-only screens are owner-only, and the read-only ones are not', ()
 /* ------------------------------------------------------- the reset discipline */
 
 test('only the digest of a reset token ever reaches the database', () => {
-  const src = read('lib/admin-reset.js');
+  const src = read('lib/admin-reset.js') + read('lib/session-epoch.js');
   const statements = src.match(/sql`[\s\S]*?`/g) ?? [];
-  assert.ok(statements.length >= 3, 'expected the issue, the read and the claim');
+  assert.ok(statements.length >= 4, 'expected the issue, read, claim and epoch statements');
   for (const stmt of statements) {
     assert.ok(!/\$\{token\}/.test(stmt),
       `a raw token is being sent to Postgres:\n${stmt.slice(0, 200)}`);
@@ -323,8 +323,8 @@ test('only the digest of a reset token ever reaches the database', () => {
 });
 
 test('a reset token is claimed by the WHERE clause, not by a read then a write', () => {
-  const src = read('lib/admin-reset.js');
-  const claim = src.slice(src.indexOf('export async function claimReset'));
+  const src = read('lib/session-epoch.js');
+  const claim = src.slice(src.indexOf('export async function claimResetAndRevoke'));
   assert.match(claim, /UPDATE admin_password_resets[\s\S]*?SET used_at = now\(\)/);
   assert.match(claim, /used_at IS NULL/,
     'without this two requests racing on one link would both be let in');
@@ -370,7 +370,7 @@ test('a reset does not sign anybody in, and does not touch the second factor', (
   const lib = read('lib/admin-reset.js');
   assert.ok(!/totp_/.test(lib),
     'a reset that cleared the second factor would let a mailbox past both locks at once');
-  assert.match(lib, /bumpSessionEpoch\(/,
+  assert.match(lib, /claimResetAndRevoke\(/,
     'a password reset that leaves existing sessions alive protects nothing');
 });
 
@@ -381,7 +381,7 @@ test('the reset goes through lib/session-epoch.js rather than writing the column
   // to appear.
   for (const rel of ['lib/admin-reset.js', 'lib/admin-accounts.js']) {
     const src = read(rel);
-    assert.match(src, /bumpSessionEpoch\(/, `${rel} never revokes anything`);
+    assert.match(src, /(?:bumpSessionEpoch|claimResetAndRevoke)\(/, `${rel} never revokes anything`);
     // The prose in both files talks about the epoch, which is the point of the
     // comment; what must not appear is the column inside a statement.
     for (const stmt of src.match(/sql`[\s\S]*?`/g) ?? []) {
@@ -389,6 +389,19 @@ test('the reset goes through lib/session-epoch.js rather than writing the column
         `${rel} writes session_epoch itself instead of going through lib/session-epoch.js:\n${stmt.slice(0, 160)}`);
     }
   }
+});
+
+test('reset consumption, password change and revocation use a single statement', () => {
+  const src = read('lib/session-epoch.js');
+  const claim = src.slice(src.indexOf('export async function claimResetAndRevoke'), src.indexOf('async function invalidateEpoch'));
+  const statements = claim.match(/sql`[\s\S]*?`/g) ?? [];
+  assert.equal(statements.length, 1);
+  assert.match(statements[0], /UPDATE admin_password_resets/);
+  assert.match(statements[0], /SET pass_hash = \$\{passwordHash\}/);
+  assert.match(statements[0], /session_epoch = a\.session_epoch \+ 1/);
+  assert.doesNotMatch(statements[0], /totp_/,
+    'the reset statement must preserve every second-factor field');
+  assert.match(claim, /await invalidateEpoch\(Number\(row\.id\)\)/);
 });
 
 /* ---------------------------------------------------- the last-owner guard */
