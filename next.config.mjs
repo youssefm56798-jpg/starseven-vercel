@@ -86,6 +86,7 @@ const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   experimental: {
+    globalNotFound: true,
     serverActions: {
       /*
        * A product photograph is posted to a Server Action, in the same form as

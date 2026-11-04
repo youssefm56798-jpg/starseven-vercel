@@ -29,14 +29,10 @@ import { NextResponse } from 'next/server';
  * destination declares its own, so ?kind=wax would survive onto /shop/wax and
  * recreate the exact duplicate the rule exists to kill.
  *
- * Why nothing here decides <html lang> any more: this file used to hand the
- * resolved locale to the root layout in an x-s7-lang request header, which meant
- * the layout called headers(). headers() is a dynamic API, and a single call in
- * the root layout opts every route on the site out of static generation. That
- * header was the reason nothing here was ever prerendered. app/layout.js and
- * app/not-found.js were its only two readers and both now hardcode the language
- * of the tree they sit in, so the header — and the rewrite that carried it — are
- * gone.
+ * Ordinary layouts do not read request locale headers, so catalog pages stay
+ * statically generated. The isolated global-not-found boundary alone reads
+ * x-s7-lang for unmatched URLs. Its final fallthrough header override below
+ * does not rewrite the URL or change existing security/redirect branches.
  */
 
 /** Paths that are not localised storefront pages. */
@@ -215,12 +211,12 @@ export function middleware(request) {
   }
 
   /* ------------------------------------ a current address in either tree */
-  // Nothing above matched, so this is a live URL: /shop is Arabic and /en/shop
-  // is English, and both are ordinary route files that Next can resolve without
-  // help. Pass it straight through. Not even a rewrite onto the same URL — that
-  // would stamp x-middleware-rewrite on every storefront request for no gain,
-  // and the rewrite is the thing this migration exists to remove.
-  return NextResponse.next();
+  // Preserve the URL and route/cache behavior. The global not-found boundary
+  // alone reads this server-controlled locale header; regular layouts do not.
+  // Only the isolated global 404 reads this header. Ordinary layouts remain static.
+  const headers = new Headers(request.headers);
+  headers.set('x-s7-lang', IS_ENGLISH.test(pathname) ? 'en' : 'ar');
+  return NextResponse.next({ request: { headers } });
 }
 
 export const config = {
