@@ -419,7 +419,7 @@ export default async function ProductView({ slug, lang }) {
                   {ingredients.length > 0 && optionalColourants.length > 0 && ', '}
                   {optionalColourants.length > 0 && (
                     <>
-                      <bdi lang={lang}>{ar ? 'ملوّنات (قد توجد):' : 'Colourants (may contain):'}</bdi>{' '}
+                      <bdi lang={lang}>{ar ? 'ملوّنات:' : 'Colourants:'}</bdi>{' '}
                       <span lang="en" translate="no">
                         {optionalColourants.map((code, i) => (
                           <span key={`${code}-${i}`}>
