@@ -12,6 +12,7 @@ import { Dir, Nav, Footer, Crumb } from '../_components/Chrome.js';
 import AddButton from '../_components/AddButton.js';
 import { CATEGORIES, shopPath } from '../shop/lib.js';
 import { absoluteImageUrl, imageUrl, imageSrcSet } from '../../lib/product-image.js';
+import { productIngredients } from '../../lib/product-ingredients.js';
 
 /**
  * The product detail page, rendered once and mounted at two addresses.
@@ -93,6 +94,7 @@ export default async function ProductView({ slug, lang }) {
 
   const p = await getProduct(slug);
   if (!p) notFound();
+  const { ingredients, optionalColourants } = productIngredients(p.ingredients);
 
   // Same format first, then anything else, so the row is never short. Four is
   // what the grid holds at desktop width. The "same kind first" ordering is
@@ -406,24 +408,36 @@ export default async function ProductView({ slug, lang }) {
             </div>
           </div>
 
-          {/* Ingredients. The list itself is not translated — INCI names are
-              Latin and read the same in both languages — so only the heading
-              and the note around it are bilingual. Guarded on the field: most
-              products have no transcribed pack list and show an honest note
-              instead of an invented one, and the page must not break for them. */}
+          {/* Keep scientific names LTR in both locales. Optional pack colourants
+              get a separate label instead of repeated +/– markers. */}
           <section className="pdp-sec pdp-ingredients">
             <h2>{ar ? 'المكونات' : 'Ingredients'}</h2>
-            {p.ingredients ? (
+            {ingredients.length > 0 || optionalColourants.length > 0 ? (
               <>
-                {/* Rendered verbatim and forced ltr: it is shown exactly as it
-                    is printed on the pack, down to the +/- colourant markers. */}
-                <p className="pdp-inci" dir="ltr">{p.ingredients}</p>
-                <p className="pdp-ingredients-note">
-                  {ar ? (
-                    <>الليستة دي متنقولة زي ما هي من على العلبة. أي مكوّن قبله <bdi>+/–</bdi> ده لون ممكن يكون موجود وممكن لأ.</>
-                  ) : (
-                    <>Copied straight off the pack. Any ingredient marked +/– is a colourant that may or may not be present.</>
+                <div className="pdp-inci">
+                  {ingredients.length > 0 && (
+                    <p className="pdp-inci-names" dir="ltr" lang="en" translate="no">
+                      {ingredients.join(', ')}
+                    </p>
                   )}
+                  {optionalColourants.length > 0 && (
+                    <div className="pdp-colourants">
+                      <p className="pdp-colourants-label">
+                        {ar ? 'قد يحتوي على ملوّنات:' : 'May contain colourants:'}
+                      </p>
+                      <ul className="pdp-colourant-codes" dir="ltr" lang="en" translate="no" role="list">
+                        {optionalColourants.map((code, i) => <li key={`${code}-${i}`}>{code}</li>)}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+                <p className="pdp-ingredients-note">
+                  {ar
+                    ? 'المكونات من العبوة، مع توحيد كتابة الأسماء وتنسيقها.'
+                    : 'Based on the pack ingredient list, with spelling and formatting standardized.'}
+                  {optionalColourants.length > 0 && (ar
+                    ? <> أرقام <bdi translate="no">CI</bdi> هي معرّفات الملوّنات.</>
+                    : ' CI numbers identify colourants.')}
                 </p>
               </>
             ) : (
