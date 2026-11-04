@@ -408,29 +408,28 @@ export default async function ProductView({ slug, lang }) {
             </div>
           </div>
 
-          {/* Keep scientific names LTR in both locales. Optional pack colourants
-              get a separate label instead of repeated +/– markers. */}
+          {/* Keep colourants in the ingredient paragraph and explain the pack
+              markers in plain language. Scientific names and CI codes stay LTR. */}
           <section className="pdp-sec pdp-ingredients">
             <h2>{ar ? 'المكونات' : 'Ingredients'}</h2>
             {ingredients.length > 0 || optionalColourants.length > 0 ? (
               <>
-                <div className="pdp-inci">
-                  {ingredients.length > 0 && (
-                    <p className="pdp-inci-names" dir="ltr" lang="en" translate="no">
-                      {ingredients.join(', ')}
-                    </p>
-                  )}
+                <p className="pdp-inci" dir="ltr">
+                  <span lang="en" translate="no">{ingredients.join(', ')}</span>
+                  {ingredients.length > 0 && optionalColourants.length > 0 && ', '}
                   {optionalColourants.length > 0 && (
-                    <div className="pdp-colourants">
-                      <p className="pdp-colourants-label">
-                        {ar ? 'قد يحتوي على ملوّنات:' : 'May contain colourants:'}
-                      </p>
-                      <ul className="pdp-colourant-codes" dir="ltr" lang="en" translate="no" role="list">
-                        {optionalColourants.map((code, i) => <li key={`${code}-${i}`}>{code}</li>)}
-                      </ul>
-                    </div>
+                    <>
+                      <bdi lang={lang}>{ar ? 'ملوّنات (قد توجد):' : 'Colourants (may contain):'}</bdi>{' '}
+                      <span lang="en" translate="no">
+                        {optionalColourants.map((code, i) => (
+                          <span key={`${code}-${i}`}>
+                            {i > 0 && ', '}<bdi className="pdp-ci-code">{code}</bdi>
+                          </span>
+                        ))}
+                      </span>
+                    </>
                   )}
-                </div>
+                </p>
                 <p className="pdp-ingredients-note">
                   {ar
                     ? 'المكونات من العبوة، مع توحيد كتابة الأسماء وتنسيقها.'

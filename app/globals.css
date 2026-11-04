@@ -622,20 +622,13 @@ button{font:inherit;cursor:pointer}
   font-size:13.5px;font-weight:600;color:var(--grey)}
 .pdp-alsofor b{color:var(--ink);font-weight:900;margin-inline-end:4px}
 
-/* Ingredient names stay LTR; the colourant label follows the page locale.
-   Each CI identifier stays together while the list wraps on mobile. */
+/* Colourants remain in the ingredient paragraph, with a plain-language label.
+   Each CI identifier stays together while the paragraph wraps on mobile. */
 .pdp-ingredients .pdp-inci{background:var(--paper-2);border:1.5px solid var(--line);
   border-radius:14px;padding:15px 18px;margin-bottom:12px;
-  overflow-wrap:anywhere}
-.pdp-ingredients .pdp-inci-names{color:var(--ink);font-size:14.5px;
-  font-weight:600;line-height:1.95;margin:0;text-align:start}
-.pdp-colourants{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
-.pdp-colourants:first-child{margin-top:0;padding-top:0;border-top:0}
-.pdp-ingredients .pdp-colourants-label{color:var(--ink);font-size:13px;
-  font-weight:800;line-height:1.65;margin:0 0 6px}
-.pdp-colourant-codes{display:flex;flex-wrap:wrap;gap:6px 16px;list-style:none;
-  margin:0;padding:0;color:var(--ink);font-size:13px;font-weight:600;line-height:1.65}
-.pdp-colourant-codes li{white-space:nowrap}
+  color:var(--ink);font-size:14.5px;font-weight:600;line-height:1.95;
+  overflow-wrap:anywhere;text-align:start}
+.pdp-ci-code{white-space:nowrap}
 .pdp-ingredients .pdp-ingredients-note{color:var(--grey);font-size:13px;font-weight:600;line-height:1.65}
 
 /* 404 and the error boundary. Both replace a whole page, so they carry their
