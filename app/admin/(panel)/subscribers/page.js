@@ -1,3 +1,5 @@
+import { localizedAdminMetadata } from "../../_lib/locale-server.js";
+import { AdminText, AdminElement, AdminFormat } from '../../_lib/locale.js';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { csrfOk, csrfToken } from '../../../../lib/auth.js';
@@ -21,7 +23,7 @@ import { day, Flash } from '../../_lib/ui.js';
  */
 
 export const dynamic = 'force-dynamic';
-export const metadata = { title: 'Subscribers — Star Seven admin' };
+export async function generateMetadata(){return localizedAdminMetadata({ title: 'Subscribers — Star Seven admin' });}
 
 const STATUSES = ['active', 'pending', 'unsubscribed', 'bounced'];
 const title = s => s.charAt(0).toUpperCase() + s.slice(1);
@@ -101,29 +103,27 @@ export default async function SubscribersPage({ searchParams }) {
 
   return (
     <>
-      <h1>Subscribers</h1>
-      <p className="sub">The sale list. Double opt-in — only <b>active</b> rows receive broadcasts.</p>
+      <h1><AdminText text="Subscribers" /></h1>
+      <p className="sub"><AdminText text="The sale list. Double opt-in — only" />{' '}<b><AdminText text="active" /></b>{' '}<AdminText text="rows receive broadcasts." /></p>
 
       <Flash code={sp?.m} />
 
       <div className="cards">
-        <div className="kpi"><b>{counts.active || 0}</b><span>Active</span></div>
-        <div className="kpi"><b>{counts.pending || 0}</b><span>Pending</span></div>
-        <div className="kpi"><b>{counts.unsubscribed || 0}</b><span>Unsubscribed</span></div>
-        <div className="kpi"><b>{total}</b><span>Total</span></div>
+        <div className="kpi"><b>{counts.active || 0}</b><span><AdminText text="Active" /></span></div>
+        <div className="kpi"><b>{counts.pending || 0}</b><span><AdminText text="Pending" /></span></div>
+        <div className="kpi"><b>{counts.unsubscribed || 0}</b><span><AdminText text="Unsubscribed" /></span></div>
+        <div className="kpi"><b>{total}</b><span><AdminText text="Total" /></span></div>
       </div>
 
       <div className="panel">
-        <h2>
-          List
-          <span className="right">
+        <h2><AdminText text="List" /><span className="right">
             <form method="get" className="bar-row">
-              <input name="q" defaultValue={q} placeholder="Email, name or phone" style={{ width: '200px' }} />
+              <AdminElement as="input" name="q" defaultValue={q} placeholder="Email, name or phone" style={{ width: '200px' }} />
               <select name="status" defaultValue={status} style={{ width: '150px' }}>
-                <option value="">All</option>
-                {STATUSES.map(s => <option key={s} value={s}>{title(s)}</option>)}
+                <option value=""><AdminText text="All" /></option>
+                {STATUSES.map(s => <option key={s} value={s}><AdminText text={title(s)} /></option>)}
               </select>
-              <button className="btn sm" type="submit">Apply</button>
+              <button className="btn sm" type="submit"><AdminText text="Apply" /></button>
             </form>
             {/* data-no-transition because this is a download, not a page.
                 The route answers with Content-Disposition: attachment, so the
@@ -138,21 +138,21 @@ export default async function SubscribersPage({ searchParams }) {
                 the full 2500ms STUCK_MS failsafe and is then torn down with no
                 animation. */}
             {mayExport ? (
-              <a className="btn sm ghost" href="/admin/subscribers/export" data-no-transition="">Export CSV</a>
+              <a className="btn sm ghost" href="/admin/subscribers/export" data-no-transition=""><AdminText text="Export CSV" /></a>
             ) : null}
-            {mayExport ? <Link className="btn sm red" href="/admin/offers">Send an offer</Link> : null}
+            {mayExport ? <Link className="btn sm red" href="/admin/offers"><AdminText text="Send an offer" /></Link> : null}
           </span>
         </h2>
 
         {subs.length === 0 ? (
-          <div className="empty">No subscribers match that yet.</div>
+          <div className="empty"><AdminText text="No subscribers match that yet." /></div>
         ) : (
           <div className="table-scroll">
             <table>
               <thead>
                 <tr>
-                  <th>Email</th><th>Name / phone</th><th>Hair type</th>
-                  <th>Lang</th><th>Status</th><th>Joined</th><th></th>
+                  <th><AdminText text="Email" /></th><th><AdminText text="Name / phone" /></th><th><AdminText text="Hair type" /></th>
+                  <th><AdminText text="Lang" /></th><th><AdminText text="Status" /></th><th><AdminText text="Joined" /></th><th></th>
                 </tr>
               </thead>
               <tbody>
@@ -167,8 +167,8 @@ export default async function SubscribersPage({ searchParams }) {
                       </td>
                       <td className="muted">{s.hair_type ? (tile ? tile.en.name : s.hair_type) : '—'}</td>
                       <td className="muted">{String(s.lang || '').toUpperCase()}</td>
-                      <td><span className={`pill ${s.status}`}>{s.status}</span></td>
-                      <td className="muted">{day(s.created_at)}</td>
+                      <td><span className={`pill ${s.status}`}>{<AdminText text={s.status} />}</span></td>
+                      <td className="muted">{<AdminFormat kind="day" value={s.created_at} />}</td>
                       <td>
                         {mayWrite ? (
                         <form action={subAction} className="bar-row">
@@ -177,18 +177,16 @@ export default async function SubscribersPage({ searchParams }) {
                           <input type="hidden" name="f_status" value={status} />
                           <input type="hidden" name="q_back" value={q} />
                           {s.status !== 'active' && (
-                            <button className="btn sm ghost" type="submit" name="act" value="activate">Confirm</button>
+                            <button className="btn sm ghost" type="submit" name="act" value="activate"><AdminText text="Confirm" /></button>
                           )}
                           {s.status !== 'unsubscribed' && (
-                            <button className="btn sm ghost" type="submit" name="act" value="unsub">Unsubscribe</button>
+                            <button className="btn sm ghost" type="submit" name="act" value="unsub"><AdminText text="Unsubscribe" /></button>
                           )}
                           <ConfirmButton
                             name="act"
                             value="delete"
                             message="Delete this subscriber permanently?"
-                          >
-                            Delete
-                          </ConfirmButton>
+                          ><AdminText text="Delete" /></ConfirmButton>
                         </form>
                         ) : <span className="muted">—</span>}
                       </td>

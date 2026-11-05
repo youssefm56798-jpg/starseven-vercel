@@ -1,8 +1,10 @@
+import { AdminText } from '../_lib/locale.js';
 import { redirect } from 'next/navigation';
 import { csrfToken, currentAdmin } from '../../../lib/auth.js';
 import { PERMISSIONS } from '../../../lib/admin-roles.js';
 import { logout } from '../_lib/session-actions.js';
 import Tabs from './tabs.js';
+import { LanguageSwitch } from '../_lib/locale.js';
 
 /**
  * The signed-in half of the admin. Every page in this route group is behind
@@ -23,12 +25,13 @@ export default async function PanelLayout({ children }) {
   return (
     <>
       <header className="bar">
-        <div className="brand"><i>★</i> STAR SEVEN</div>
+        <div className="brand"><i>★</i>{' '}<AdminText text="STAR SEVEN" /></div>
         <nav className="tabs">
+          <LanguageSwitch />
           <Tabs allowed={allowed} />
           <form action={logout}>
             <input type="hidden" name="_csrf" value={token} />
-            <button type="submit" className="tablink">Log out</button>
+            <button type="submit" className="tablink"><AdminText text="Log out" /></button>
           </form>
         </nav>
       </header>

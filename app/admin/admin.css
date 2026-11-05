@@ -26,6 +26,22 @@
   text-align: left;
 }
 
+.s7admin .ops-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr)); gap:14px; }
+.s7admin .admin-language { display:flex; gap:3px; padding:3px; border:1px solid currentColor; border-radius:99px; }
+.s7admin .admin-language button { background:none; color:inherit; border:0; padding:5px 9px; font:inherit; font-size:12px; cursor:pointer; border-radius:99px; }
+.s7admin .admin-language button[aria-pressed="true"] { background:var(--paper); color:var(--ink); font-weight:800; }
+.s7admin .admin-language button:focus-visible { outline:3px solid #EAA400; outline-offset:3px; }
+.s7admin .stock-adjust { display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end; }
+.s7admin .stock-adjust input { max-width:210px; }
+.s7admin header.bar { height:auto; min-height:60px; padding-block:10px; }
+.s7admin nav.tabs { max-width:100%; }
+.s7admin [dir="ltr"] { unicode-bidi:isolate; }
+.s7admin[dir="rtl"] { text-align:right; }
+.s7admin label { display:block; }
+.s7admin .pad > label { margin-block:12px; }
+.s7admin input:not([type="checkbox"]):not([type="hidden"]), .s7admin textarea, .s7admin select { max-width:100%; }
+@media(max-width:600px){ .s7admin nav.tabs a,.s7admin nav.tabs button.tablink { padding:7px 10px; } .s7admin .stock-adjust { min-width:200px; } }
+
 .s7admin * { margin: 0; padding: 0; box-sizing: border-box; }
 .s7admin a { color: inherit; }
 
@@ -33,10 +49,11 @@
 
 .s7admin header.bar {
   background: var(--ink); color: var(--paper); padding: 0 20px;
-  display: flex; align-items: center; gap: 22px; height: 60px;
+  display: flex; align-items: center; gap: 12px; height: auto; min-height: 60px;
   position: sticky; top: 0; z-index: 20; flex-wrap: wrap;
 }
 .s7admin .brand { font-weight: 900; font-size: 17px; white-space: nowrap; }
+.s7admin input[type="email"],.s7admin input[type="password"],.s7admin input[type="number"],.s7admin input[type="date"],.s7admin input[type="datetime-local"],.s7admin code { direction:ltr; unicode-bidi:isolate; }
 .s7admin .brand i { color: var(--red); font-style: normal; }
 .s7admin nav.tabs { display: flex; gap: 4px; margin-inline-start: auto; flex-wrap: wrap; align-items: center; }
 .s7admin nav.tabs a,

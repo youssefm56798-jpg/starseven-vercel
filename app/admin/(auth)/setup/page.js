@@ -1,3 +1,5 @@
+import { localizedAdminMetadata } from "../../_lib/locale-server.js";
+import { AdminText } from '../../_lib/locale.js';
 import bcrypt from 'bcryptjs';
 // Both of these are used by keyOk() below and neither was imported, so every
 // request to /admin/setup threw ReferenceError and rendered the 500 page. It
@@ -11,7 +13,7 @@ import { sql } from '../../../../lib/db.js';
 import { BCRYPT_COST } from '../../../../lib/credentials.js';
 
 export const dynamic = 'force-dynamic';
-export const metadata = { title: 'First-time setup — Star Seven admin', robots: { index: false, follow: false } };
+export async function generateMetadata(){return localizedAdminMetadata({ title: 'First-time setup — Star Seven admin', robots: { index: false, follow: false } });}
 
 const SETUP_ERRORS = {
   bad_email: 'Enter a valid email address.',
@@ -95,10 +97,10 @@ export default async function SetupPage({ searchParams }) {
   if (!keyOk(key)) {
     return (
       <>
-        <header className="bar"><div className="brand"><i>★</i> STAR SEVEN</div></header>
+        <header className="bar"><div className="brand"><i>★</i>{' '}<AdminText text="STAR SEVEN" /></div></header>
         <div className="wrap">
-          <h1>403 — Forbidden</h1>
-          <p className="sub">This page needs the setup key.</p>
+          <h1><AdminText text="403 — Forbidden" /></h1>
+          <p className="sub"><AdminText text="This page needs the setup key." /></p>
         </div>
       </>
     );
@@ -107,14 +109,11 @@ export default async function SetupPage({ searchParams }) {
   if (await adminExists()) {
     return (
       <>
-        <header className="bar"><div className="brand"><i>★</i> STAR SEVEN</div></header>
+        <header className="bar"><div className="brand"><i>★</i>{' '}<AdminText text="STAR SEVEN" /></div></header>
         <div className="wrap">
-          <h1>Already set up</h1>
-          <p className="sub">
-            An admin already exists, so this page will not run again. Remove
-            <code> ADMIN_SETUP_KEY </code> from the environment — it is not needed any more.
-          </p>
-          <a className="btn" href="/admin/login">Go to the login screen</a>
+          <h1><AdminText text="Already set up" /></h1>
+          <p className="sub"><AdminText text="An admin already exists, so this page will not run again. Remove" /><code>{' '}<AdminText text="ADMIN_SETUP_KEY" />{' '}</code>{' '}<AdminText text="from the environment — it is not needed any more." /></p>
+          <a className="btn" href="/admin/login"><AdminText text="Go to the login screen" /></a>
         </div>
       </>
     );
@@ -125,12 +124,12 @@ export default async function SetupPage({ searchParams }) {
 
   return (
     <>
-      <header className="bar"><div className="brand"><i>★</i> STAR SEVEN</div></header>
+      <header className="bar"><div className="brand"><i>★</i>{' '}<AdminText text="STAR SEVEN" /></div></header>
       <div className="wrap">
-        <h1>Create the first admin</h1>
-        <p className="sub">This page stops working after one use. Clear ADMIN_SETUP_KEY once you are done.</p>
+        <h1><AdminText text="Create the first admin" /></h1>
+        <p className="sub"><AdminText text="This page stops working after one use. Clear ADMIN_SETUP_KEY once you are done." /></p>
 
-        {err ? <div className="flash err">{err}</div> : null}
+        {err ? <div className="flash err">{<AdminText text={err} />}</div> : null}
 
         <div className="panel" style={{ maxWidth: '520px' }}>
           <div className="pad">
@@ -138,18 +137,18 @@ export default async function SetupPage({ searchParams }) {
               <input type="hidden" name="_csrf" value={token} />
               <input type="hidden" name="key" value={key} />
               <div className="field">
-                <label htmlFor="name">Name</label>
+                <label htmlFor="name"><AdminText text="Name" /></label>
                 <input id="name" name="name" defaultValue="Youssef" required />
               </div>
               <div className="field">
-                <label htmlFor="email">Email</label>
+                <label htmlFor="email"><AdminText text="Email" /></label>
                 <input id="email" type="email" name="email" required autoComplete="username" />
               </div>
               <div className="field">
-                <label htmlFor="pass">Password (10+ characters)</label>
+                <label htmlFor="pass"><AdminText text="Password (10+ characters)" /></label>
                 <input id="pass" type="password" name="pass" minLength={10} required autoComplete="new-password" />
               </div>
-              <button className="btn red" type="submit">Create admin</button>
+              <button className="btn red" type="submit"><AdminText text="Create admin" /></button>
             </form>
           </div>
         </div>

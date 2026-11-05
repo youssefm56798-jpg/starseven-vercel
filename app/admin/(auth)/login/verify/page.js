@@ -1,3 +1,5 @@
+import { localizedAdminMetadata } from "../../../_lib/locale-server.js";
+import { AdminText } from '../../../_lib/locale.js';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import {
@@ -9,10 +11,10 @@ import { verifySecondFactor } from '../../../../../lib/admin-security.js';
 import { LOGIN_MESSAGES } from '../../../_lib/ui.js';
 
 export const dynamic = 'force-dynamic';
-export const metadata = {
+export async function generateMetadata(){return localizedAdminMetadata({
   title: 'Two-factor — Star Seven admin',
   robots: { index: false, follow: false },
-};
+});}
 
 /**
  * The second half of signing in.
@@ -103,13 +105,13 @@ export default async function VerifyPage({ searchParams }) {
   return (
     <div className="s7login">
       <div className="box">
-        <div className="logo"><i>★</i> STAR SEVEN</div>
+        <div className="logo"><i>★</i>{' '}<AdminText text="STAR SEVEN" /></div>
         <div className="card">
-          <h1>Two-factor</h1>
-          {msg ? <div className={msg[0]}>{msg[1]}</div> : null}
+          <h1><AdminText text="Two-factor" /></h1>
+          {msg ? <div className={msg[0]}>{<AdminText text={msg[1]} />}</div> : null}
           <form action={verify}>
             <input type="hidden" name="_csrf" value={token} />
-            <label htmlFor="code">Code from your authenticator app</label>
+            <label htmlFor="code"><AdminText text="Code from your authenticator app" /></label>
             <input
               id="code"
               name="code"
@@ -119,12 +121,9 @@ export default async function VerifyPage({ searchParams }) {
               inputMode="text"
               placeholder="123456"
             />
-            <button type="submit">Verify</button>
+            <button type="submit"><AdminText text="Verify" /></button>
           </form>
-          <p className="sub" style={{ marginTop: '14px' }}>
-            Lost the phone? Type one of your recovery codes here instead. Each one
-            works once.
-          </p>
+          <p className="sub" style={{ marginTop: '14px' }}><AdminText text="Lost the phone? Type one of your recovery codes here instead. Each one works once." /></p>
         </div>
       </div>
     </div>

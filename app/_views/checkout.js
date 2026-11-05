@@ -34,6 +34,7 @@ export default async function CheckoutView({ lang, searchParams }) {
   const add = /^[A-Za-z0-9-]{1,48}$/.test(sp?.add || '') ? sp.add : '';
 
   const rows = await sql`SELECT * FROM products WHERE active = true ORDER BY sort, id`;
+  const zones = await sql`SELECT code,name_ar,name_en,fee,free_over,active FROM shipping_zones ORDER BY code`;
 
   return (
     <Dir lang={lang}>
@@ -56,7 +57,7 @@ export default async function CheckoutView({ lang, searchParams }) {
           lang={lang}
           add={add}
           catalog={rows.map(productPublic)}
-          shipping={{ fee: site.shipping, freeOver: site.freeOver }}
+          shipping={{ fee: site.shipping, freeOver: site.freeOver, zones: zones.map(z=>({...z,fee:Number(z.fee),free_over:Number(z.free_over)})) }}
           currency={currencyLabel(lang)}
         />
       </div>

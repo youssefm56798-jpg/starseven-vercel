@@ -26,7 +26,7 @@ function walk(dir, out = []) {
   for (const entry of readdirSync(dir)) {
     const p = join(dir, entry);
     if (statSync(p).isDirectory()) walk(p, out);
-    else if (p.endsWith('.js')) out.push(p);
+    else if (/\.m?js$/.test(p)) out.push(p);
   }
   return out;
 }
@@ -57,7 +57,7 @@ for (const src of sources) {
     const tail = src.slice(m.index, m.index + 700).split('`')[0];
     if (/ON\s+CONFLICT[\s\S]*?DO\s+UPDATE/i.test(tail)) note(m[1].toLowerCase(), 'UPDATE');
   }
-  for (const m of src.matchAll(/UPDATE\s+([a-z_]+)\s+SET\b/gi)) note(m[1].toLowerCase(), 'UPDATE');
+  for (const m of src.matchAll(/UPDATE\s+([a-z_]+)(?:\s+(?!SET\b)[a-z_]+)?\s+SET\b/gi)) note(m[1].toLowerCase(), 'UPDATE');
   for (const m of src.matchAll(/DELETE\s+FROM\s+([a-z_]+)/gi)) note(m[1].toLowerCase(), 'DELETE');
 }
 
@@ -66,6 +66,12 @@ const schema = readFileSync(join(ROOT, 'db/schema.sql'), 'utf8');
 const tables = new Set(
   [...schema.matchAll(/CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?([a-z_]+)/gi)].map(m => m[1].toLowerCase()),
 );
+// The stock ledger INSERT is performed by the invoker-rights products trigger,
+// not a JS query. Pin both the actual INSERT and its trigger binding before
+// treating this indirect runtime privilege as used.
+assert.match(schema,/FUNCTION s7_record_stock_movement\(\)[\s\S]*?INSERT INTO stock_movements/);
+assert.match(schema,/CREATE TRIGGER s7_stock_movement[\s\S]*?EXECUTE FUNCTION s7_record_stock_movement\(\)/);
+note('stock_movements','INSERT');
 
 test('the schema and the matrix list the same tables', () => {
   const missing = [...tables].filter(t => !GRANTS[t]).sort();

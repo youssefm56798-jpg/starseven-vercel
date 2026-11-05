@@ -1,4 +1,8 @@
 'use client';
+import { AdminText } from '../../_lib/locale.js';
+import {useAdminLanguage} from '../../_lib/locale.js';
+import {adminTranslate} from '../../../../lib/admin-copy.mjs';
+
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -18,6 +22,7 @@ const ERRORS = {
  * request outliving the function timeout.
  */
 export default function BroadcastButton({ offerId, csrf, recipients }) {
+  const lang=useAdminLanguage();
   const router = useRouter();
   const [running, setRunning] = useState(false);
   const [sent, setSent] = useState(0);
@@ -26,7 +31,7 @@ export default function BroadcastButton({ offerId, csrf, recipients }) {
 
   async function run() {
     const plural = recipients === 1 ? 'subscriber' : 'subscribers';
-    if (!window.confirm(`Send this offer to ${recipients} ${plural} now? This cannot be undone.`)) return;
+    if (!window.confirm(adminTranslate(lang,'Send this offer to {0} {1} now? This cannot be undone.',[recipients,adminTranslate(lang,plural)]))) return;
 
     setRunning(true);
     setError('');
@@ -59,11 +64,11 @@ export default function BroadcastButton({ offerId, csrf, recipients }) {
   return (
     <span className="bar-row">
       <button className="btn sm red" type="button" onClick={run} disabled={running}>
-        {running ? 'Sending…' : 'Broadcast'}
+        {running ? <AdminText text="Sending…" /> : <AdminText text="Broadcast" />}
       </button>
-      {running && <span className="muted">{sent} delivered so far — keep this tab open.</span>}
-      {!running && finished && <span className="muted">Broadcast finished. {sent} emails sent.</span>}
-      {error && <span className="muted" style={{ color: '#D7291D', fontWeight: 800 }}>{error}</span>}
+      {running && <span className="muted">{sent}{' '}<AdminText text="delivered so far — keep this tab open." /></span>}
+      {!running && finished && <span className="muted"><AdminText text="Broadcast finished." />{' '}{sent}{' '}<AdminText text="emails sent." /></span>}
+      {error && <span className="muted" style={{ color: '#D7291D', fontWeight: 800 }}>{<AdminText text={error} />}</span>}
     </span>
   );
 }

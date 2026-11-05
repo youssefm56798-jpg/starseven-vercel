@@ -1,3 +1,5 @@
+import { localizedAdminMetadata } from "../_lib/locale-server.js";
+import { AdminText, AdminFormat } from '../_lib/locale.js';
 import Link from 'next/link';
 import { sql } from '../../../lib/db.js';
 import { bySlug } from '../../../lib/hairtypes.js';
@@ -6,7 +8,7 @@ import { requireAdmin } from '../_lib/guard.js';
 import { dt, Flash, money, num } from '../_lib/ui.js';
 
 export const dynamic = 'force-dynamic';
-export const metadata = { title: 'Dashboard — Star Seven admin' };
+export async function generateMetadata(){return localizedAdminMetadata({ title: 'Dashboard — Star Seven admin' });}
 
 export default async function Dashboard({ searchParams }) {
   const admin = await requireAdmin();
@@ -102,29 +104,29 @@ export default async function Dashboard({ searchParams }) {
 
   return (
     <>
-      <h1>Dashboard</h1>
-      <p className="sub">Welcome back, {admin.name}.</p>
+      <h1><AdminText text="Dashboard" /></h1>
+      <p className="sub"><AdminText text="Welcome back," />{' '}{admin.name}.</p>
 
       <Flash code={sp?.m} />
 
       <div className="cards">
         <div className={ordersNew ? 'kpi hot' : 'kpi'}>
-          <b>{num(ordersNew)}</b><span>Orders to action</span>
+          <b>{<AdminFormat kind="number" value={ordersNew} />}</b><span><AdminText text="Orders to action" /></span>
         </div>
-        <div className="kpi"><b>{num(kpi.orders_today)}</b><span>Orders today</span></div>
-        <div className="kpi"><b>{num(kpi.rev_month)}</b><span>Booked order value this month (EGP)</span><p className="muted">Non-cancelled totals, including uncollected COD orders.</p></div>
-        <div className="kpi"><b>{num(kpi.aov)}</b><span>Average order (EGP)</span></div>
-        <div className="kpi"><b>{num(kpi.subs_active)}</b><span>Subscribers</span></div>
-        <div className="kpi"><b>{num(kpi.subs_pending)}</b><span>Awaiting confirmation</span></div>
+        <div className="kpi"><b>{<AdminFormat kind="number" value={kpi.orders_today} />}</b><span><AdminText text="Orders today" /></span></div>
+        <div className="kpi"><b>{<AdminFormat kind="number" value={kpi.rev_month} />}</b><span><AdminText text="Booked order value this month (EGP)" /></span><p className="muted"><AdminText text="Non-cancelled totals, including uncollected COD orders." /></p></div>
+        <div className="kpi"><b>{<AdminFormat kind="number" value={kpi.aov} />}</b><span><AdminText text="Average order (EGP)" /></span></div>
+        <div className="kpi"><b>{<AdminFormat kind="number" value={kpi.subs_active} />}</b><span><AdminText text="Subscribers" /></span></div>
+        <div className="kpi"><b>{<AdminFormat kind="number" value={kpi.subs_pending} />}</b><span><AdminText text="Awaiting confirmation" /></span></div>
       </div>
 
       {lowStock.length > 0 && (
         <div className="panel">
-          <h2>Running low</h2>
+          <h2><AdminText text="Running low" /></h2>
           <div className="table-scroll">
             <table>
               <thead>
-                <tr><th>Product</th><th>SKU</th><th>Stock left</th></tr>
+                <tr><th><AdminText text="Product" /></th><th><AdminText text="SKU" /></th><th><AdminText text="Stock left" /></th></tr>
               </thead>
               <tbody>
                 {lowStock.map(p => (
@@ -141,17 +143,15 @@ export default async function Dashboard({ searchParams }) {
       )}
 
       <div className="panel">
-        <h2>
-          Latest orders
-          <span className="right"><Link className="btn sm ghost" href="/admin/orders">All orders</Link></span>
+        <h2><AdminText text="Latest orders" /><span className="right"><Link className="btn sm ghost" href="/admin/orders"><AdminText text="All orders" /></Link></span>
         </h2>
         {recent.length === 0 ? (
-          <div className="empty">No orders yet.</div>
+          <div className="empty"><AdminText text="No orders yet." /></div>
         ) : (
           <div className="table-scroll">
             <table>
               <thead>
-                <tr><th>Ref</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th><th>When</th></tr>
+                <tr><th><AdminText text="Ref" /></th><th><AdminText text="Customer" /></th><th><AdminText text="Items" /></th><th><AdminText text="Total" /></th><th><AdminText text="Status" /></th><th><AdminText text="When" /></th></tr>
               </thead>
               <tbody>
                 {recent.map(o => (
@@ -159,9 +159,9 @@ export default async function Dashboard({ searchParams }) {
                     <td><Link href={`/admin/orders?q=${encodeURIComponent(o.ref)}`}><b>{formatRef(o.ref)}</b></Link></td>
                     <td>{o.name}<div className="muted" dir="ltr">{o.phone}</div></td>
                     <td>{Number(o.n_items)}</td>
-                    <td><b>{money(o.total)}</b></td>
-                    <td><span className={`pill ${o.status}`}>{o.status}</span></td>
-                    <td className="muted">{dt(o.created_at)}</td>
+                    <td><b>{<AdminFormat kind="money" value={o.total} />}</b></td>
+                    <td><span className={`pill ${o.status}`}>{<AdminText text={o.status} />}</span></td>
+                    <td className="muted">{<AdminFormat kind="dt" value={o.created_at} />}</td>
                   </tr>
                 ))}
               </tbody>
@@ -171,16 +171,11 @@ export default async function Dashboard({ searchParams }) {
       </div>
 
       <div className="panel">
-        <h2>
-          Hair types your customers report
-          <span className="right muted" style={{ fontWeight: 600 }}>last 90 days</span>
+        <h2><AdminText text="Hair types your customers report" /><span className="right muted" style={{ fontWeight: 600 }}><AdminText text="last 90 days" /></span>
         </h2>
         <div className="pad">
           {quiz.length === 0 ? (
-            <div className="muted">
-              Nothing yet — the numbers fill in as people use the hair-type finder on the site.
-              This is the signal that tells you which product to make next.
-            </div>
+            <div className="muted"><AdminText text="Nothing yet — the numbers fill in as people use the hair-type finder on the site. This is the signal that tells you which product to make next." /></div>
           ) : (
             <div className="barchart">
               {quiz.map(q => {
@@ -203,21 +198,21 @@ export default async function Dashboard({ searchParams }) {
       </div>
 
       <div className="panel">
-        <h2>Best sellers</h2>
+        <h2><AdminText text="Best sellers" /></h2>
         {top.length === 0 ? (
-          <div className="empty">No sales yet.</div>
+          <div className="empty"><AdminText text="No sales yet." /></div>
         ) : (
           <div className="table-scroll">
             <table>
               <thead>
-                <tr><th>Product</th><th>Units</th><th>Item value before discounts</th></tr>
+                <tr><th><AdminText text="Product" /></th><th><AdminText text="Units" /></th><th><AdminText text="Item value before discounts" /></th></tr>
               </thead>
               <tbody>
                 {top.map(t => (
                   <tr key={`${t.sku}-${t.name}`}>
                     <td>{t.name}<div className="muted">{t.sku}</div></td>
                     <td><b>{Number(t.q)}</b></td>
-                    <td>{money(t.rev)}</td>
+                    <td>{<AdminFormat kind="money" value={t.rev} />}</td>
                   </tr>
                 ))}
               </tbody>

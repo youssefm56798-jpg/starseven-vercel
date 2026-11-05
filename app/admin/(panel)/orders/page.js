@@ -1,3 +1,5 @@
+import { localizedAdminMetadata } from "../../_lib/locale-server.js";
+import { AdminText, AdminElement, AdminFormat } from '../../_lib/locale.js';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { csrfOk, csrfToken } from '../../../../lib/auth.js';
@@ -11,7 +13,7 @@ import { transitionAndNotify } from '../../../../lib/order-notify.js';
 import { formatRef, normaliseRef, isRef } from '../../../../lib/order-number.js';
 
 export const dynamic = 'force-dynamic';
-export const metadata = { title: 'Orders — Star Seven admin' };
+export async function generateMetadata(){return localizedAdminMetadata({ title: 'Orders — Star Seven admin' });}
 
 const title = s => s.charAt(0).toUpperCase() + s.slice(1);
 
@@ -294,56 +296,44 @@ export default async function OrdersPage({ searchParams }) {
 
   return (
     <>
-      <h1>Orders</h1>
-      <p className="sub">Cash on delivery. Call the customer, confirm, then move the status along.</p>
+      <h1><AdminText text="Orders" /></h1>
+      <p className="sub"><AdminText text="Cash on delivery. Call the customer, confirm, then move the status along." /></p>
 
       <Flash code={sp?.m} />
 
       {Number(held?.orders) > 0 ? (
         <div className="panel">
-          <h2>
-            Stock held by unconfirmed orders
-            <span className="right">
+          <h2><AdminText text="Stock held by unconfirmed orders" /><span className="right">
               <form action={releaseHeldStock} className="bar-row">
                 <input type="hidden" name="_csrf" value={token} />
                 <ConfirmButton
                   className="btn sm"
                   message={`Cancel ${held.orders} unconfirmed order(s) and put ${held.units} unit(s) back on the shelf? Each customer is emailed. This cannot be undone.`}
-                >
-                  Release {Number(held.units)} unit{Number(held.units) === 1 ? '' : 's'}
+                ><AdminText text="Release" />{' '}{Number(held.units)}{' '}<AdminText text="unit" />{Number(held.units) === 1 ? '' : <AdminText text="s" />}
                 </ConfirmButton>
               </form>
             </span>
           </h2>
           <div className="muted" style={{ padding: '14px 20px' }}>
-            <b>{Number(held.orders)}</b> order{Number(held.orders) === 1 ? '' : 's'} placed over an
-            hour ago that nobody has confirmed and whose phone number has not answered, holding{' '}
-            <b>{Number(held.units)}</b> unit{Number(held.units) === 1 ? '' : 's'} of stock.
-            {' '}Normal on a busy morning — these are orders waiting for their call. Worth acting on
-            when the number is far larger than a day of real orders, which is what a flood of fake
-            orders looks like: the shop reads as sold out while none of it will ever be delivered.
-            Releasing cancels them, returns the stock and emails each customer that they can reorder.
-          </div>
+            <b>{Number(held.orders)}</b>{' '}<AdminText text="order" />{Number(held.orders) === 1 ? '' : <AdminText text="s" />}{' '}<AdminText text="placed over an hour ago that nobody has confirmed and whose phone number has not answered, holding" />{' '}
+            <b>{Number(held.units)}</b>{' '}<AdminText text="unit" />{Number(held.units) === 1 ? '' : <AdminText text="s" />}{' '}<AdminText text="of stock." />{' '}<AdminText text="Normal on a busy morning — these are orders waiting for their call. Worth acting on when the number is far larger than a day of real orders, which is what a flood of fake orders looks like: the shop reads as sold out while none of it will ever be delivered. Releasing cancels them, returns the stock and emails each customer that they can reorder." /></div>
         </div>
       ) : null}
 
       {shown.length ? (
         <div className="panel">
-          <h2>
-            Cash outstanding
-            <span className="right muted" style={{ fontSize: '13px' }}>
-              {shown.length}{outstanding.length > 50 ? '+' : ''} delivered
-              {mismatched.length ? ` · ${mismatched.length} not matching` : ''}
+          <h2><AdminText text="Cash outstanding" /><span className="right muted" style={{ fontSize: '13px' }}>
+              {shown.length}{outstanding.length > 50 ? '+' : ''}{' '}<AdminText text="delivered" />{mismatched.length ? <AdminText text="· {0} not matching" values={[mismatched.length]} /> : ''}
             </span>
           </h2>
           <div className="table-scroll">
             <table>
               <thead>
                 <tr>
-                  <th>Order</th><th>Customer</th>
-                  <th style={{ textAlign: 'right' }}>Asked</th>
-                  <th style={{ textAlign: 'right' }}>Collected</th>
-                  <th style={{ textAlign: 'right' }}>Difference</th>
+                  <th><AdminText text="Order" /></th><th><AdminText text="Customer" /></th>
+                  <th style={{ textAlign: 'right' }}><AdminText text="Asked" /></th>
+                  <th style={{ textAlign: 'right' }}><AdminText text="Collected" /></th>
+                  <th style={{ textAlign: 'right' }}><AdminText text="Difference" /></th>
                 </tr>
               </thead>
               <tbody>
@@ -356,16 +346,16 @@ export default async function OrdersPage({ searchParams }) {
                     <tr key={o.id}>
                       <td><Link href={`/admin/orders/${o.id}`}><b>{formatRef(o.ref)}</b></Link></td>
                       <td className="muted">{o.name}</td>
-                      <td style={{ textAlign: 'right' }}>{money(o.total)}</td>
+                      <td style={{ textAlign: 'right' }}>{<AdminFormat kind="money" value={o.total} />}</td>
                       <td style={{ textAlign: 'right' }}>
-                        {has ? money(o.collected_amount) : <span className="muted">not recorded</span>}
+                        {has ? <AdminFormat kind="money" value={o.collected_amount} /> : <span className="muted"><AdminText text="not recorded" /></span>}
                       </td>
                       <td style={{ textAlign: 'right' }}>
                         {diff === null ? (
                           <span className="muted">—</span>
                         ) : (
                           <b style={{ color: 'var(--red)' }}>
-                            {diff > 0 ? '−' : '+'}{money(Math.abs(diff))}
+                            {diff > 0 ? '−' : '+'}{<AdminFormat kind="money" value={Math.abs(diff)} />}
                           </b>
                         )}
                       </td>
@@ -375,26 +365,21 @@ export default async function OrdersPage({ searchParams }) {
               </tbody>
             </table>
           </div>
-          <div className="muted" style={{ padding: '14px 20px', borderTop: '1.5px solid var(--line)' }}>
-            Every delivered order whose cash has not been recorded, or whose recorded amount does
-            not match what was asked. Open one to enter what the driver actually handed over.
-            {outstanding.length > 50 ? ' Only the fifty most recent are listed.' : ''}
+          <div className="muted" style={{ padding: '14px 20px', borderTop: '1.5px solid var(--line)' }}><AdminText text="Every delivered order whose cash has not been recorded, or whose recorded amount does not match what was asked. Open one to enter what the driver actually handed over." />{outstanding.length > 50 ? <AdminText text="Only the fifty most recent are listed." /> : ''}
           </div>
         </div>
       ) : null}
 
       <div className="panel">
-        <h2>
-          Filter
-          <span className="right">
+        <h2><AdminText text="Filter" /><span className="right">
             <form method="get" className="bar-row">
-              <input name="q" defaultValue={q} placeholder="Ref, name or phone" style={{ width: '210px' }} />
+              <AdminElement as="input" name="q" defaultValue={q} placeholder="Ref, name or phone" style={{ width: '210px' }} />
               <select name="status" defaultValue={status} style={{ width: '150px' }}>
-                <option value="">All statuses</option>
-                {STATUSES.map(s => <option key={s} value={s}>{title(s)}</option>)}
+                <option value=""><AdminText text="All statuses" /></option>
+                {STATUSES.map(s => <option key={s} value={s}><AdminText text={title(s)} /></option>)}
               </select>
-              <button className="btn sm" type="submit">Apply</button>
-              <Link className="btn sm ghost" href="/admin/orders">Reset</Link>
+              <button className="btn sm" type="submit"><AdminText text="Apply" /></button>
+              <Link className="btn sm ghost" href="/admin/orders"><AdminText text="Reset" /></Link>
             </form>
           </span>
         </h2>
@@ -412,29 +397,28 @@ export default async function OrdersPage({ searchParams }) {
            */
           <div className="empty">
             {(status || q)
-              ? <>No order matches that. <Link href="/admin/orders">Clear the filter</Link> to see them all.</>
-              : 'No orders yet. When somebody checks out, they land here — newest first.'}
+              ? <><AdminText text="No order matches that." />{' '}<Link href="/admin/orders"><AdminText text="Clear the filter" /></Link>{' '}<AdminText text="to see them all." /></>
+              : <AdminText text="No orders yet. When somebody checks out, they land here — newest first." />}
           </div>
         ) : (
           <div className="table-scroll">
             <table>
               <thead>
-                <tr><th>Ref</th><th>Customer</th><th>Address</th><th>Items</th><th>Total</th><th>Status</th></tr>
+                <tr><th><AdminText text="Ref" /></th><th><AdminText text="Customer" /></th><th><AdminText text="Address" /></th><th><AdminText text="Items" /></th><th><AdminText text="Total" /></th><th><AdminText text="Status" /></th></tr>
               </thead>
               <tbody>
                 {orders.map(o => (
                   <tr key={o.id}>
                     <td>
                       <b><Link href={`/admin/orders/${o.id}`}>{formatRef(o.ref)}</Link></b>
-                      <div className="muted">{dt(o.created_at)}</div>
-                      {o.coupon ? <div className="muted">code: {o.coupon}</div> : null}
+                      <div className="muted">{<AdminFormat kind="dt" value={o.created_at} />}</div>
+                      {o.coupon ? <div className="muted"><AdminText text="code:" />{' '}{o.coupon}</div> : null}
                       {/* The customer asked to cancel through the link in
                           their confirmation email. It arrives by mail too, but
                           mail gets missed — this is the copy that cannot. */}
                       {o.refund_requested_at ? (
                         <div className="pill cancelled" style={{ marginTop: '6px' }}
-                             title={o.refund_reason || 'No reason given'}>
-                          cancellation asked {dt(o.refund_requested_at)}
+                             title={o.refund_reason || 'No reason given'}><AdminText text="cancellation asked" />{' '}{<AdminFormat kind="dt" value={o.refund_requested_at} />}
                         </div>
                       ) : null}
                     </td>
@@ -454,9 +438,9 @@ export default async function OrdersPage({ searchParams }) {
                       ))}
                     </td>
                     <td>
-                      <b>{money(o.total)}</b>
-                      {Number(o.discount) > 0 ? <div className="muted">−{money(o.discount)}</div> : null}
-                      <div className="muted">+{money(o.shipping)} ship</div>
+                      <b>{<AdminFormat kind="money" value={o.total} />}</b>
+                      {Number(o.discount) > 0 ? <div className="muted">−{<AdminFormat kind="money" value={o.discount} />}</div> : null}
+                      <div className="muted">+{<AdminFormat kind="money" value={o.shipping} />}{' '}<AdminText text="ship" /></div>
                     </td>
                     <td>
                       <form action={saveStatus} className="bar-row">
@@ -478,12 +462,10 @@ export default async function OrdersPage({ searchParams }) {
                           style={{ width: '130px' }}
                         >
                           {[o.status, ...nextFrom(o.status)].map(s => (
-                            <option key={s} value={s}>{title(s)}</option>
+                            <option key={s} value={s}><AdminText text={title(s)} /></option>
                           ))}
                         </select>
-                        <button className="btn sm" type="submit" disabled={!nextFrom(o.status).length}>
-                          Save
-                        </button>
+                        <button className="btn sm" type="submit" disabled={!nextFrom(o.status).length}><AdminText text="Save" /></button>
                       </form>
                     </td>
                   </tr>

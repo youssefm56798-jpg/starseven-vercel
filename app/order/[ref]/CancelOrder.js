@@ -54,6 +54,7 @@ const COPY = {
     // the race
     tooLate: 'الأوردر خرج مع المندوب دلوقتي حالاً، فمابقاش ينفع يتلغى من هنا. اطلب الإلغاء وهنتواصل معاك.',
     err: 'فيه حاجة وقعت. جرّب تاني أو كلّمنا على واتساب.',
+    contactShop: 'كلّمنا على واتساب علشان نكمّل إلغاء الأوردر. لسه متلغاش.',
   },
   en: {
     h: 'Cancel this order',
@@ -76,6 +77,7 @@ const COPY = {
     delivered: 'This order was delivered. If something is wrong with the product, message us on WhatsApp.',
     tooLate: 'This order went out with the courier just now, so it can no longer be cancelled from here. Ask and we will get in touch.',
     err: 'Something went wrong. Try again, or message us on WhatsApp.',
+    contactShop: 'Message us on WhatsApp to cancel this order. It has not been cancelled yet.',
   },
 };
 
@@ -137,6 +139,11 @@ export default function CancelOrder({
       }
       if (data.error === 'already-cancelled') {
         setGone(true);
+        return;
+      }
+      if (data.error === 'contact-shop') {
+        setConfirming(false);
+        setErr(t.contactShop);
         return;
       }
       throw new Error(data.error || 'failed');

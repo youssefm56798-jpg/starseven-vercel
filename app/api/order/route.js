@@ -14,11 +14,14 @@ import { ok, fail, readJson, langOf, token40 } from '../../../lib/http.js';
 import { formatRef, fakeOrderRef } from '../../../lib/order-number.js';
 import { discountFor, cartTotals } from '../../../lib/pricing.js';
 import { normalizePhone } from '../../../lib/phone.js';
+import { claimUsage,writeClaimRecord } from '../../../lib/coupon-claims.mjs';
 import { sendMail, tplOrder, tplOrderAdmin } from '../../../lib/mail.js';
 import { newAccessToken, sha256, orderUrl } from '../../../lib/order-access.js';
 import { site, mail, limits, maxOrderLines } from '../../../lib/config.js';
 import { str, trapped, isEmail, tooMany, tooBig } from '../_lib/shared.js';
 import { isServed } from '../../../lib/delivery-eta.js';
+import { shippingQuote, shippingGuard } from '../../../lib/shipping-policy.mjs';
+import { customerLockStatements, firstOrderGuard, hasPriorOrder } from '../../../lib/customer-eligibility.mjs';
 
 export const dynamic = 'force-dynamic';
 
@@ -146,6 +149,8 @@ export async function POST(req) {
   }
 
   const notes = str(body.notes, 500);
+  const delivery = await shippingQuote(sql, city);
+  if (!delivery) return fail(ar ? 'التوصيل مش متاح للمنطقة دي حالياً.' : 'Delivery is not currently available in this area.', 422, { field: 'city' });
 
   /* ---------------------------------------------------------------- items */
 
@@ -284,11 +289,12 @@ export async function POST(req) {
    * code created before the column existed still has.
    */
   let couponPerCustomer = null;
+  let firstOrderOnly = false;
   const coupon = str(body.coupon, 64).toUpperCase();
 
   if (coupon) {
     const offers = await sql`
-      SELECT id, discount_type, discount_value, min_total, max_uses, used_count, per_customer
+      SELECT id, discount_type, discount_value, min_total, max_uses, used_count, per_customer, first_order_only
         FROM offers
        WHERE code = ${coupon}
          AND active = true
@@ -297,6 +303,7 @@ export async function POST(req) {
        LIMIT 1`;
 
     const off = offers[0];
+    firstOrderOnly = off?.first_order_only === true;
     if (!off) {
       return fail(
         ar ? 'كود الخصم مش صحيح أو انتهى.' : 'That discount code is not valid.',
@@ -342,10 +349,7 @@ export async function POST(req) {
      */
     couponPerCustomer = off.per_customer == null ? null : Number(off.per_customer);
     if (couponPerCustomer !== null) {
-      const [seen] = await sql`
-        SELECT count(*)::int AS n
-          FROM offer_redemptions
-         WHERE code = ${coupon} AND phone = ${phone}`;
+      const [seen] = await claimUsage(sql,{offerId:off.id,code:coupon,phone});
 
       if (Number(seen?.n || 0) >= couponPerCustomer) {
         return (await replayed()) ?? fail(
@@ -390,6 +394,15 @@ export async function POST(req) {
     );
   }
 
+  const firstOrderRefusal = () => fail(
+    ar ? 'خصم أول طلب مش متاح للطلب ده.'
+       : 'That first-order discount is not available for this order.',
+    422, { field: 'coupon' },
+  );
+  if (firstOrderOnly && await hasPriorOrder(sql, phone, custEmail)) {
+    return (await replayed()) ?? firstOrderRefusal();
+  }
+
   // The token goes in that email and nowhere else; the database keeps only its
   // digest. See lib/order-access.js.
   const accessToken = newAccessToken();
@@ -397,7 +410,7 @@ export async function POST(req) {
 
   /* ------------------------------------------------------ shipping + total */
 
-  const t = cartTotals(subtotal, discount, site.shipping, site.freeOver);
+  const t = cartTotals(subtotal, discount, delivery.fee, delivery.free_over);
   ({ subtotal, discount } = t);
   const { shipping, total } = t;
 
@@ -491,6 +504,14 @@ export async function POST(req) {
         SELECT 1 / count(*)::int AS guard FROM claimed`);
     }
 
+    // All checkouts serialize contact identity, even without a discount. The
+    // next statement sees a committed concurrent order after a lock wait.
+    stmts.push(...customerLockStatements(sql, phone, custEmail));
+    stmts.push(shippingGuard(sql, delivery));
+    if (firstOrderOnly) stmts.push(firstOrderGuard(sql, phone, custEmail));
+    stmts.push(sql`SELECT set_config('s7.audit_actor','system:checkout',true),
+      set_config('s7.audit_reason','order-reservation',true)`);
+
     stmts.push(sql`
       INSERT INTO orders (ref, name, phone, address, city, notes, lang,
                           subtotal, shipping, discount, total, coupon, source, ip,
@@ -557,6 +578,7 @@ export async function POST(req) {
              AND discount_value = ${couponQuote.value}::numeric
              AND min_total = ${couponQuote.minimum}::numeric
              AND per_customer IS NOT DISTINCT FROM ${couponPerCustomer}::int
+             AND first_order_only = ${firstOrderOnly}::boolean
              AND min_total <= ${subtotal}::numeric
              AND (starts_at IS NULL OR starts_at <= now())
              AND (ends_at IS NULL OR ends_at >= now())
@@ -565,62 +587,10 @@ export async function POST(req) {
         )
         SELECT 1 / count(*)::int AS guard FROM spent`);
 
-      /*
-       * Record WHO redeemed it, and enforce the per-customer cap while doing it.
-       *
-       * offers.used_count above is a counter, and a counter cannot answer the
-       * question the shop asks when a code looks abused: which customer. This
-       * writes the row behind that number, inside the same transaction as the
-       * order, so the two can never disagree — and it is deleted again by the
-       * cancel path in lib/order-status.js, exactly as the counter is
-       * decremented there.
-       *
-       * One statement covers both capped and uncapped codes, and the difference
-       * is the slot:
-       *
-       *   uncapped   `slot` is NULL. A unique index treats two NULLs as
-       *              distinct, so the index below does not constrain these rows
-       *              at all — an uncapped code is recorded without being
-       *              limited, which is the point.
-       *   capped     `slot` is the next ordinal for this (code, phone), and
-       *              idx_redemptions_slot is UNIQUE over the three. Two
-       *              checkouts racing for the last slot both compute the same
-       *              number; Postgres makes the second WAIT on the first and
-       *              then refuses it. That refusal is what makes the cap exact
-       *              rather than a check-then-insert — the same property the
-       *              order_attempts claim at the top of this batch relies on.
-       *
-       * max(slot) + 1 rather than count(*), and the difference matters the
-       * moment a cancellation gives a redemption back. With a cap of two: a
-       * customer redeems slot 0, redeems slot 1, then cancels the first. count
-       * is now 1, so a third order is allowed — correctly, they are holding one
-       * — but a count-derived slot would be 1, which already exists, and the
-       * order would fail on the unique index instead. Slots are monotonic per
-       * (code, phone) and never reused; the CAP is the count, which is the
-       * figure that is supposed to move when a redemption is returned.
-       *
-       * Casts are explicit throughout for the reason the item insert documents:
-       * a bare parameter in an INSERT ... SELECT target list has no column to
-       * take its type from, and a bare NULL has nothing at all.
-       */
-      stmts.push(sql`
-        WITH claimed AS (
-          INSERT INTO offer_redemptions (code, order_id, phone, email, slot)
-          SELECT ${couponCode}::text, o.id, ${phone}::text, ${custEmail}::text,
-                 CASE WHEN ${couponPerCustomer}::int IS NULL THEN NULL
-                      ELSE (SELECT coalesce(max(r.slot), -1) + 1
-                              FROM offer_redemptions r
-                             WHERE r.code = ${couponCode} AND r.phone = ${phone})
-                 END
-            FROM orders o
-           WHERE o.ref = ${ref}
-             AND (${couponPerCustomer}::int IS NULL
-                  OR (SELECT count(*) FROM offer_redemptions r
-                       WHERE r.code = ${couponCode} AND r.phone = ${phone})
-                     < ${couponPerCustomer}::int)
-          RETURNING id
-        )
-        SELECT 1 / count(*)::int AS guard FROM claimed`);
+      // This statement records capped and uncapped claims and their durable
+      // private generation/record provenance in the same transaction.
+      stmts.push(writeClaimRecord(sql,{ref,offerId:couponQuote.id,code:couponCode,
+        phone,email:custEmail,perCustomer:couponPerCustomer}));
     }
 
     return stmts;
@@ -671,6 +641,9 @@ export async function POST(req) {
 
   if (!written) {
     console.error('[s7] order failed:', writeErr?.code || '', writeErr?.message || writeErr);
+    if (writeErr?.code === '22012' && firstOrderOnly && await hasPriorOrder(sql, phone, custEmail)) {
+      return (await replayed()) ?? firstOrderRefusal();
+    }
 
     /*
      * 22012 is division_by_zero — one of our own guards, never a real fault.
@@ -707,16 +680,18 @@ export async function POST(req) {
                AND f.discount_value = ${couponQuote.value}::numeric
                AND f.min_total = ${couponQuote.minimum}::numeric
                AND f.per_customer IS NOT DISTINCT FROM ${couponPerCustomer}::int
+                AND f.first_order_only = ${firstOrderOnly}::boolean
                AND f.min_total <= ${subtotal}::numeric
                AND (f.starts_at IS NULL OR f.starts_at <= now())
                AND (f.ends_at IS NULL OR f.ends_at >= now())
                AND (f.max_uses IS NULL OR f.used_count < f.max_uses)
-               AND (f.per_customer IS NULL OR (
-                 SELECT count(*) FROM offer_redemptions r
-                  WHERE r.code = f.code AND r.phone = ${phone}
-               ) < f.per_customer)
           ) AS eligible`;
+          if (current?.eligible && couponPerCustomer !== null) {
+            const [usage] = await claimUsage(sql,{offerId:couponQuote.id,code:couponCode,phone});
+            current.eligible = Number(usage.n) < couponPerCustomer;
+          }
         } catch {
+          current = undefined;
           // Wording is optional; the rolled-back order still refuses below.
         }
         if (current && !current.eligible) {

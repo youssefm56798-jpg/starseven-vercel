@@ -11,6 +11,9 @@ import {ok,fail,readJson,langOf} from '../lib/http.js';
 import {discountFor,cartTotals} from '../lib/pricing.js';
 import {normalizePhone} from '../lib/phone.js';
 import {formatRef} from '../lib/order-number.js';
+import * as claims from '../lib/coupon-claims.mjs';
+import * as eligibility from '../lib/customer-eligibility.mjs';
+import * as shipping from '../lib/shipping-policy.mjs';
 
 const runtimeRoot=process.env.S7_SYNTHETIC_MODULE_ROOT;
 if(!runtimeRoot)throw new Error('Set S7_SYNTHETIC_MODULE_ROOT to the approved existing fake DB runtime');
@@ -31,9 +34,12 @@ function handler(dependencies){
 }
 const ddl=`
 CREATE SEQUENCE order_ref_seq START WITH 100001;
+CREATE TABLE shipping_zones(code text PRIMARY KEY,name_ar text NOT NULL,name_en text NOT NULL,fee numeric(10,2),free_over numeric(10,2),min_days int,max_days int,active boolean,version int);
+INSERT INTO shipping_zones VALUES('cairo','القاهرة','Cairo',30,300,1,2,true,0),('giza','الجيزة','Giza',30,300,1,2,true,0),('qalyubia','القليوبية','Qalyubia',30,300,2,3,true,0);
 CREATE TABLE products(id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,sku text UNIQUE,name_ar text,name_en text,price numeric(10,2),stock integer,image text,active boolean DEFAULT true);
-CREATE TABLE offers(id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,code text UNIQUE,active boolean,starts_at timestamptz,ends_at timestamptz,discount_type text,discount_value numeric(10,2),min_total numeric(10,2),max_uses integer,used_count integer,per_customer integer);
-CREATE TABLE orders(id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,ref text UNIQUE,name text,phone text,address text,city text,notes text,lang text,subtotal numeric(10,2),shipping numeric(10,2),discount numeric(10,2),total numeric(10,2),coupon text,source text,ip text,email text,access_hash text);
+CREATE TABLE offers(id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,code text UNIQUE,active boolean,starts_at timestamptz,ends_at timestamptz,discount_type text,discount_value numeric(10,2),min_total numeric(10,2),max_uses integer,used_count integer,per_customer integer,first_order_only boolean NOT NULL DEFAULT false);
+CREATE TABLE orders(id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,ref text UNIQUE,name text,phone text,address text,city text,notes text,lang text,subtotal numeric(10,2),shipping numeric(10,2),discount numeric(10,2),total numeric(10,2),coupon text,source text,ip text,email text,access_hash text,edit_seq integer DEFAULT 0,status text DEFAULT 'new');
+CREATE TABLE order_events(id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,order_id integer REFERENCES orders(id),kind text,actor text,note text);
 CREATE TABLE order_items(id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,order_id integer REFERENCES orders(id),product_id integer,sku text,name text,price numeric(10,2),qty smallint);
 CREATE TABLE order_tokens(id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,order_id integer REFERENCES orders(id),token_hash text,purpose text);
 CREATE TABLE order_attempts(idem_key text PRIMARY KEY,ref text,response json NOT NULL);
@@ -56,7 +62,7 @@ async function fixture(run){
    try{await atTransactionStart();const results=[];for(const statement of statements){calls.push(statement.text);results.push((await db.query(statement.text,statement.values)).rows);}await db.query('COMMIT');calls.push('COMMIT');return results;}
    catch(error){await db.query('ROLLBACK');calls.push('ROLLBACK');throw error;}
   };
-  const dependencies={after:callback=>deferred.push(callback),sql,clientIp:()=> '192.0.2.1',rateOk:async()=>true,
+  const dependencies={...claims,...eligibility,...shipping,after:callback=>deferred.push(callback),sql,clientIp:()=> '192.0.2.1',rateOk:async()=>true,
    ok,fail,readJson,langOf,token40:()=> 'synthetic-never-live-subscriber-token',formatRef,fakeOrderRef:()=> 'synthetic-honeypot',discountFor,cartTotals,normalizePhone,
    sendMail:async()=>{notifyCalls++;},tplOrder:()=>['Synthetic','Synthetic'],tplOrderAdmin:()=>['Synthetic','Synthetic'],
    newAccessToken:()=> 'synthetic-never-live-access-token',sha256:async()=> 'synthetic-access-digest',orderUrl:()=> 'https://example.invalid/synthetic',

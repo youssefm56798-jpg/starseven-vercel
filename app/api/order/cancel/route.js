@@ -82,6 +82,7 @@ export async function POST(req) {
       return fail('too-late', 409, { status: res.from });
     }
     if (res.reason === 'not-found') return fail('not-found', 404);
+    if (res.reason === 'coupon-review' || res.reason === 'conflict') return fail('contact-shop', 409);
     return fail('failed', 500);
   }
 
@@ -106,7 +107,7 @@ export async function POST(req) {
         // live link inside the shop's own inbox.
         html: `<p><b>${esc(formatRef(order.ref))}</b> — ${esc(order.name)} (${esc(order.phone)})</p>
                <p>Cancelled by the customer from the order page. Was: ${esc(res.from)}.</p>
-               <p>Stock and any coupon use have been returned automatically.</p>
+               <p>${res.couponReviewNeeded ? 'Stock returned. Coupon history needs owner review; no offer counter was guessed.' : 'Stock and any coupon use have been returned automatically.'}</p>
                <p><b>Reason:</b> ${esc(reason)}</p>`,
         kind: 'cancel-customer',
       });

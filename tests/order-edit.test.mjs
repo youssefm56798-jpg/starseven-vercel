@@ -268,23 +268,25 @@ test('the stock statements are ordered, so two edits cannot deadlock', () => {
     'the per-product statements are not in a fixed order');
 });
 
-test('an edit that cannot change the money does not recompute it', () => {
+test('address and note corrections keep agreed merchandise prices; a changed city uses the shipping policy', () => {
   /*
    * The trap underneath "recompute the totals every time": the discount is
-   * derived from the offers row and the delivery fee from the environment, and
+   * derived from the offers row and the delivery fee from the shipping policy, and
    * both can move after an order is placed. A blind recompute on a contact-only
    * edit would quietly change what a customer owes at the door because somebody
    * corrected a house number — in whichever direction the shop happened to have
    * edited its own offer. The proof that it does not is in
    * scripts/verify-order-edit.mjs, against a real database and a real edited
-   * offer; this pins the branch that makes it possible.
+   * offer. The database regressions in admin-v2-corrections.rehearse.mjs also
+   * verify actual city repricing, unchanged-city preservation and policy races.
    */
   assert.match(code,
-    /const touchesMoney = lines\.length > 0 \|\| add\.length > 0 \|\| coupon !== undefined;/);
+    /const touchesMoney = basketChanged \|\| couponChanged;/);
   assert.match(code, /if \(asked && touchesMoney\)/,
     'the coupon is re-read even when nothing about the basket moved');
-  assert.match(code, /const t = touchesMoney\s*\n\s*\? cartTotals\(/,
-    'the totals are recomputed unconditionally');
+  assert.match(code, /const quotesDelivery = touchesMoney \|\| cityChanged;/);
+  assert.match(code, /const t = quotesDelivery\s*\n\s*\? cartTotals\(/,
+    'a delivery reprice must be limited to basket, coupon or actual city changes');
 });
 
 test('the ceiling stops an order growing, it does not freeze a big one', () => {

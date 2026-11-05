@@ -1,3 +1,5 @@
+import { localizedAdminMetadata } from "../../_lib/locale-server.js";
+import { AdminText, AdminElement, AdminFormat } from '../../_lib/locale.js';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { csrfOk, csrfToken } from '../../../../lib/auth.js';
@@ -24,7 +26,7 @@ export const dynamic = 'force-dynamic';
 // fifteen seconds is enough on a good connection and not on a phone tethered
 // in a shop.
 export const maxDuration = 60;
-export const metadata = { title: 'Products — Star Seven admin' };
+export async function generateMetadata(){return localizedAdminMetadata({ title: 'Products — Star Seven admin' });}
 
 const BACK = '/admin/products';
 const to = code => redirect(`${BACK}?m=${code}`);
@@ -95,6 +97,8 @@ async function uploadedImage(formData, sku) {
 
 /** parseProductForm and createProduct refusals, as flash codes. */
 const REASONS = {
+  'stale-stock': 'product_stale',
+  'stock-reason': 'product_stock_reason',
   'duplicate-sku': 'product_dupe_sku',
   'duplicate-slug': 'product_dupe_slug',
   duplicate: 'product_dupe',
@@ -108,7 +112,7 @@ const REASONS = {
 
 async function newProduct(formData) {
   'use server';
-  await requirePermission('products:write');
+  const admin=await requirePermission('products:write');
   if (!(await csrfOk(formData.get('_csrf')))) to('csrf');
 
   const parsed = parseProductForm(formData, { mode: 'create' });
@@ -133,14 +137,14 @@ async function newProduct(formData) {
   if (!image) to('product_bad_image');
   values.image = image;
 
-  const made = await createProduct(values);
+  const made = await createProduct(values,`admin:${admin.id}`);
   if (!made.ok) to(REASONS[made.reason] ?? 'bad_input');
   to('product_created');
 }
 
 async function saveProduct(formData) {
   'use server';
-  await requirePermission('products:write');
+  const admin=await requirePermission('products:write');
   if (!(await csrfOk(formData.get('_csrf')))) to('csrf');
 
   const id = Number(formData.get('id'));
@@ -148,28 +152,28 @@ async function saveProduct(formData) {
   if (!Number.isInteger(id) || id <= 0) to('bad_input');
 
   if (act === 'toggle') {
-    const res = await toggleActive(id);
+    const res = await toggleActive(id,`admin:${admin.id}`);
     to(res.ok ? 'product_toggled' : (REASONS[res.reason] ?? 'bad_input'));
   }
 
   // The home page shows a shortlist, not the catalogue. This is what picks it.
   if (act === 'feature') {
-    const res = await toggleFeatured(id);
+    const res = await toggleFeatured(id,`admin:${admin.id}`);
     to(res.ok ? 'product_featured' : (REASONS[res.reason] ?? 'bad_input'));
   }
 
   if (act === 'archive') {
-    const res = await archiveProduct(id);
+    const res = await archiveProduct(id,`admin:${admin.id}`);
     to(res.ok ? 'product_archived' : (REASONS[res.reason] ?? 'bad_input'));
   }
 
   if (act === 'restore') {
-    const res = await restoreProduct(id);
+    const res = await restoreProduct(id,`admin:${admin.id}`);
     to(res.ok ? 'product_restored' : (REASONS[res.reason] ?? 'bad_input'));
   }
 
   if (act === 'discard') {
-    const res = await discardProduct(id);
+    const res = await discardProduct(id,`admin:${admin.id}`);
     to(res.ok ? 'product_discarded' : (REASONS[res.reason] ?? 'bad_input'));
   }
 
@@ -199,7 +203,10 @@ async function saveProduct(formData) {
   if (!image) to('product_bad_image');
   values.image = image;
 
-  const saved = await updateProduct(id, values);
+  const expectedRaw=String(formData.get('expected_stock')??'');
+  if(!/^\d+$/.test(expectedRaw))to('product_stale');
+  values.stock_reason=String(formData.get('stock_reason')??'').trim().slice(0,300);
+  const saved = await updateProduct(id, values,Number(expectedRaw),`admin:${admin.id}`);
   if (!saved.ok) to(REASONS[saved.reason] ?? 'bad_input');
   to('product_saved');
 }
@@ -229,15 +236,15 @@ function HairSlots({ prefix, picked }) {
   const slots = Math.min(HAIR_SLOTS, Math.max(2, picked.length + 1));
   return (
     <div className="field">
-      <label htmlFor={`${prefix}-hair-1`}>Recommended for hair types — first is the primary match</label>
+      <label htmlFor={`${prefix}-hair-1`}><AdminText text="Recommended for hair types — first is the primary match" /></label>
       <div className="hair-slots">
         {Array.from({ length: slots }, (_, i) => (
           <select key={i} id={`${prefix}-hair-${i + 1}`} name={`hair_${i + 1}`}
                   defaultValue={picked[i] ?? ''}
                   aria-label={i === 0 ? 'Primary hair type' : `Backup hair type ${i}`}>
-            <option value="">{i === 0 ? '— none —' : '— add —'}</option>
+            <option value="">{i === 0 ? <AdminText text="— none —" /> : <AdminText text="— add —" />}</option>
             {HAIR_TYPES.map(t => (
-              <option key={t.slug} value={t.slug}>{t.en.name}</option>
+              <option key={t.slug} value={t.slug}><AdminText text={t.en.name}/></option>
             ))}
           </select>
         ))}
@@ -246,7 +253,7 @@ function HairSlots({ prefix, picked }) {
         <div style={{ marginTop: '9px' }} className="bar-row">
           {picked.map((slug, i) => (
             <span className={i === 0 ? 'pill new' : 'pill'} key={slug}>
-              {i === 0 ? '1st · ' : ''}{bySlug(slug)?.en.name || slug}
+              {i === 0 ? <AdminText text="1st ·" /> : ''}{bySlug(slug)?.en.name || slug}
             </span>
           ))}
         </div>
@@ -270,58 +277,58 @@ function ProductFields({ prefix, p, uploads }) {
     <>
       <div className="grid2">
         <div className="field">
-          <label htmlFor={id('name_ar')}>Name (Arabic) *</label>
+          <label htmlFor={id('name_ar')}><AdminText text="Name (Arabic) *" /></label>
           <input id={id('name_ar')} name="name_ar" dir="rtl" required defaultValue={p.name_ar} />
         </div>
         <div className="field">
-          <label htmlFor={id('name_en')}>Name (English) *</label>
+          <label htmlFor={id('name_en')}><AdminText text="Name (English) *" /></label>
           <input id={id('name_en')} name="name_en" required defaultValue={p.name_en} />
         </div>
       </div>
 
       <div className="grid2">
         <div className="field">
-          <label htmlFor={id('sub_ar')}>Subtitle (Arabic)</label>
+          <label htmlFor={id('sub_ar')}><AdminText text="Subtitle (Arabic)" /></label>
           <input id={id('sub_ar')} name="sub_ar" dir="rtl" defaultValue={p.sub_ar} />
         </div>
         <div className="field">
-          <label htmlFor={id('sub_en')}>Subtitle (English)</label>
+          <label htmlFor={id('sub_en')}><AdminText text="Subtitle (English)" /></label>
           <input id={id('sub_en')} name="sub_en" defaultValue={p.sub_en} />
         </div>
       </div>
 
       <div className="grid2">
         <div className="field">
-          <label htmlFor={id('chip_ar')}>Badge (Arabic)</label>
+          <label htmlFor={id('chip_ar')}><AdminText text="Badge (Arabic)" /></label>
           <input id={id('chip_ar')} name="chip_ar" dir="rtl" defaultValue={p.chip_ar} />
         </div>
         <div className="field">
-          <label htmlFor={id('chip_en')}>Badge (English)</label>
+          <label htmlFor={id('chip_en')}><AdminText text="Badge (English)" /></label>
           <input id={id('chip_en')} name="chip_en" defaultValue={p.chip_en} />
         </div>
       </div>
 
       <div className="grid2">
         <div className="field">
-          <label htmlFor={id('kind')}>Category</label>
+          <label htmlFor={id('kind')}><AdminText text="Category" /></label>
           <select id={id('kind')} name="kind" defaultValue={p.kind}>
             {KINDS.map(k => <option key={k} value={k}>{KIND_LABELS[k]}</option>)}
           </select>
         </div>
         <div className="field">
-          <label htmlFor={id('color')}>Accent colour</label>
+          <label htmlFor={id('color')}><AdminText text="Accent colour" /></label>
           <input id={id('color')} type="color" name="color" defaultValue={String(p.color || '#D7291D').toLowerCase()} />
         </div>
       </div>
 
       <div className="grid2">
         <div className="field">
-          <label htmlFor={id('price')}>Price (EGP) — 0 shows a WhatsApp button instead of Add to cart</label>
+          <label htmlFor={id('price')}><AdminText text="Price (EGP) — 0 shows a WhatsApp button instead of Add to cart" /></label>
           <input id={id('price')} type="number" name="price" step="0.01" min="0"
                  defaultValue={String(p.price)} />
         </div>
         <div className="field">
-          <label htmlFor={id('compare_at')}>Was-price (blank = none)</label>
+          <label htmlFor={id('compare_at')}><AdminText text="Was-price (blank = none)" /></label>
           <input id={id('compare_at')} type="number" name="compare_at" step="0.01" min="0"
                  defaultValue={p.compare_at === null || p.compare_at === undefined ? '' : String(p.compare_at)} />
         </div>
@@ -329,29 +336,32 @@ function ProductFields({ prefix, p, uploads }) {
 
       <div className="grid2">
         <div className="field">
-          <label htmlFor={id('stock')}>Stock</label>
+          <label htmlFor={id('stock')}><AdminText text="Stock" /></label>
           <input id={id('stock')} type="number" name="stock" min="0" defaultValue={Number(p.stock)} />
+          <input type="hidden" name="expected_stock" value={Number(p.stock)} />
+          <label htmlFor={id('stock_reason')}><AdminText text="Reason when changing stock" /></label>
+          <input id={id('stock_reason')} name="stock_reason" maxLength={300} />
         </div>
         <div className="field">
-          <label htmlFor={id('hold_level')}>Hold level</label>
+          <label htmlFor={id('hold_level')}><AdminText text="Hold level" /></label>
           <select id={id('hold_level')} name="hold_level" defaultValue={String(p.hold_level)}>
-            <option value="1">1 — light</option>
+            <option value="1"><AdminText text="1 — light" /></option>
             <option value="2">2</option>
-            <option value="3">3 — medium</option>
-            <option value="4">4 — strong</option>
-            <option value="5">5 — ultra strong</option>
+            <option value="3"><AdminText text="3 — medium" /></option>
+            <option value="4"><AdminText text="4 — strong" /></option>
+            <option value="5"><AdminText text="5 — ultra strong" /></option>
           </select>
         </div>
       </div>
 
       <div className="grid2">
         <div className="field">
-          <label htmlFor={id('size_ml')}>Size in ml or g (blank = none)</label>
+          <label htmlFor={id('size_ml')}><AdminText text="Size in ml or g (blank = none)" /></label>
           <input id={id('size_ml')} type="number" name="size_ml" min="1"
                  defaultValue={p.size_ml === null || p.size_ml === undefined ? '' : String(p.size_ml)} />
         </div>
         <div className="field">
-          <label htmlFor={id('sort')}>Sort order</label>
+          <label htmlFor={id('sort')}><AdminText text="Sort order" /></label>
           <input id={id('sort')} type="number" name="sort" defaultValue={Number(p.sort)} />
         </div>
       </div>
@@ -359,91 +369,69 @@ function ProductFields({ prefix, p, uploads }) {
       <HairSlots prefix={prefix} picked={picked} />
 
       <div className="field">
-        <label htmlFor={id('image_file')}>Product photograph</label>
+        <label htmlFor={id('image_file')}><AdminText text="Product photograph" /></label>
         {uploads ? (
           <>
             <input id={id('image_file')} type="file" name="image_file"
                    accept="image/webp,image/png,image/jpeg,image/gif" />
-            <div className="muted" style={{ marginTop: '7px', fontSize: '12.5px' }}>
-              WebP, PNG, JPEG or GIF. Up to {Math.round(MAX_IMAGE_BYTES / (1024 * 1024))} MB,
-              between {MIN_IMAGE_DIM} and {MAX_IMAGE_DIM} pixels on each side, roughly square.
-              Leave empty to keep the current picture.
-            </div>
+            <div className="muted" style={{ marginTop: '7px', fontSize: '12.5px' }}><AdminText text="WebP, PNG, JPEG or GIF. Up to" />{' '}{Math.round(MAX_IMAGE_BYTES / (1024 * 1024))}{' '}<AdminText text="MB, between" />{' '}{MIN_IMAGE_DIM}{' '}<AdminText text="and" />{' '}{MAX_IMAGE_DIM}{' '}<AdminText text="pixels on each side, roughly square. Leave empty to keep the current picture." /></div>
           </>
         ) : (
-          <div className="muted" style={{ fontSize: '12.5px' }}>
-            Uploads are off because no image store is attached. Add a Blob store in
-            Vercel → Storage and set <code>BLOB_READ_WRITE_TOKEN</code>, or type the path
-            of a file committed under <code>public/</code> below.
-          </div>
+          <div className="muted" style={{ fontSize: '12.5px' }}><AdminText text="Uploads are off because no image store is attached. Add a Blob store in Vercel → Storage and set" />{' '}<code><AdminText text="BLOB_READ_WRITE_TOKEN" /></code><AdminText text=", or type the path of a file committed under" />{' '}<code><AdminText text="public/" /></code>{' '}<AdminText text="below." /></div>
         )}
       </div>
 
       <div className="field">
-        <label htmlFor={id('image')}>…or the path of a file in <code>public/</code></label>
-        <input id={id('image')} name="image" spellCheck={false} dir="ltr"
+        <label htmlFor={id('image')}><AdminText text="…or the path of a file in" />{' '}<code><AdminText text="public/" /></code></label>
+        <AdminElement as="input" id={id('image')} name="image" spellCheck={false} dir="ltr"
                placeholder="assets/catalog/wax-135-argan.webp"
                defaultValue={String(p.image || '').startsWith('https://') ? '' : (p.image || '')} />
       </div>
 
-      <h3 style={{ fontSize: '14px', fontWeight: 900, margin: '22px 0 12px' }}>
-        Product page copy
-      </h3>
+      <h3 style={{ fontSize: '14px', fontWeight: 900, margin: '22px 0 12px' }}><AdminText text="Product page copy" /></h3>
 
       <div className="grid2">
         <div className="field">
-          <label htmlFor={id('long_ar')}>Full description (Arabic)</label>
+          <label htmlFor={id('long_ar')}><AdminText text="Full description (Arabic)" /></label>
           <textarea id={id('long_ar')} name="long_ar" rows={5} dir="rtl" defaultValue={p.long_ar} />
         </div>
         <div className="field">
-          <label htmlFor={id('long_en')}>Full description (English)</label>
+          <label htmlFor={id('long_en')}><AdminText text="Full description (English)" /></label>
           <textarea id={id('long_en')} name="long_en" rows={5} defaultValue={p.long_en} />
         </div>
       </div>
-      <div className="muted" style={{ margin: '-8px 0 15px', fontSize: '12.5px' }}>
-        Leave a blank line between paragraphs. <code>**bold**</code>, <code>## heading</code>{' '}
-        and <code>- bullet</code> work. Up to 4000 characters each.
-      </div>
+      <div className="muted" style={{ margin: '-8px 0 15px', fontSize: '12.5px' }}><AdminText text="Leave a blank line between paragraphs." />{' '}<code><AdminText text="**bold**" /></code>, <code><AdminText text="## heading" /></code>{' '}<AdminText text="and" />{' '}<code><AdminText text="- bullet" /></code>{' '}<AdminText text="work. Up to 4000 characters each." /></div>
 
       <div className="grid2">
         <div className="field">
-          <label htmlFor={id('howto_ar')}>How to use (Arabic)</label>
+          <label htmlFor={id('howto_ar')}><AdminText text="How to use (Arabic)" /></label>
           <textarea id={id('howto_ar')} name="howto_ar" rows={3} dir="rtl" defaultValue={p.howto_ar} />
         </div>
         <div className="field">
-          <label htmlFor={id('howto_en')}>How to use (English)</label>
+          <label htmlFor={id('howto_en')}><AdminText text="How to use (English)" /></label>
           <textarea id={id('howto_en')} name="howto_en" rows={3} defaultValue={p.howto_en} />
         </div>
       </div>
-      <div className="muted" style={{ margin: '-8px 0 15px', fontSize: '12.5px' }}>
-        One step per line — the page numbers them, so do not type numbers or dashes.
-        Up to 1200 characters each.
-      </div>
+      <div className="muted" style={{ margin: '-8px 0 15px', fontSize: '12.5px' }}><AdminText text="One step per line — the page numbers them, so do not type numbers or dashes. Up to 1200 characters each." /></div>
 
       <div className="grid2">
         <div className="field">
-          <label htmlFor={id('highlights_ar')}>Highlights (Arabic)</label>
+          <label htmlFor={id('highlights_ar')}><AdminText text="Highlights (Arabic)" /></label>
           <textarea id={id('highlights_ar')} name="highlights_ar" rows={3} dir="rtl"
                     defaultValue={p.highlights_ar} />
         </div>
         <div className="field">
-          <label htmlFor={id('highlights_en')}>Highlights (English)</label>
+          <label htmlFor={id('highlights_en')}><AdminText text="Highlights (English)" /></label>
           <textarea id={id('highlights_en')} name="highlights_en" rows={3} defaultValue={p.highlights_en} />
         </div>
       </div>
-      <div className="muted" style={{ margin: '-8px 0 15px', fontSize: '12.5px' }}>
-        One point per line — the page draws the tick, so do not type bullets.
-        Up to 1200 characters each.
-      </div>
+      <div className="muted" style={{ margin: '-8px 0 15px', fontSize: '12.5px' }}><AdminText text="One point per line — the page draws the tick, so do not type bullets. Up to 1200 characters each." /></div>
 
       <div className="field">
-        <label htmlFor={id('ingredients')}>Ingredients, exactly as printed on the pack</label>
+        <label htmlFor={id('ingredients')}><AdminText text="Ingredients, exactly as printed on the pack" /></label>
         <textarea id={id('ingredients')} name="ingredients" rows={3} dir="ltr"
                   defaultValue={p.ingredients} />
-        <div className="muted" style={{ marginTop: '7px', fontSize: '12.5px' }}>
-          One field, not two: INCI names are Latin and read the same in both languages.
-          Leave it empty rather than guessing — the page says so honestly.
-        </div>
+        <div className="muted" style={{ marginTop: '7px', fontSize: '12.5px' }}><AdminText text="One field, not two: INCI names are Latin and read the same in both languages. Leave it empty rather than guessing — the page says so honestly." /></div>
       </div>
     </>
   );
@@ -521,22 +509,17 @@ export default async function ProductsPage({ searchParams }) {
 
   return (
     <>
-      <h1>Products</h1>
-      <p className="sub">
-        Hair types drive the finder on the site. <b>Order matters</b> — the first hair type listed is
-        the primary recommendation, the rest are backups. The reasoning behind the current mapping is
-        in <code>/docs/hair-type-research.md</code>.
+      <h1><AdminText text="Products" /></h1>
+      <p className="sub"><AdminText text="Hair types drive the finder on the site." />{' '}<b><AdminText text="Order matters" /></b>{' '}<AdminText text="— the first hair type listed is the primary recommendation, the rest are backups. The reasoning behind the current mapping is in" />{' '}<code><AdminText text="/docs/hair-type-research.md" /></code>.
       </p>
 
       <Flash code={sp?.m} />
 
       <div className="panel">
-        <h2>Add a product</h2>
+        <h2><AdminText text="Add a product" /></h2>
         <div className="pad">
           <details open={createFailed}>
-            <summary style={{ cursor: 'pointer', fontWeight: 800, marginBottom: '14px' }}>
-              New product
-            </summary>
+            <summary style={{ cursor: 'pointer', fontWeight: 800, marginBottom: '14px' }}><AdminText text="New product" /></summary>
             {/* No encType here. React sets multipart/form-data itself on a
                 form whose action is a Server Action, and spelling it out gets
                 a console warning saying it will be overridden. The file input
@@ -546,34 +529,28 @@ export default async function ProductsPage({ searchParams }) {
 
               <div className="grid2">
                 <div className="field">
-                  <label htmlFor="new-sku">SKU *</label>
-                  <input id="new-sku" name="sku" required spellCheck={false} dir="ltr"
+                  <label htmlFor="new-sku"><AdminText text="SKU *" /></label>
+                  <AdminElement as="input" id="new-sku" name="sku" required spellCheck={false} dir="ltr"
                          placeholder="S7-WAX-MINT" style={{ textTransform: 'uppercase' }} />
                 </div>
                 <div className="field">
-                  <label htmlFor="new-slug">Web address (blank = from the English name)</label>
-                  <input id="new-slug" name="slug" spellCheck={false} dir="ltr"
+                  <label htmlFor="new-slug"><AdminText text="Web address (blank = from the English name)" /></label>
+                  <AdminElement as="input" id="new-slug" name="slug" spellCheck={false} dir="ltr"
                          placeholder="premium-wax-mint" />
                 </div>
               </div>
-              <div className="muted" style={{ margin: '-8px 0 15px', fontSize: '12.5px' }}>
-                Both are permanent. The SKU is the key every past order line and the deploy seed
-                quote; the web address is the public link. Neither can be changed afterwards —
-                if one is wrong, archive the product and add it again.
-              </div>
+              <div className="muted" style={{ margin: '-8px 0 15px', fontSize: '12.5px' }}><AdminText text="Both are permanent. The SKU is the key every past order line and the deploy seed quote; the web address is the public link. Neither can be changed afterwards — if one is wrong, archive the product and add it again." /></div>
 
               <ProductFields prefix="new" p={BLANK} uploads={uploads} />
 
               <div className="bar-row" style={{ margin: '18px 0', gap: '20px' }}>
                 <label className="check" htmlFor="new-active">
-                  <input id="new-active" type="checkbox" name="active" /> Put it on the shop now
-                </label>
+                  <input id="new-active" type="checkbox" name="active" />{' '}<AdminText text="Put it on the shop now" /></label>
                 <label className="check" htmlFor="new-featured">
-                  <input id="new-featured" type="checkbox" name="featured" /> Show it on the home page
-                </label>
+                  <input id="new-featured" type="checkbox" name="featured" />{' '}<AdminText text="Show it on the home page" /></label>
               </div>
 
-              <button className="btn" type="submit" disabled={!mayWrite}>Create product</button>
+              <button className="btn" type="submit" disabled={!mayWrite}><AdminText text="Create product" /></button>
             </form>
           </details>
         </div>
@@ -581,29 +558,25 @@ export default async function ProductsPage({ searchParams }) {
 
       {/* Find one product out of sixty-three, without scrolling past the rest. */}
       <div className="panel">
-        <h2>
-          Find a product
-          <span className="right">
+        <h2><AdminText text="Find a product" /><span className="right">
             <form method="get" className="bar-row">
-              <input name="q" defaultValue={q} placeholder="Name or SKU" style={{ width: '200px' }} />
+              <AdminElement as="input" name="q" defaultValue={q} placeholder="Name or SKU" style={{ width: '200px' }} />
               <select name="kind" defaultValue={kind} style={{ width: '150px' }}>
-                <option value="">All categories</option>
+                <option value=""><AdminText text="All categories" /></option>
                 {KINDS.map(k => <option key={k} value={k}>{KIND_LABELS[k] || k}</option>)}
               </select>
               <select name="show" defaultValue={show} style={{ width: '150px' }}>
-                <option value="">Live and hidden</option>
-                <option value="live">Live only</option>
-                <option value="hidden">Hidden only</option>
-                <option value="unpriced">Needs a price</option>
+                <option value=""><AdminText text="Live and hidden" /></option>
+                <option value="live"><AdminText text="Live only" /></option>
+                <option value="hidden"><AdminText text="Hidden only" /></option>
+                <option value="unpriced"><AdminText text="Needs a price" /></option>
               </select>
-              <button className="btn sm" type="submit">Apply</button>
-              <Link className="btn sm ghost" href="/admin/products">Reset</Link>
+              <button className="btn sm" type="submit"><AdminText text="Apply" /></button>
+              <Link className="btn sm ghost" href="/admin/products"><AdminText text="Reset" /></Link>
             </form>
           </span>
         </h2>
-        <div className="pad muted" style={{ paddingTop: 0 }}>
-          Showing <b>{live.length}</b> of {all.length} products
-          {archived.length ? ` · ${archived.length} archived below` : ''}
+        <div className="pad muted" style={{ paddingTop: 0 }}><AdminText text="Showing" />{' '}<b>{live.length}</b>{' '}<AdminText text="of" />{' '}{all.length}{' '}<AdminText text="products" />{archived.length ? <AdminText text="· {0} archived below" values={[archived.length]} /> : ''}
         </div>
       </div>
 
@@ -615,8 +588,8 @@ export default async function ProductsPage({ searchParams }) {
                 clearing. Saying "nothing matches" to somebody who has no
                 products at all sends them looking for a filter they never set. */}
             {filtered
-              ? <>No product matches that. <Link href="/admin/products">Clear the filter</Link> to see all {all.length}.</>
-              : 'No products yet — add one above, or run the database seed.'}
+              ? <><AdminText text="No product matches that." />{' '}<Link href="/admin/products"><AdminText text="Clear the filter" /></Link>{' '}<AdminText text="to see all" />{' '}{all.length}.</>
+              : <AdminText text="No products yet — add one above, or run the database seed." />}
           </div>
         </div>
       ) : live.map(p => (
@@ -630,19 +603,19 @@ export default async function ProductsPage({ searchParams }) {
                 without opening anything. A zero price is the "ask us" state and
                 is called that, because "0 EGP" reads as free. */}
             <span className="prod-figs">
-              <b>{Number(p.price) > 0 ? money(p.price) : 'no price'}</b>
+              <b>{Number(p.price) > 0 ? <AdminFormat kind="money" value={p.price} /> : <AdminText text="no price" />}</b>
               <span className={Number(p.stock) > 0 ? 'muted' : 'pill cancelled'}>
-                {Number(p.stock) > 0 ? `${p.stock} in stock` : 'out of stock'}
+                {Number(p.stock) > 0 ? <AdminText text="{0} in stock" values={[p.stock]} /> : <AdminText text="out of stock" />}
               </span>
             </span>
-            <span className={p.active ? 'pill active' : 'pill cancelled'}>{p.active ? 'live' : 'hidden'}</span>
-            {p.featured && <span className="pill active" title="Shown on the home page">home</span>}
+            <span className={p.active ? 'pill active' : 'pill cancelled'}>{p.active ? <AdminText text="live" /> : <AdminText text="hidden" />}</span>
+            {p.featured && <AdminElement as="span" className="pill active" title="Shown on the home page"><AdminText text="home" /></AdminElement>}
             <span className="right">
               <form action={saveProduct}>
                 <input type="hidden" name="_csrf" value={token} />
                 <input type="hidden" name="id" value={p.id} />
                 <input type="hidden" name="act" value="toggle" />
-                <button className="btn sm ghost" type="submit" disabled={!mayWrite}>{p.active ? 'Hide' : 'Show'}</button>
+                <button className="btn sm ghost" type="submit" disabled={!mayWrite}>{p.active ? <AdminText text="Hide" /> : <AdminText text="Show" />}</button>
               </form>
               {/* saveProduct, not save - `save` is undefined and threw a
                   ReferenceError that took the whole product editor down. And
@@ -653,19 +626,17 @@ export default async function ProductsPage({ searchParams }) {
                 <input type="hidden" name="_csrf" value={token} />
                 <input type="hidden" name="id" value={p.id} />
                 <input type="hidden" name="act" value="feature" />
-                <button className="btn sm ghost" type="submit" disabled={!mayWrite}
+                <AdminElement as="button" className="btn sm ghost" type="submit" disabled={!mayWrite}
                         title="Show this product on the home page">
-                  {p.featured ? 'Unfeature' : 'Feature'}
-                </button>
+                  {p.featured ? <AdminText text="Unfeature" /> : <AdminText text="Feature" />}
+                </AdminElement>
               </form>
               <form action={saveProduct}>
                 <input type="hidden" name="_csrf" value={token} />
                 <input type="hidden" name="id" value={p.id} />
                 <input type="hidden" name="act" value="archive" />
                 <ConfirmButton
-                  message={`Archive ${p.name_en}? It comes off the shop and moves to the archive at the bottom of this page. Nothing is deleted and you can restore it.`}>
-                  Archive
-                </ConfirmButton>
+                  message={`Archive ${p.name_en}? It comes off the shop and moves to the archive at the bottom of this page. Nothing is deleted and you can restore it.`}><AdminText text="Archive" /></ConfirmButton>
               </form>
             </span>
           </h2>
@@ -686,7 +657,7 @@ export default async function ProductsPage({ searchParams }) {
             anything anyway.
           */}
           <details className="prod-edit">
-            <summary>Edit all details</summary>
+            <summary><AdminText text="Edit all details" /></summary>
           <div className="pad">
             <form action={saveProduct}>
               <input type="hidden" name="_csrf" value={token} />
@@ -697,7 +668,7 @@ export default async function ProductsPage({ searchParams }) {
                 <img src={imageUrl(p.image)} alt="" />
                 <div>
                   <ProductFields prefix={`p${p.id}`} p={p} uploads={uploads} />
-                  <button className="btn" type="submit" disabled={!mayWrite}>Save</button>
+                  <button className="btn" type="submit" disabled={!mayWrite}><AdminText text="Save" /></button>
                 </div>
               </div>
             </form>
@@ -708,12 +679,8 @@ export default async function ProductsPage({ searchParams }) {
 
       {archived.length > 0 && (
         <>
-          <h2 style={{ marginTop: '34px' }}>Archived</h2>
-          <p className="sub">
-            Off the shop and out of the list above, but still here — so cancelling an old order that
-            contains one of these still puts its stock back, and so a redeploy cannot bring it back
-            to life. Restore returns it to the list above, still hidden.
-          </p>
+          <h2 style={{ marginTop: '34px' }}><AdminText text="Archived" /></h2>
+          <p className="sub"><AdminText text="Off the shop and out of the list above, but still here — so cancelling an old order that contains one of these still puts its stock back, and so a redeploy cannot bring it back to life. Restore returns it to the list above, still hidden." /></p>
           {archived.map(p => {
             const canDiscard = p.origin === 'admin' && !ordered.has(Number(p.id));
             return (
@@ -721,13 +688,13 @@ export default async function ProductsPage({ searchParams }) {
                 <h2>
                   <span dir="rtl">{p.name_ar}</span>
                   <span className="muted" style={{ fontWeight: 600 }}>· {p.name_en} · {p.sku}</span>
-                  <span className="pill cancelled">archived</span>
+                  <span className="pill cancelled"><AdminText text="archived" /></span>
                   <span className="right">
                     <form action={saveProduct}>
                       <input type="hidden" name="_csrf" value={token} />
                       <input type="hidden" name="id" value={p.id} />
                       <input type="hidden" name="act" value="restore" />
-                      <button className="btn sm ghost" type="submit" disabled={!mayWrite}>Restore</button>
+                      <button className="btn sm ghost" type="submit" disabled={!mayWrite}><AdminText text="Restore" /></button>
                     </form>
                     {canDiscard && (
                       <form action={saveProduct}>
@@ -735,9 +702,7 @@ export default async function ProductsPage({ searchParams }) {
                         <input type="hidden" name="id" value={p.id} />
                         <input type="hidden" name="act" value="discard" />
                         <ConfirmButton
-                          message={`Delete ${p.name_en} for good? This one has never been ordered and was added here rather than seeded, so nothing depends on it — but it cannot be undone, and the SKU and web address become free again.`}>
-                          Delete for good
-                        </ConfirmButton>
+                          message={`Delete ${p.name_en} for good? This one has never been ordered and was added here rather than seeded, so nothing depends on it — but it cannot be undone, and the SKU and web address become free again.`}><AdminText text="Delete for good" /></ConfirmButton>
                       </form>
                     )}
                   </span>
@@ -746,9 +711,9 @@ export default async function ProductsPage({ searchParams }) {
                   <div className="muted" style={{ fontSize: '12.5px' }}>
                     {p.origin === 'admin'
                       ? (ordered.has(Number(p.id))
-                        ? 'Kept because it appears on past orders — deleting it would stop those orders restocking if they are ever cancelled.'
-                        : 'Never ordered, and added here rather than seeded, so it can be deleted outright.')
-                      : 'Kept because db/seed.sql owns this SKU — deleting the row would only make the next deploy insert it again, live, at a price nobody chose.'}
+                        ? <AdminText text="Kept because it appears on past orders — deleting it would stop those orders restocking if they are ever cancelled." />
+                        : <AdminText text="Never ordered, and added here rather than seeded, so it can be deleted outright." />)
+                      : <AdminText text="Kept because db/seed.sql owns this SKU — deleting the row would only make the next deploy insert it again, live, at a price nobody chose." />}
                   </div>
                 </div>
               </div>

@@ -1,3 +1,5 @@
+import { localizedAdminMetadata } from "../../_lib/locale-server.js";
+import { AdminText, AdminElement, AdminFormat } from '../../_lib/locale.js';
 import { csrfToken } from '../../../../lib/auth.js';
 import { listAdmins } from '../../../../lib/admin-accounts.js';
 import { PERMISSIONS } from '../../../../lib/admin-roles.js';
@@ -9,7 +11,7 @@ import {
 } from '../../_lib/account-actions.js';
 
 export const dynamic = 'force-dynamic';
-export const metadata = { title: 'Accounts — Star Seven admin' };
+export async function generateMetadata(){return localizedAdminMetadata({ title: 'Accounts — Star Seven admin' });}
 
 /**
  * Who can sign in to this panel.
@@ -33,9 +35,7 @@ const ROLE_BLURB = {
 function RoleCell({ admin, csrf, lastOwner }) {
   if (lastOwner) {
     return (
-      <span className="muted" title="The last owner cannot be demoted — that is the lockout this screen exists to prevent.">
-        Owner (only)
-      </span>
+      <AdminElement as="span" className="muted" title="The last owner cannot be demoted — that is the lockout this screen exists to prevent."><AdminText text="Owner (only)" /></AdminElement>
     );
   }
   const next = admin.role === 'owner' ? 'staff' : 'owner';
@@ -44,14 +44,13 @@ function RoleCell({ admin, csrf, lastOwner }) {
       <input type="hidden" name="_csrf" value={csrf} />
       <input type="hidden" name="id" value={admin.id} />
       <input type="hidden" name="role" value={next} />
-      <span className={`pill ${admin.role === 'owner' ? 'delivered' : 'new'}`}>{admin.role}</span>
+      <span className={`pill ${admin.role === 'owner' ? 'delivered' : 'new'}`}>{<AdminText text={admin.role} />}</span>
       {' '}
       <ConfirmButton
         message={next === 'owner'
           ? 'Make this account an owner? It will be able to create, suspend and remove admin accounts, including yours.'
           : 'Make this account staff? It loses accounts, offers, product edits and the subscriber export.'}
-      >
-        Make {next}
+      ><AdminText text="Make" />{' '}{next}
       </ConfirmButton>
     </form>
   );
@@ -68,32 +67,28 @@ export default async function AccountsPage({ searchParams }) {
 
   return (
     <>
-      <h1>Accounts</h1>
-      <p className="sub">
-        Who can sign in to this panel. Every status change an admin makes is recorded
-        against their account id, so one login per person is what makes that record
-        worth keeping.
-      </p>
+      <h1><AdminText text="Accounts" /></h1>
+      <p className="sub"><AdminText text="Who can sign in to this panel. Every status change an admin makes is recorded against their account id, so one login per person is what makes that record worth keeping." /></p>
 
       <Flash code={sp?.m} />
 
       <div className="cards">
-        <div className="kpi"><b>{admins.length}</b><span>Accounts</span></div>
-        <div className="kpi"><b>{activeOwners.length}</b><span>Owners</span></div>
-        <div className="kpi"><b>{admins.filter(a => a.suspended).length}</b><span>Suspended</span></div>
-        <div className="kpi"><b>{admins.filter(a => a.twoFactor).length}</b><span>With two-factor</span></div>
+        <div className="kpi"><b>{admins.length}</b><span><AdminText text="Accounts" /></span></div>
+        <div className="kpi"><b>{activeOwners.length}</b><span><AdminText text="Owners" /></span></div>
+        <div className="kpi"><b>{admins.filter(a => a.suspended).length}</b><span><AdminText text="Suspended" /></span></div>
+        <div className="kpi"><b>{admins.filter(a => a.twoFactor).length}</b><span><AdminText text="With two-factor" /></span></div>
       </div>
 
       {/* --------------------------------------------------------- the list */}
 
       <div className="panel">
-        <h2>People</h2>
+        <h2><AdminText text="People" /></h2>
         <div className="table-scroll">
           <table>
             <thead>
               <tr>
-                <th>Person</th><th>Role</th><th>Two-factor</th>
-                <th>Last login</th><th>Added</th><th></th>
+                <th><AdminText text="Person" /></th><th><AdminText text="Role" /></th><th><AdminText text="Two-factor" /></th>
+                <th><AdminText text="Last login" /></th><th><AdminText text="Added" /></th><th></th>
               </tr>
             </thead>
             <tbody>
@@ -103,35 +98,33 @@ export default async function AccountsPage({ searchParams }) {
                 return (
                   <tr key={a.id} style={a.suspended ? { opacity: 0.55 } : undefined}>
                     <td>
-                      <b>{a.name || '—'}</b>{self ? <span className="muted"> (you)</span> : null}
+                      <b>{a.name || '—'}</b>{self ? <span className="muted">{' '}<AdminText text="(you)" /></span> : null}
                       <div className="muted">{a.email}</div>
                       <div className="muted">
                         #{a.id}
-                        {a.suspended ? <> · <span className="pill cancelled">suspended {dt(a.suspendedAt)}</span></> : null}
+                        {a.suspended ? <> · <span className="pill cancelled"><AdminText text="suspended" />{' '}{<AdminFormat kind="dt" value={a.suspendedAt} />}</span></> : null}
                       </div>
                     </td>
                     <td>{self
-                      ? <span className={`pill ${a.role === 'owner' ? 'delivered' : 'new'}`}>{a.role}</span>
+                      ? <span className={`pill ${a.role === 'owner' ? 'delivered' : 'new'}`}>{<AdminText text={a.role} />}</span>
                       : <RoleCell admin={a} csrf={token} lastOwner={lastOwner} />}
                     </td>
                     <td>
                       {a.twoFactor
-                        ? <><span className="pill delivered">on</span> <span className="muted">{a.recoveryLeft} codes</span></>
-                        : <span className="pill new">off</span>}
+                        ? <><span className="pill delivered"><AdminText text="on" /></span> <span className="muted">{a.recoveryLeft}{' '}<AdminText text="codes" /></span></>
+                        : <span className="pill new"><AdminText text="off" /></span>}
                     </td>
-                    <td>{a.lastLogin ? dt(a.lastLogin) : <span className="muted">never</span>}</td>
+                    <td>{a.lastLogin ? <AdminFormat kind="dt" value={a.lastLogin} /> : <span className="muted"><AdminText text="never" /></span>}</td>
                     <td>
-                      {dt(a.createdAt)}
-                      {a.createdBy ? <div className="muted">by {names.get(a.createdBy) || `#${a.createdBy}`}</div> : null}
+                      {<AdminFormat kind="dt" value={a.createdAt} />}
+                      {a.createdBy ? <div className="muted"><AdminText text="by" />{' '}{names.get(a.createdBy) || `#${a.createdBy}`}</div> : null}
                     </td>
                     <td>
                       <div className="bar-row">
                         <form action={mailResetLink}>
                           <input type="hidden" name="_csrf" value={token} />
                           <input type="hidden" name="email" value={a.email} />
-                          <button className="btn sm ghost" type="submit" disabled={a.suspended}>
-                            Email a reset link
-                          </button>
+                          <button className="btn sm ghost" type="submit" disabled={a.suspended}><AdminText text="Email a reset link" /></button>
                         </form>
 
                         {self || lastOwner ? null : (
@@ -145,7 +138,7 @@ export default async function AccountsPage({ searchParams }) {
                                   ? 'Let this account sign in again?'
                                   : 'Suspend this account? Every browser it is signed in to is signed out immediately, and it cannot log back in.'}
                               >
-                                {a.suspended ? 'Restore' : 'Suspend'}
+                                {a.suspended ? <AdminText text="Restore" /> : <AdminText text="Suspend" />}
                               </ConfirmButton>
                             </form>
 
@@ -155,9 +148,7 @@ export default async function AccountsPage({ searchParams }) {
                               <ConfirmButton
                                 className="btn sm red"
                                 message="Delete this account for good? Suspending is usually what you want — it stops the login while keeping the name on everything this person has already done."
-                              >
-                                Delete
-                              </ConfirmButton>
+                              ><AdminText text="Delete" /></ConfirmButton>
                             </form>
                           </>
                         )}
@@ -174,45 +165,39 @@ export default async function AccountsPage({ searchParams }) {
       {/* ------------------------------------------------------- add a person */}
 
       <div className="panel">
-        <h2>Add someone</h2>
+        <h2><AdminText text="Add someone" /></h2>
         <div className="pad">
-          <p className="sub">
-            Set a password here and hand it over in person — then have them change it on
-            the Security tab. There is no emailed invitation on purpose: an invite that
-            bounces leaves somebody standing next to you unable to log in, and the
-            <b> Email a reset link </b> button above covers the case where they are not
-            in the room.
-          </p>
+          <p className="sub"><AdminText text="Set a password here and hand it over in person — then have them change it on the Security tab. There is no emailed invitation on purpose: an invite that bounces leaves somebody standing next to you unable to log in, and the" /><b>{' '}<AdminText text="Email a reset link" />{' '}</b>{' '}<AdminText text="button above covers the case where they are not in the room." /></p>
 
           <form action={createStaffAccount}>
             <input type="hidden" name="_csrf" value={token} />
             <div className="field">
-              <label htmlFor="acct-name">Name</label>
+              <label htmlFor="acct-name"><AdminText text="Name" /></label>
               <input id="acct-name" name="name" required style={{ maxWidth: '320px' }} />
             </div>
             <div className="field">
-              <label htmlFor="acct-email">Email</label>
+              <label htmlFor="acct-email"><AdminText text="Email" /></label>
               <input id="acct-email" name="email" type="email" required
                      autoComplete="off" style={{ maxWidth: '320px' }} />
             </div>
             <div className="field">
-              <label htmlFor="acct-role">Role</label>
+              <label htmlFor="acct-role"><AdminText text="Role" /></label>
               <select id="acct-role" name="role" defaultValue="staff" style={{ maxWidth: '320px' }}>
-                <option value="staff">Staff</option>
-                <option value="owner">Owner</option>
+                <option value="staff"><AdminText text="Staff" /></option>
+                <option value="owner"><AdminText text="Owner" /></option>
               </select>
             </div>
             <div className="field">
-              <label htmlFor="acct-pass">Password (10+ characters)</label>
+              <label htmlFor="acct-pass"><AdminText text="Password (10+ characters)" /></label>
               <input id="acct-pass" name="pass" type="password" required minLength={10}
                      autoComplete="new-password" style={{ maxWidth: '320px' }} />
             </div>
             <div className="field">
-              <label htmlFor="acct-confirm">Password again</label>
+              <label htmlFor="acct-confirm"><AdminText text="Password again" /></label>
               <input id="acct-confirm" name="confirm" type="password" required minLength={10}
                      autoComplete="new-password" style={{ maxWidth: '320px' }} />
             </div>
-            <button className="btn red" type="submit">Create account</button>
+            <button className="btn red" type="submit"><AdminText text="Create account" /></button>
           </form>
         </div>
       </div>
@@ -220,7 +205,7 @@ export default async function AccountsPage({ searchParams }) {
       {/* ------------------------------------------------------ what each role is */}
 
       <div className="panel">
-        <h2>What each role can do</h2>
+        <h2><AdminText text="What each role can do" /></h2>
         <div className="pad">
           {Object.keys(PERMISSIONS).map(role => (
             <div className="kv" key={role}>
@@ -228,12 +213,7 @@ export default async function AccountsPage({ searchParams }) {
               <span className="muted">{ROLE_BLURB[role]}</span>
             </div>
           ))}
-          <p className="muted" style={{ marginTop: '10px' }}>
-            Staff keep every power that leaves a trail — a status move, a note and a call
-            outcome all write a row stamped with their account id. What they do not have
-            is the handful that would not: prices, offers, the subscriber export, and this
-            screen.
-          </p>
+          <p className="muted" style={{ marginTop: '10px' }}><AdminText text="Staff keep every power that leaves a trail — a status move, a note and a call outcome all write a row stamped with their account id. What they do not have is the handful that would not: prices, offers, the subscriber export, and this screen." /></p>
         </div>
       </div>
     </>

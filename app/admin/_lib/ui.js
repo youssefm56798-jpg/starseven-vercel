@@ -1,4 +1,5 @@
 import { site } from '../../../lib/config.js';
+import { AdminText } from './locale.js';
 
 /**
  * Small shared helpers for the admin screens. `_lib` is a private folder, so
@@ -64,8 +65,12 @@ export function trimNum(v) {
  * — a message the URL can carry is a message an attacker can choose.
  */
 const MESSAGES = {
+  ops_saved: ['ok', 'Change recorded.'],
+  ops_stale: ['err', 'The record changed or no longer meets the requirements. Reload and check it. Nothing was changed.'],
+  ops_unavailable: ['err', 'Could not record the change. Please try again. Nothing was changed.'],
   order_saved: ['ok', 'Order updated.'],
   order_cancelled: ['ok', 'Order cancelled — stock and coupon returned.'],
+  order_cancelled_review: ['ok', 'Order cancelled and stock returned. Coupon history needs owner review; its offer counter was not changed.'],
   note_added: ['ok', 'Note added.'],
   dispatch_saved: ['ok', 'Courier and tracking reference saved.'],
   /*
@@ -87,11 +92,13 @@ const MESSAGES = {
   edit_unpriced: ['err', 'That product has no price yet, so it cannot be added to an order.'],
   edit_stock: ['err', 'There is not enough stock for that quantity. Nothing was changed — reload to see what is left.'],
   edit_phone: ['err', 'That is not a valid Egyptian mobile number.'],
-  edit_address: ['err', 'The address is too short to deliver to.'],
+  edit_address: ['err', 'Check the delivery address and city. Shipping must be available for that area.'],
   edit_coupon_bad: ['err', 'That discount code is not valid, or it has expired.'],
+  edit_coupon_first_order: ['err', 'This discount is for a first order only. This phone or email has ordered before.'],
   edit_coupon_spent: ['err', 'That discount code has been fully used.'],
   edit_coupon_min: ['err', 'This order is now below the minimum that code applies on. Clear the code or add to the order.'],
   edit_coupon_gone: ['err', 'The code on this order no longer exists in Offers. Clear it to save the change.'],
+  edit_coupon_review: ['err', 'This order’s coupon history needs owner review before that change. Nothing was saved. Address and delivery notes can still be corrected.'],
   // Delivered and cancelled are terminal, so the panel does not offer a way out
   // of either. Reaching this means the order moved in another tab between the
   // page rendering and Save being pressed.
@@ -103,6 +110,8 @@ const MESSAGES = {
   offer_updated: ['ok', 'Offer updated.'],
   offer_deleted: ['ok', 'Offer deleted.'],
   product_saved: ['ok', 'Product saved.'],
+  product_stale: ['err', 'The stock changed while this page was open. Reload before changing its quantity.'],
+  product_stock_reason: ['err', 'Enter a reason of at least five characters for the stock change.'],
   product_toggled: ['ok', 'Product visibility changed.'],
   product_featured: ['ok', 'Home page selection changed.'],
   product_created: ['ok', 'Product created. It is in the list below.'],
@@ -143,6 +152,10 @@ const MESSAGES = {
   // rather than a mistake being refused. Colouring it red would train whoever
   // does the reconciliation to read a successful save as a failure.
   cash_saved: ['ok', 'Cash recorded.'],
+  cash_unchanged: ['ok', 'No change. Collection history was preserved.'],
+  cash_reason: ['err', 'Enter a reason of at least five characters for a collection correction.'],
+  cash_review: ['err', 'Collection records need review before a correction can be saved.'],
+  cash_conflict: ['err', 'The collection changed or is locked by a refund or courier settlement. Reload the order.'],
   cash_short: ['ok', 'Cash recorded — it does not match the order total. The difference is on the order history.'],
   cash_bad: ['err', 'That is not an amount. Type what the driver handed over, in pounds.'],
   cash_locked: ['err', 'Cash can only be recorded on a delivered order.'],
@@ -179,7 +192,7 @@ const MESSAGES = {
 export function Flash({ code }) {
   const m = MESSAGES[code];
   if (!m) return null;
-  return <div className={`flash ${m[0]}`}>{m[1]}</div>;
+  return <div className={`flash ${m[0]}`}><AdminText text={m[1]} /></div>;
 }
 
 /** Login-screen messages live on a differently styled page. */

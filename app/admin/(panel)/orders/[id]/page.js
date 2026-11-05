@@ -1,3 +1,5 @@
+import { localizedAdminMetadata } from "../../../_lib/locale-server.js";
+import { AdminText, AdminElement, AdminFormat, AdminActor } from '../../../_lib/locale.js';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { csrfOk, csrfToken } from '../../../../../lib/auth.js';
@@ -8,10 +10,11 @@ import { STATUSES, nextFrom, eventsFor, logEvent } from '../../../../../lib/orde
 import { transitionAndNotify, editAndNotify } from '../../../../../lib/order-notify.js';
 import { canEdit, MAX_QTY } from '../../../../../lib/order-edit.js';
 import { formatWindow, zoneFor } from '../../../../../lib/delivery-eta.js';
+import {recordCollection} from '../../../../../lib/collection-ledger.mjs';
 import { formatRef } from '../../../../../lib/order-number.js';
 
 export const dynamic = 'force-dynamic';
-export const metadata = { title: 'Order — Star Seven admin' };
+export async function generateMetadata(){return localizedAdminMetadata({ title: 'Order — Star Seven admin' });}
 
 const title = s => s.charAt(0).toUpperCase() + s.slice(1);
 
@@ -36,8 +39,8 @@ async function saveStatus(formData) {
   // transition() owns which moves are legal and does the restock/coupon return
   // in one transaction; the wrapper mails the customer after the response.
   const res = await transitionAndNotify({ orderId: id, to: status, actor: `admin:${admin.id}` });
-  if (!res.ok) redirect(backTo(id, res.reason === 'not-found' ? 'bad_input' : 'bad_move'));
-  redirect(backTo(id, res.changed && status === 'cancelled' ? 'order_cancelled' : 'order_saved'));
+  if (!res.ok) redirect(backTo(id, res.reason === 'not-found' ? 'bad_input' : res.reason === 'coupon-review' ? 'edit_coupon_review' : 'bad_move'));
+  redirect(backTo(id, res.changed && status === 'cancelled' ? (res.couponReviewNeeded ? 'order_cancelled_review' : 'order_cancelled') : 'order_saved'));
 }
 
 async function addNote(formData) {
@@ -175,60 +178,16 @@ const MAX_COLLECTED = 1000000;
  */
 async function saveSettlement(formData) {
   'use server';
-  const me = await requirePermission('orders:write');
-
-  const id = Number(formData.get('id'));
-  const raw = String(formData.get('collected') || '').trim();
-
-  if (!(await csrfOk(formData.get('_csrf')))) redirect(backTo(id, 'csrf'));
-  if (!Number.isInteger(id) || id <= 0) redirect(backTo(id, 'bad_input'));
-
-  let amount = null;
-  if (raw) {
-    const n = Number(raw);
-    // Zero is allowed and is a real answer — the driver came back with nothing,
-    // which is exactly the case the report downstream is looking for. It is
-    // NULL that means "nobody has said", and that is what blank writes.
-    if (!Number.isFinite(n) || n < 0 || n > MAX_COLLECTED) redirect(backTo(id, 'cash_bad'));
-    amount = Math.round(n * 100) / 100;
-  }
-
-  /*
-   * The status is tested on the live row inside the UPDATE rather than read
-   * first and trusted, the same shape saveDispatch uses and for the same
-   * reason. `delivered` is terminal so the race is narrow, but a write that
-   * checks its own precondition costs nothing and does not depend on the page
-   * having been rendered a moment ago.
-   *
-   * settled_at is stamped from the amount rather than assigned unconditionally,
-   * so clearing a figure clears the timestamp with it and an order never sits
-   * in the "settled, but no amount" state that a report would have to special
-   * case.
-   */
-  const rows = await sql`
-    UPDATE orders
-       SET collected_amount = ${amount}::numeric,
-           settled_at = CASE WHEN ${amount}::numeric IS NULL THEN NULL ELSE now() END
-     WHERE id = ${id}
-       AND status = ANY(${SETTLEABLE}::text[])
-     RETURNING ref, total, collected_amount`;
-
-  if (!rows.length) redirect(backTo(id, 'cash_locked'));
-
-  const row = rows[0];
-  const short = amount === null ? null : Math.round((Number(row.total) - amount) * 100) / 100;
-
-  await logEvent({
-    orderId: id,
-    kind: 'note',
-    actor: me.name || `admin:${me.id}`,
-    note: amount === null
-      ? 'Cash record cleared'
-      : `Cash collected ${amount.toFixed(2)} against ${Number(row.total).toFixed(2)}`
-        + (short ? ` — ${short > 0 ? 'short' : 'over'} by ${Math.abs(short).toFixed(2)}` : ' — matches'),
-  });
-
-  redirect(backTo(id, amount !== null && short ? 'cash_short' : 'cash_saved'));
+  const me=await requirePermission('orders:write');
+  const id=Number(formData.get('id'));
+  if(!(await csrfOk(formData.get('_csrf'))))redirect(backTo(id,'csrf'));
+  if(!Number.isSafeInteger(id)||id<1)redirect('/admin/orders?m=bad_input');
+  let result;
+  try{result=await recordCollection(sql,{order_id:id,expect_seq:formData.get('collection_seq'),amount:formData.get('collected'),reason:formData.get('collection_reason')},`admin:${me.id}`);}
+  catch(error){console.error('[s7] Collection save failed:',/^[A-Z0-9]{5}$/.test(error?.code??'')?error.code:'DB_ERROR');redirect(backTo(id,'ops_unavailable'));}
+  if(!result.ok)redirect(backTo(id,result.error==='input'?'cash_bad':result.error==='reason'?'cash_reason':result.error==='locked'?'cash_locked':result.error==='review'?'cash_review':'cash_conflict'));
+  const short=result.amount===null?0:Math.round((result.total-Number(result.amount))*100)/100;
+  redirect(backTo(id,!result.changed?'cash_unchanged':result.amount!==null&&short?'cash_short':'cash_saved'));
 }
 
 /**
@@ -253,9 +212,11 @@ const EDIT_FLASH = {
   'bad-phone': 'edit_phone',
   'bad-address': 'edit_address',
   'coupon-invalid': 'edit_coupon_bad',
+  'coupon-first-order': 'edit_coupon_first_order',
   'coupon-spent': 'edit_coupon_spent',
   'coupon-min': 'edit_coupon_min',
   'coupon-gone': 'edit_coupon_gone',
+  'coupon-review': 'edit_coupon_review',
 };
 
 const editFlash = res =>
@@ -434,71 +395,67 @@ export default async function OrderDetail({ params, searchParams }) {
   return (
     <>
       <div className="bar-row" style={{ marginBottom: '14px' }}>
-        <Link className="btn sm ghost" href="/admin/orders">← All orders</Link>
+        <Link className="btn sm ghost" href="/admin/orders"><AdminText text="← All orders" /></Link>
       </div>
 
-      <h1>{formatRef(order.ref)} <span className={`pill ${order.status}`}>{title(order.status)}</span></h1>
-      <p className="sub">
-        Placed {dt(order.created_at)} · {order.lang === 'en' ? 'English' : 'Arabic'} · cash on delivery
-        {order.cancelled_at ? ` · cancelled ${dt(order.cancelled_at)}` : ''}
+      <h1>{formatRef(order.ref)} <span className={`pill ${order.status}`}><AdminText text={title(order.status)} /></span></h1>
+      <p className="sub"><AdminText text="Placed" />{' '}{<AdminFormat kind="dt" value={order.created_at} />} · {order.lang === 'en' ? <AdminText text="English" /> : <AdminText text="Arabic" />}{' '}<AdminText text="· cash on delivery" />{order.cancelled_at ? <AdminText text="· cancelled {0}" values={[dt(order.cancelled_at)]} /> : ''}
       </p>
 
       <Flash code={sp?.m} />
 
       {order.refund_requested_at ? (
-        <div className="flash err">
-          Customer asked to cancel {dt(order.refund_requested_at)}
+        <div className="flash err"><AdminText text="Customer asked to cancel" />{' '}{<AdminFormat kind="dt" value={order.refund_requested_at} />}
           {order.refund_reason ? ` — “${order.refund_reason}”` : ''}
         </div>
       ) : null}
 
       <div className="grid2">
         <div className="panel">
-          <h2>Customer</h2>
+          <h2><AdminText text="Customer" /></h2>
           <div style={{ padding: '16px 20px' }}>
             <div className="kv">
-              <span>Name</span><b>{order.name}</b>
-              <span>Phone</span>
+              <span><AdminText text="Name" /></span><b>{order.name}</b>
+              <span><AdminText text="Phone" /></span>
               <b dir="ltr"><a href={waLink(order.phone)} target="_blank" rel="noopener noreferrer">{order.phone}</a></b>
-              {order.email ? (<><span>Email</span><b dir="ltr">{order.email}</b></>) : null}
+              {order.email ? (<><span><AdminText text="Email" /></span><b dir="ltr">{order.email}</b></>) : null}
             </div>
           </div>
         </div>
 
         <div className="panel">
-          <h2>Delivery</h2>
+          <h2><AdminText text="Delivery" /></h2>
           {editable ? (
             <form action={saveContact} style={{ padding: '16px 20px' }}>
               <input type="hidden" name="_csrf" value={token} />
               <input type="hidden" name="id" value={order.id} />
               <input type="hidden" name="seq" value={seq} />
               <div className="kv">
-                <span>Address</span>
+                <span><AdminText text="Address" /></span>
                 <b><input name="address" defaultValue={order.address || ''} maxLength={255}
                   style={{ width: '100%' }} /></b>
-                <span>City</span>
+                <span><AdminText text="City" /></span>
                 <b><input name="city" defaultValue={order.city || ''} maxLength={80}
                   style={{ width: '100%' }} /></b>
-                <span>Phone</span>
+                <span><AdminText text="Phone" /></span>
                 <b><input name="phone" defaultValue={order.phone || ''} maxLength={20} dir="ltr"
                   style={{ width: '100%' }} /></b>
-                <span>Notes</span>
+                <span><AdminText text="Notes" /></span>
                 <b><input name="notes" defaultValue={order.notes || ''} maxLength={500}
                   style={{ width: '100%' }} /></b>
               </div>
               <div className="bar-row" style={{ marginTop: '12px' }}>
-                <button className="btn sm" type="submit">Save delivery</button>
+                <button className="btn sm" type="submit"><AdminText text="Save delivery" /></button>
                 <label className="muted" style={{ fontSize: '13px' }}>
-                  <input type="checkbox" name="quiet" value="1" /> Do not email
-                </label>
+                  <input type="checkbox" name="quiet" value="1" />{' '}<AdminText text="Do not email" /></label>
               </div>
             </form>
           ) : (
             <div style={{ padding: '16px 20px' }}>
               <div className="kv">
-                <span>Address</span><b>{order.address || '—'}</b>
-                <span>City</span><b>{order.city || '—'}</b>
-                {order.notes ? (<><span>Notes</span><b><i>{order.notes}</i></b></>) : null}
+                <span><AdminText text="Address" /></span><b>{order.address || '—'}</b>
+                <span><AdminText text="City" /></span><b>{order.city || '—'}</b>
+                {order.notes ? (<><span><AdminText text="Notes" /></span><b><i>{order.notes}</i></b></>) : null}
               </div>
             </div>
           )}
@@ -510,13 +467,13 @@ export default async function OrderDetail({ params, searchParams }) {
         <input type="hidden" name="id" value={order.id} />
         <input type="hidden" name="seq" value={seq} />
 
-        <h2>Items</h2>
+        <h2><AdminText text="Items" /></h2>
         <div className="table-scroll">
           <table>
             <thead>
               <tr>
-                <th>Product</th><th>SKU</th><th>Price</th><th>Qty</th>
-                <th style={{ textAlign: 'right' }}>Line</th>
+                <th><AdminText text="Product" /></th><th><AdminText text="SKU" /></th><th><AdminText text="Price" /></th><th><AdminText text="Qty" /></th>
+                <th style={{ textAlign: 'right' }}><AdminText text="Line" /></th>
               </tr>
             </thead>
             <tbody>
@@ -524,14 +481,14 @@ export default async function OrderDetail({ params, searchParams }) {
                 <tr key={it.id}>
                   <td>{it.name}</td>
                   <td className="muted"><code>{it.sku || '—'}</code></td>
-                  <td>{money(it.price)}</td>
+                  <td>{<AdminFormat kind="money" value={it.price} />}</td>
                   <td>
                     {editable ? (
                       <input type="number" name={`qty_${it.id}`} defaultValue={Number(it.qty)}
                         min={0} max={MAX_QTY} step={1} style={{ width: '72px' }} />
                     ) : `× ${Number(it.qty)}`}
                   </td>
-                  <td style={{ textAlign: 'right' }}>{money(Number(it.price) * Number(it.qty))}</td>
+                  <td style={{ textAlign: 'right' }}>{<AdminFormat kind="money" value={Number(it.price) * Number(it.qty)} />}</td>
                 </tr>
               ))}
             </tbody>
@@ -540,12 +497,12 @@ export default async function OrderDetail({ params, searchParams }) {
 
         <div style={{ padding: '14px 20px', borderTop: '1.5px solid var(--line)' }}>
           <div className="kv kv-money">
-            <span>Subtotal</span><b>{money(order.subtotal)}</b>
+            <span><AdminText text="Subtotal" /></span><b>{<AdminFormat kind="money" value={order.subtotal} />}</b>
             {Number(order.discount) > 0 ? (
-              <><span>Discount{order.coupon ? ` (${order.coupon})` : ''}</span><b>−{money(order.discount)}</b></>
+              <><span><AdminText text="Discount" />{order.coupon ? ` (${order.coupon})` : ''}</span><b>−{<AdminFormat kind="money" value={order.discount} />}</b></>
             ) : null}
-            <span>Shipping</span><b>{money(order.shipping)}</b>
-            <span>Total</span><b style={{ fontSize: '18px' }}>{money(order.total)}</b>
+            <span><AdminText text="Shipping" /></span><b>{<AdminFormat kind="money" value={order.shipping} />}</b>
+            <span><AdminText text="Total" /></span><b style={{ fontSize: '18px' }}>{<AdminFormat kind="money" value={order.total} />}</b>
           </div>
         </div>
 
@@ -553,87 +510,66 @@ export default async function OrderDetail({ params, searchParams }) {
           <div style={{ padding: '14px 20px', borderTop: '1.5px solid var(--line)' }}>
             <div className="bar-row" style={{ flexWrap: 'wrap', gap: '10px' }}>
               <select name="add_sku" defaultValue="" style={{ width: '260px' }}>
-                <option value="">Add a product…</option>
+                <option value=""><AdminText text="Add a product…" /></option>
                 {catalogue.map(p => (
                   <option key={p.sku} value={p.sku}>
-                    {p.name_en} — {money(p.price)} ({Number(p.stock)} in stock)
-                  </option>
+                    {p.name_en} — {<AdminFormat kind="money" value={p.price} />} ({Number(p.stock)}{' '}<AdminText text="in stock)" /></option>
                 ))}
               </select>
-              <input type="number" name="add_qty" defaultValue={1} min={1} max={MAX_QTY} step={1}
+              <AdminElement as="input" type="number" name="add_qty" defaultValue={1} min={1} max={MAX_QTY} step={1}
                 style={{ width: '72px' }} aria-label="Quantity to add" />
-              <input name="coupon" defaultValue={order.coupon || ''} placeholder="Coupon code"
+              <AdminElement as="input" name="coupon" defaultValue={order.coupon || ''} placeholder="Coupon code"
                 maxLength={64} style={{ width: '160px', textTransform: 'uppercase' }} />
-              <button className="btn sm" type="submit">Save items</button>
+              <button className="btn sm" type="submit"><AdminText text="Save items" /></button>
               <label className="muted" style={{ fontSize: '13px' }}>
-                <input type="checkbox" name="quiet" value="1" /> Do not email
-              </label>
+                <input type="checkbox" name="quiet" value="1" />{' '}<AdminText text="Do not email" /></label>
             </div>
-            <p className="muted" style={{ margin: '10px 0 0', fontSize: '13px' }}>
-              Set a quantity to 0 to take the line off. Adding a product that is already on the
-              order adds to that line. Totals, the discount and the stock are all recomputed when
-              you save — the figures above are as they stand now. Clearing the coupon gives its
-              redemption back; typing a different one moves the redemption across.
-              The customer is emailed the revised order unless you tick Do not email.
-            </p>
+            <p className="muted" style={{ margin: '10px 0 0', fontSize: '13px' }}><AdminText text="Set a quantity to 0 to take the line off. Adding a product that is already on the order adds to that line. Totals, the discount and the stock are all recomputed when you save — the figures above are as they stand now. Clearing the coupon gives its redemption back; typing a different one moves the redemption across. The customer is emailed the revised order unless you tick Do not email." /></p>
           </div>
         ) : (
           <div className="muted" style={{ padding: '14px 20px', borderTop: '1.5px solid var(--line)' }}>
-            {title(order.status)} orders cannot be edited. Once a parcel is with a courier its
-            contents and the amount written on the waybill are fixed, and past that both remaining
-            statuses are final.
-          </div>
+            <AdminText text={title(order.status)} />{' '}<AdminText text="orders cannot be edited. Once a parcel is with a courier its contents and the amount written on the waybill are fixed, and past that both remaining statuses are final." /></div>
         )}
       </ItemsPanel>
 
       <div className="panel">
-        <h2>
-          Move status
-          <span className="right">
+        <h2><AdminText text="Move status" /><span className="right">
             <form action={saveStatus} className="bar-row">
               <input type="hidden" name="_csrf" value={token} />
               <input type="hidden" name="id" value={order.id} />
               <select name="status" defaultValue={order.status} disabled={locked} style={{ width: '160px' }}>
-                {[order.status, ...moves].map(s => <option key={s} value={s}>{title(s)}</option>)}
+                {[order.status, ...moves].map(s => <option key={s} value={s}><AdminText text={title(s)} /></option>)}
               </select>
-              <button className="btn sm" type="submit" disabled={locked}>Save</button>
+              <button className="btn sm" type="submit" disabled={locked}><AdminText text="Save" /></button>
             </form>
           </span>
         </h2>
         <div className="muted" style={{ padding: '14px 20px' }}>
           {locked
-            ? `${title(order.status)} is final — there is nowhere to move this order.`
-            : `From ${title(order.status)} this order can move to ${moves.map(title).join(', ')}. The customer is emailed on the moves they hear about.`}
+            ? <AdminText text="{0} is final — there is nowhere to move this order." translateValues values={[title(order.status)]} />
+            : <AdminText text="From {0} this order can move to {1}. The customer is emailed on the moves they hear about." translateValues values={[title(order.status),moves.map(title)]} />}
         </div>
       </div>
 
       <div className="panel">
-        <h2>
-          Dispatch
-          <span className="right">
+        <h2><AdminText text="Dispatch" /><span className="right">
             <form action={saveDispatch} className="bar-row">
               <input type="hidden" name="_csrf" value={token} />
               <input type="hidden" name="id" value={order.id} />
-              <input name="courier" defaultValue={order.courier || ''} placeholder="Courier"
+              <AdminElement as="input" name="courier" defaultValue={order.courier || ''} placeholder="Courier"
                 maxLength={60} style={{ width: '140px' }} />
-              <input name="tracking_ref" defaultValue={order.tracking_ref || ''} placeholder="Tracking ref"
+              <AdminElement as="input" name="tracking_ref" defaultValue={order.tracking_ref || ''} placeholder="Tracking ref"
                 maxLength={60} style={{ width: '160px' }} />
-              <button className="btn sm ghost" type="submit">Save</button>
+              <button className="btn sm ghost" type="submit"><AdminText text="Save" /></button>
             </form>
           </span>
         </h2>
         <div className="muted" style={{ padding: '14px 20px' }}>
           {order.eta_from && order.eta_to ? (
-            <>
-              Customer was promised <b>{formatWindow(order.eta_from, order.eta_to, 'en')}</b>, on the{' '}
-              <b>{zoneFor(order.city)}</b> tier for “{order.city || '—'}”. Written when the order was
-              confirmed and never moved afterwards — the customer has already been shown it.
-            </>
+            <><AdminText text="Customer was promised" />{' '}<b>{formatWindow(order.eta_from, order.eta_to, 'en')}</b><AdminText text=", on the" />{' '}
+              <b>{zoneFor(order.city)}</b>{' '}<AdminText text="tier for “" />{order.city || '—'}<AdminText text="”. Written when the order was confirmed and never moved afterwards — the customer has already been shown it." /></>
           ) : (
-            <>
-              No delivery window yet. One is written from the governorate in the address the first
-              time this order is confirmed or shipped, and the customer sees it on their order page.
-            </>
+            <><AdminText text="No delivery window yet. One is written from the governorate in the address the first time this order is confirmed or shipped, and the customer sees it on their order page." /></>
           )}
         </div>
       </div>
@@ -647,74 +583,65 @@ export default async function OrderDetail({ params, searchParams }) {
         * offering one.
         */}
       <div className="panel">
-        <h2>
-          Cash collected
-          {settleable ? (
+        <h2><AdminText text="Cash collected" />{settleable ? (
             <span className="right">
               <form action={saveSettlement} className="bar-row">
                 <input type="hidden" name="_csrf" value={token} />
                 <input type="hidden" name="id" value={order.id} />
-                <input name="collected" type="number" step="0.01" min="0" max={MAX_COLLECTED}
+                <input type="hidden" name="collection_seq" value={order.collection_seq}/>
+                <AdminElement as="input" name="collected" type="number" step="0.01" min="0" max={MAX_COLLECTED}
                   defaultValue={order.collected_amount == null ? '' : Number(order.collected_amount)}
                   placeholder={Number(order.total).toFixed(2)} style={{ width: '120px' }}
                   aria-label="Amount the driver handed over" />
-                <button className="btn sm ghost" type="submit">Save</button>
+                <label><AdminText text="Reason for collection correction"/><input name="collection_reason" minLength={5} maxLength={300}/></label>
+                <button className="btn sm ghost" type="submit"><AdminText text="Save" /></button>
               </form>
             </span>
           ) : null}
         </h2>
         <div className="muted" style={{ padding: '14px 20px' }}>
           {!settleable ? (
-            <>Cash is recorded once the order is delivered. This one is {title(order.status)}.</>
+            <><AdminText text="Cash is recorded once the order is delivered. This one is" />{' '}<AdminText text={title(order.status)} />.</>
           ) : order.collected_amount == null ? (
-            <>
-              Nothing recorded yet. Type what the driver actually handed over — not what the
-              waybill said. The order asked for <b>{money(order.total)}</b>. Leave it blank until
-              you have the real figure; every delivered order with no number here is listed on the
-              Orders screen.
-            </>
+            <><AdminText text="Nothing recorded yet. Type what the driver actually handed over — not what the waybill said. The order asked for" />{' '}<b>{<AdminFormat kind="money" value={order.total} />}</b><AdminText text=". Leave it blank until you have the real figure; every delivered order with no number here is listed on the Orders screen." /></>
           ) : (
             <>
-              <b>{money(order.collected_amount)}</b> recorded against <b>{money(order.total)}</b>
+              <b>{<AdminFormat kind="money" value={order.collected_amount} />}</b>{' '}<AdminText text="recorded against" />{' '}<b>{<AdminFormat kind="money" value={order.total} />}</b>
               {shortBy === 0 ? (
-                <> — matches.</>
+                <>{' '}<AdminText text="— matches." /></>
               ) : (
-                <> — <b style={{ color: 'var(--red)' }}>{shortBy > 0 ? 'short' : 'over'} by {money(Math.abs(shortBy))}</b>.</>
+                <> — <b style={{ color: 'var(--red)' }}>{shortBy > 0 ? <AdminText text="short" /> : <AdminText text="over" />}{' '}<AdminText text="by" />{' '}{<AdminFormat kind="money" value={Math.abs(shortBy)} />}</b>.</>
               )}
-              {order.settled_at ? <> Recorded {dt(order.settled_at)}.</> : null}
-              {' '}Clear the box and save to remove a figure entered by mistake; both go on the
-              history below.
-            </>
+              {order.settled_at ? <>{' '}<AdminText text="First collection record" />{' '}<AdminFormat kind="dt" value={order.settled_at}/>.</> : null}
+              {' '}<AdminText text="Unchanged saves preserve history. Corrections need a reason and are recorded in their own period. Collection changes are locked after a refund or courier settlement." /></>
           )}
         </div>
       </div>
 
       <div className="panel">
-        <h2>
-          History
-          <span className="right">
+        <h2><AdminText text="History" /><span className="right">
             <form action={addNote} className="bar-row">
               <input type="hidden" name="_csrf" value={token} />
               <input type="hidden" name="id" value={order.id} />
-              <input name="note" placeholder="Add an internal note" maxLength={500} style={{ width: '240px' }} />
-              <button className="btn sm ghost" type="submit">Add</button>
+              <AdminElement as="input" name="note" placeholder="Add an internal note" maxLength={500} style={{ width: '240px' }} />
+              <button className="btn sm ghost" type="submit"><AdminText text="Add" /></button>
             </form>
           </span>
         </h2>
         {events.length === 0 ? (
-          <div className="empty">No history yet.</div>
+          <div className="empty"><AdminText text="No history yet." /></div>
         ) : (
           <ul className="tl">
             {events.map(e => (
               <li key={e.id}>
-                <span className="tl-when">{dt(e.created_at)}</span>
+                <span className="tl-when">{<AdminFormat kind="dt" value={e.created_at} />}</span>
                 <span className="tl-body">
                   {e.kind === 'status' ? (
-                    <><b>{title(e.to_status)}</b>{e.from_status ? <span className="muted"> from {title(e.from_status)}</span> : null}</>
+                    <><b><AdminText text={title(e.to_status)} /></b>{e.from_status ? <span className="muted">{' '}<AdminText text="from" />{' '}<AdminText text={title(e.from_status)} /></span> : null}</>
                   ) : (
-                    <><b>{EVENT_LABEL[e.kind] || e.kind}</b>{e.note ? <span> — {e.note}</span> : null}</>
+                    <><b><AdminText text={EVENT_LABEL[e.kind] || e.kind} /></b>{e.note ? <span> — {e.note}</span> : null}</>
                   )}
-                  <span className="muted"> · {e.actor}</span>
+                  <span className="muted"> · <AdminActor value={e.actor}/></span>
                 </span>
               </li>
             ))}

@@ -1,4 +1,6 @@
 'use client';
+import { AdminText } from '../../_lib/locale.js';
+
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -45,13 +47,9 @@ function CodeSheet({ codes, onDone }) {
 
   return (
     <div className="panel" style={{ marginTop: '14px' }}>
-      <h2>Your recovery codes</h2>
+      <h2><AdminText text="Your recovery codes" /></h2>
       <div className="pad">
-        <div className="flash err">
-          This is the only time these are shown. Save them somewhere that is not
-          this computer. Each one works once, and they are the only way back in
-          if the phone is lost.
-        </div>
+        <div className="flash err"><AdminText text="This is the only time these are shown. Save them somewhere that is not this computer. Each one works once, and they are the only way back in if the phone is lost." /></div>
         <div className="grid2" style={{ margin: '12px 0' }}>
           {codes.map(c => (
             <code key={c} style={{ fontSize: '15px', letterSpacing: '1px' }}>{c}</code>
@@ -59,11 +57,9 @@ function CodeSheet({ codes, onDone }) {
         </div>
         <div className="bar-row">
           <button type="button" className="btn sm" onClick={copy}>
-            {copied ? 'Copied' : 'Copy all'}
+            {copied ? <AdminText text="Copied" /> : <AdminText text="Copy all" />}
           </button>
-          <button type="button" className="btn sm ghost" onClick={onDone}>
-            I have saved them
-          </button>
+          <button type="button" className="btn sm ghost" onClick={onDone}><AdminText text="I have saved them" /></button>
         </div>
       </div>
     </div>
@@ -96,9 +92,9 @@ export function ConfirmEnrolment({ csrf }) {
 
   return (
     <form onSubmit={submit}>
-      {error ? <div className="flash err">{error}</div> : null}
+      {error ? <div className="flash err">{<AdminText text={error} />}</div> : null}
       <div className="field">
-        <label htmlFor="enrol-code">Enter the six digits your app is showing</label>
+        <label htmlFor="enrol-code"><AdminText text="Enter the six digits your app is showing" /></label>
         <input
           id="enrol-code"
           name="code"
@@ -110,7 +106,7 @@ export function ConfirmEnrolment({ csrf }) {
         />
       </div>
       <button className="btn red" type="submit" disabled={busy}>
-        {busy ? 'Checking…' : 'Turn on two-factor'}
+        {busy ? <AdminText text="Checking…" /> : <AdminText text="Turn on two-factor" />}
       </button>
     </form>
   );
@@ -144,9 +140,9 @@ export function ReissueCodes({ csrf }) {
 
   return (
     <form onSubmit={submit}>
-      {error ? <div className="flash err">{error}</div> : null}
+      {error ? <div className="flash err">{<AdminText text={error} />}</div> : null}
       <div className="field">
-        <label htmlFor="reissue-pw">Your password</label>
+        <label htmlFor="reissue-pw"><AdminText text="Your password" /></label>
         <input
           id="reissue-pw"
           name="password"
@@ -157,7 +153,7 @@ export function ReissueCodes({ csrf }) {
         />
       </div>
       <button className="btn sm ghost" type="submit" disabled={busy}>
-        {busy ? 'Working…' : 'Generate new recovery codes'}
+        {busy ? <AdminText text="Working…" /> : <AdminText text="Generate new recovery codes" />}
       </button>
     </form>
   );

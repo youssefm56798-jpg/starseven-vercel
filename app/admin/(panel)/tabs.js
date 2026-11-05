@@ -1,4 +1,6 @@
 'use client';
+import { AdminText } from '../_lib/locale.js';
+
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -21,6 +23,13 @@ const TABS = [
   ['/admin/products', 'Products', 'products:read'],
   ['/admin/accounts', 'Accounts', 'accounts:manage'],
   ['/admin/security', 'Security', null],
+  ['/admin/reports', 'Reports', 'accounts:manage'],
+  ['/admin/customers', 'Customers', 'orders:read'],
+  ['/admin/returns', 'Returns', 'accounts:manage'],
+  ['/admin/stock', 'Stock', 'accounts:manage'],
+  ['/admin/shipping', 'Shipping', 'accounts:manage'],
+  ['/admin/settlements', 'Settlements', 'accounts:manage'],
+  ['/admin/audit', 'Audit history', 'accounts:manage'],
 ];
 
 /** Client-side only because it needs the current pathname. */
@@ -33,7 +42,7 @@ export default function Tabs({ allowed = [] }) {
       {TABS.filter(([, , need]) => need === null || have.has(need)).map(([href, label]) => {
         const on = href === '/admin' ? path === '/admin' : path.startsWith(href);
         return (
-          <Link key={href} href={href} className={on ? 'on' : ''}>{label}</Link>
+          <Link key={href} href={href} className={on ? 'on' : ''}>{<AdminText text={label} />}</Link>
         );
       })}
     </>

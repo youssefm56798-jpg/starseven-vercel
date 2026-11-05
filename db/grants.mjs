@@ -98,6 +98,8 @@ export const SEQUENCE_GRANTS = {
 };
 
 export const GRANTS = {
+  collection_movements: APPEND,
+  admin_audit: APPEND,
   admins: RW,
   admin_password_resets: RWU,
   admin_recovery_codes: RW,
@@ -121,11 +123,17 @@ export const GRANTS = {
   offer_redemptions: APPEND_UNDO,
   offers: RW,
   order_attempts: RWU,
+  order_returns: RWU,
   order_events: APPEND,
   order_items: RW,
   order_tokens: APPEND,
   orders: RWU,
   products: RW,
+  return_items: APPEND,
+  stock_movements: APPEND,
+  shipping_zones: ['SELECT', 'UPDATE'],
+  courier_settlements: APPEND,
+  settlement_orders: APPEND,
   quiz_results: RWU,
   rate_limits: RW,
   settings: READ,

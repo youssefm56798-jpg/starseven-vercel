@@ -277,7 +277,8 @@ export default function CheckoutClient({ lang, add, catalog, shipping, currency 
     .filter(Boolean);
 
   const subtotalNow = lines.reduce((n, l) => n + l.price * l.qty, 0);
-  const t = cartTotals(subtotalNow, applied ? applied.amount : 0, shipping.fee, shipping.freeOver);
+  const zone = shipping.zones?.find(z=>z.code===f.city);
+  const t = cartTotals(subtotalNow, applied ? applied.amount : 0, zone?.fee ?? shipping.fee, zone?.free_over ?? shipping.freeOver);
 
   const checkoutTracked = useRef(false);
   useEffect(() => {
@@ -314,7 +315,7 @@ export default function CheckoutClient({ lang, add, catalog, shipping, currency 
     if (!silent) setCopErr('');
     try {
       const res = await api('/api/coupon', { code, subtotal: subtotalNow, lang });
-      setApplied({ code: res.code, amount: res.discount });
+      setApplied({ code: res.code, amount: res.discount, firstOrderOnly: res.first_order_only === true });
     } catch (e) {
       setApplied(null);
       if (!silent) setCopErr(e.message === NET ? T.e_net : e.message);
@@ -496,7 +497,7 @@ export default function CheckoutClient({ lang, add, catalog, shipping, currency 
             <Field id="city" label={T.city} val={f.city} set={upd('city')} err={errs.city}
               autoComplete="address-level2" required sel={[
                 <option key="" value="">{T.city_pick}</option>,
-                ...SERVED.map(g => (
+                ...SERVED.filter(g=>!shipping.zones || shipping.zones.some(z=>z.code===g&&z.active)).map(g => (
                   <option key={g} value={SERVED_LABELS[g][ar ? 'ar' : 'en']}>
                     {SERVED_LABELS[g][ar ? 'ar' : 'en']}
                   </option>
@@ -570,6 +571,7 @@ export default function CheckoutClient({ lang, add, catalog, shipping, currency 
             onClick={() => (applied ? (setApplied(null), setCoupon('')) : applyCoupon(false))}>
             {copBusy ? '…' : applied ? T.cop_off : T.cop_go}
           </button>
+          {applied?.firstOrderOnly && <p className="hint">{lang==='ar'?'خصم أول طلب: الأهلية بتتراجع عند تأكيد الطلب حسب رقم الموبايل والإيميل.':'First-order discount: eligibility is checked when placing the order using phone and email.'}</p>}
         </div>
         {copErr && <div className="formmsg" style={{ marginBottom: 12 }}>{copErr}</div>}
 

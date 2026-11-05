@@ -1,3 +1,5 @@
+import { localizedAdminMetadata } from "../../_lib/locale-server.js";
+import { AdminText } from '../../_lib/locale.js';
 import bcrypt from 'bcryptjs';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
@@ -9,7 +11,7 @@ import { clientIp, rateClear, rateOk, sql } from '../../../../lib/db.js';
 import { LOGIN_MESSAGES } from '../../_lib/ui.js';
 
 export const dynamic = 'force-dynamic';
-export const metadata = { title: 'Log in — Star Seven admin', robots: { index: false, follow: false } };
+export async function generateMetadata(){return localizedAdminMetadata({ title: 'Log in — Star Seven admin', robots: { index: false, follow: false } });}
 
 /**
  * A real bcrypt hash of a value nobody will ever type. When the email is
@@ -138,20 +140,20 @@ export default async function LoginPage({ searchParams }) {
   return (
     <div className="s7login">
       <div className="box">
-        <div className="logo"><i>★</i> STAR SEVEN</div>
+        <div className="logo"><i>★</i>{' '}<AdminText text="STAR SEVEN" /></div>
         <div className="card">
-          <h1>Log in</h1>
-          {msg ? <div className={msg[0]}>{msg[1]}</div> : null}
+          <h1><AdminText text="Log in" /></h1>
+          {msg ? <div className={msg[0]}>{<AdminText text={msg[1]} />}</div> : null}
           <form action={doLogin}>
             <input type="hidden" name="_csrf" value={token} />
-            <label htmlFor="email">Email</label>
+            <label htmlFor="email"><AdminText text="Email" /></label>
             <input id="email" type="email" name="email" required autoComplete="username" autoFocus />
-            <label htmlFor="pass">Password</label>
+            <label htmlFor="pass"><AdminText text="Password" /></label>
             <input id="pass" type="password" name="pass" required autoComplete="current-password" />
-            <button type="submit">Log in</button>
+            <button type="submit"><AdminText text="Log in" /></button>
           </form>
           <p className="sub" style={{ marginTop: '14px' }}>
-            <a href="/admin/forgot">Forgotten your password?</a>
+            <a href="/admin/forgot"><AdminText text="Forgotten your password?" /></a>
           </p>
         </div>
       </div>

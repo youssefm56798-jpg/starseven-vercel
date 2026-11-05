@@ -44,7 +44,7 @@ export async function POST(req) {
   }
 
   const rows = await sql`
-    SELECT discount_type, discount_value, min_total, max_uses, used_count
+    SELECT discount_type, discount_value, min_total, max_uses, used_count, first_order_only
       FROM offers
      WHERE code = ${code}
        AND active = true
@@ -101,6 +101,8 @@ export async function POST(req) {
 
   return ok({
     code,
+    first_order_only: offer.first_order_only === true,
+    eligibility_checked: false,
     discount,
     label: offer.discount_type === 'percent'
       ? `${trimZeros(offer.discount_value)}%`

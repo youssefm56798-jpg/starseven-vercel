@@ -1,3 +1,5 @@
+import { localizedAdminMetadata } from "../../_lib/locale-server.js";
+import { AdminText } from '../../_lib/locale.js';
 import { after } from 'next/server';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
@@ -10,10 +12,10 @@ import { issueResetToken, resetUrl, RESET_TTL_MINUTES } from '../../../../lib/ad
 import { LOGIN_MESSAGES } from '../../_lib/ui.js';
 
 export const dynamic = 'force-dynamic';
-export const metadata = {
+export async function generateMetadata(){return localizedAdminMetadata({
   title: 'Forgotten password — Star Seven admin',
   robots: { index: false, follow: false },
-};
+});}
 
 /**
  * Ask for a link that sets a new admin password.
@@ -107,22 +109,19 @@ export default async function ForgotPage({ searchParams }) {
   return (
     <div className="s7login">
       <div className="box">
-        <div className="logo"><i>★</i> STAR SEVEN</div>
+        <div className="logo"><i>★</i>{' '}<AdminText text="STAR SEVEN" /></div>
         <div className="card">
-          <h1>Forgotten password</h1>
-          {msg ? <div className={msg[0]}>{msg[1]}</div> : null}
-          <p className="sub">
-            Type the address on your admin account and we will email a link that sets a
-            new password. The link works once and expires in {RESET_TTL_MINUTES} minutes.
-          </p>
+          <h1><AdminText text="Forgotten password" /></h1>
+          {msg ? <div className={msg[0]}>{<AdminText text={msg[1]} />}</div> : null}
+          <p className="sub"><AdminText text="Type the address on your admin account and we will email a link that sets a new password. The link works once and expires in" />{' '}{RESET_TTL_MINUTES}{' '}<AdminText text="minutes." /></p>
           <form action={requestReset}>
             <input type="hidden" name="_csrf" value={token} />
-            <label htmlFor="email">Email</label>
+            <label htmlFor="email"><AdminText text="Email" /></label>
             <input id="email" type="email" name="email" required autoComplete="username" autoFocus />
-            <button type="submit">Email me a link</button>
+            <button type="submit"><AdminText text="Email me a link" /></button>
           </form>
           <p className="sub" style={{ marginTop: '14px' }}>
-            <a href="/admin/login">Back to the login screen</a>
+            <a href="/admin/login"><AdminText text="Back to the login screen" /></a>
           </p>
         </div>
       </div>

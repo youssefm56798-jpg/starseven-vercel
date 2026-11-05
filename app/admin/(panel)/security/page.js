@@ -1,3 +1,5 @@
+import { localizedAdminMetadata } from "../../_lib/locale-server.js";
+import { AdminText, AdminFormat } from '../../_lib/locale.js';
 import { csrfToken } from '../../../../lib/auth.js';
 import { sql } from '../../../../lib/db.js';
 import { openSecret, otpauthUri, readableSecret } from '../../../../lib/totp.js';
@@ -15,7 +17,7 @@ import {
 import { ConfirmEnrolment, ReissueCodes } from './codes.js';
 
 export const dynamic = 'force-dynamic';
-export const metadata = { title: 'Security — Star Seven admin' };
+export async function generateMetadata(){return localizedAdminMetadata({ title: 'Security — Star Seven admin' });}
 
 /**
  * Everything about getting into this account, on one screen.
@@ -46,7 +48,7 @@ export default async function SecurityPage({ searchParams }) {
 
   const me = await securityFor(session.id);
   // The session verified a moment ago, so the row was there a moment ago.
-  if (!me) return <p className="sub">That account no longer exists.</p>;
+  if (!me) return <p className="sub"><AdminText text="That account no longer exists." /></p>;
 
   let pending = null;
   if (me.enrolling) {
@@ -59,55 +61,43 @@ export default async function SecurityPage({ searchParams }) {
 
   return (
     <>
-      <h1>Security</h1>
-      <p className="sub">Signed in as {me.email}.</p>
+      <h1><AdminText text="Security" /></h1>
+      <p className="sub"><AdminText text="Signed in as" />{' '}{me.email}.</p>
 
       <Flash code={sp?.m} />
 
       {/* ------------------------------------------------------ two-factor */}
 
       <div className="panel">
-        <h2>
-          Two-factor
-          <span className="right">
+        <h2><AdminText text="Two-factor" /><span className="right">
             <span className={`pill ${me.enrolled ? 'delivered' : 'new'}`}>
-              {me.enrolled ? 'on' : 'off'}
+              {me.enrolled ? <AdminText text="on" /> : <AdminText text="off" />}
             </span>
           </span>
         </h2>
         <div className="pad">
           {me.enrolled ? (
             <>
-              <p className="sub">
-                On since {day(me.enrolledAt)}. Signing in asks for a code from your
-                authenticator app after the password.
-              </p>
+              <p className="sub"><AdminText text="On since" />{' '}{<AdminFormat kind="day" value={me.enrolledAt} />}<AdminText text=". Signing in asks for a code from your authenticator app after the password." /></p>
 
               <div className="kv">
-                <b>Recovery codes left</b>
+                <b><AdminText text="Recovery codes left" /></b>
                 <span className={me.recoveryLeft <= 2 ? 'pill cancelled' : 'muted'}>
-                  {me.recoveryLeft} of 10
-                </span>
+                  {me.recoveryLeft}{' '}<AdminText text="of 10" /></span>
               </div>
               {me.recoveryLeft <= 2 ? (
-                <div className="flash err">
-                  Almost out. Generate a new set before the last one is spent — with
-                  no codes and no phone there is no way back into this account.
-                </div>
+                <div className="flash err"><AdminText text="Almost out. Generate a new set before the last one is spent — with no codes and no phone there is no way back into this account." /></div>
               ) : null}
 
               <ReissueCodes csrf={token} />
 
               <hr style={{ margin: '18px 0', border: 0, borderTop: '1px solid #2a2a2a' }} />
 
-              <p className="sub">
-                Turning two-factor off deletes the secret and every recovery code,
-                and signs out every browser.
-              </p>
+              <p className="sub"><AdminText text="Turning two-factor off deletes the secret and every recovery code, and signs out every browser." /></p>
               <form action={turnOffTwoFactor}>
                 <input type="hidden" name="_csrf" value={token} />
                 <div className="field">
-                  <label htmlFor="off-pw">Your password</label>
+                  <label htmlFor="off-pw"><AdminText text="Your password" /></label>
                   <input
                     id="off-pw"
                     name="current"
@@ -119,49 +109,37 @@ export default async function SecurityPage({ searchParams }) {
                 </div>
                 <ConfirmButton
                   message="Turn two-factor off? Your recovery codes are deleted and every session is signed out."
-                >
-                  Turn two-factor off
-                </ConfirmButton>
+                ><AdminText text="Turn two-factor off" /></ConfirmButton>
               </form>
             </>
           ) : pending ? (
             <>
-              <p className="sub">
-                Add this to an authenticator app — Google Authenticator, 1Password,
-                Aegis, whichever you use — then type the six digits it shows.
-              </p>
+              <p className="sub"><AdminText text="Add this to an authenticator app — Google Authenticator, 1Password, Aegis, whichever you use — then type the six digits it shows." /></p>
 
               <div className="kv">
-                <b>Secret</b>
+                <b><AdminText text="Secret" /></b>
                 <code style={{ fontSize: '15px', letterSpacing: '2px' }}>{pending.readable}</code>
               </div>
               <div className="kv">
-                <b>Or the full link</b>
+                <b><AdminText text="Or the full link" /></b>
                 <code className="muted" style={{ wordBreak: 'break-all' }}>{pending.uri}</code>
               </div>
 
-              <p className="muted">
-                Nothing changes about how you sign in until the code below is
-                accepted, so an interrupted setup cannot lock you out.
-              </p>
+              <p className="muted"><AdminText text="Nothing changes about how you sign in until the code below is accepted, so an interrupted setup cannot lock you out." /></p>
 
               <ConfirmEnrolment csrf={token} />
 
               <form action={abandonTwoFactor} style={{ marginTop: '10px' }}>
                 <input type="hidden" name="_csrf" value={token} />
-                <button className="btn sm ghost" type="submit">Cancel setup</button>
+                <button className="btn sm ghost" type="submit"><AdminText text="Cancel setup" /></button>
               </form>
             </>
           ) : (
             <>
-              <p className="sub">
-                A password on its own is one thing to steal. With two-factor on,
-                signing in also needs a code from your phone that changes every
-                thirty seconds.
-              </p>
+              <p className="sub"><AdminText text="A password on its own is one thing to steal. With two-factor on, signing in also needs a code from your phone that changes every thirty seconds." /></p>
               <form action={startTwoFactor}>
                 <input type="hidden" name="_csrf" value={token} />
-                <button className="btn red" type="submit">Set up two-factor</button>
+                <button className="btn red" type="submit"><AdminText text="Set up two-factor" /></button>
               </form>
             </>
           )}
@@ -171,33 +149,31 @@ export default async function SecurityPage({ searchParams }) {
       {/* -------------------------------------------------------- password */}
 
       <div className="panel">
-        <h2>Password</h2>
+        <h2><AdminText text="Password" /></h2>
         <div className="pad">
           <p className="sub">
             {me.passwordChangedAt
-              ? `Last changed ${dt(me.passwordChangedAt)}.`
-              : 'Never changed since this account was created.'}
-            {' '}Changing it signs out every browser, including this one — which is
-            then signed straight back in, so you stay where you are.
-          </p>
+              ? <AdminText text="Last changed {0}." values={[dt(me.passwordChangedAt)]} />
+              : <AdminText text="Never changed since this account was created." />}
+            {' '}<AdminText text="Changing it signs out every browser, including this one — which is then signed straight back in, so you stay where you are." /></p>
           <form action={changeAdminPassword}>
             <input type="hidden" name="_csrf" value={token} />
             <div className="field">
-              <label htmlFor="pw-current">Current password</label>
+              <label htmlFor="pw-current"><AdminText text="Current password" /></label>
               <input id="pw-current" name="current" type="password" required
                      autoComplete="current-password" style={{ maxWidth: '260px' }} />
             </div>
             <div className="field">
-              <label htmlFor="pw-next">New password (10+ characters)</label>
+              <label htmlFor="pw-next"><AdminText text="New password (10+ characters)" /></label>
               <input id="pw-next" name="next" type="password" required minLength={10}
                      autoComplete="new-password" style={{ maxWidth: '260px' }} />
             </div>
             <div className="field">
-              <label htmlFor="pw-confirm">New password again</label>
+              <label htmlFor="pw-confirm"><AdminText text="New password again" /></label>
               <input id="pw-confirm" name="confirm" type="password" required minLength={10}
                      autoComplete="new-password" style={{ maxWidth: '260px' }} />
             </div>
-            <button className="btn red" type="submit">Change password</button>
+            <button className="btn red" type="submit"><AdminText text="Change password" /></button>
           </form>
         </div>
       </div>
@@ -205,21 +181,15 @@ export default async function SecurityPage({ searchParams }) {
       {/* -------------------------------------------------------- sessions */}
 
       <div className="panel">
-        <h2>Sessions</h2>
+        <h2><AdminText text="Sessions" /></h2>
         <div className="pad">
-          <p className="sub">
-            A session lasts eight hours and lives in a cookie. This ends all of
-            them at once — every browser, every phone, this tab included. Use it if
-            a device has gone missing, or if you are not sure who is signed in.
-          </p>
+          <p className="sub"><AdminText text="A session lasts eight hours and lives in a cookie. This ends all of them at once — every browser, every phone, this tab included. Use it if a device has gone missing, or if you are not sure who is signed in." /></p>
           <form action={signOutEverywhere}>
             <input type="hidden" name="_csrf" value={token} />
             <ConfirmButton
               className="btn"
               message="Sign out of every browser, including this one?"
-            >
-              Sign out everywhere
-            </ConfirmButton>
+            ><AdminText text="Sign out everywhere" /></ConfirmButton>
           </form>
         </div>
       </div>

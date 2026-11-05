@@ -1,3 +1,5 @@
+import { localizedAdminMetadata } from "../../_lib/locale-server.js";
+import { AdminText } from '../../_lib/locale.js';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { csrfOk, csrfToken, destroySession } from '../../../../lib/auth.js';
@@ -7,10 +9,10 @@ import { claimReset, resetTarget, RESET_TTL_MINUTES } from '../../../../lib/admi
 import { LOGIN_MESSAGES } from '../../_lib/ui.js';
 
 export const dynamic = 'force-dynamic';
-export const metadata = {
+export async function generateMetadata(){return localizedAdminMetadata({
   title: 'Set a new password — Star Seven admin',
   robots: { index: false, follow: false },
-};
+});}
 
 /**
  * Set a new password, holding a link from /admin/forgot.
@@ -95,14 +97,11 @@ export default async function ResetPage({ searchParams }) {
     return (
       <div className="s7login">
         <div className="box">
-          <div className="logo"><i>★</i> STAR SEVEN</div>
+          <div className="logo"><i>★</i>{' '}<AdminText text="STAR SEVEN" /></div>
           <div className="card">
-            <h1>That link is no longer valid</h1>
-            <p className="sub">
-              A reset link works once and expires after {RESET_TTL_MINUTES} minutes. Ask for
-              a fresh one and use the newest email.
-            </p>
-            <p className="sub"><a href="/admin/forgot">Send me another link</a></p>
+            <h1><AdminText text="That link is no longer valid" /></h1>
+            <p className="sub"><AdminText text="A reset link works once and expires after" />{' '}{RESET_TTL_MINUTES}{' '}<AdminText text="minutes. Ask for a fresh one and use the newest email." /></p>
+            <p className="sub"><a href="/admin/forgot"><AdminText text="Send me another link" /></a></p>
           </div>
         </div>
       </div>
@@ -112,24 +111,21 @@ export default async function ResetPage({ searchParams }) {
   return (
     <div className="s7login">
       <div className="box">
-        <div className="logo"><i>★</i> STAR SEVEN</div>
+        <div className="logo"><i>★</i>{' '}<AdminText text="STAR SEVEN" /></div>
         <div className="card">
-          <h1>Set a new password</h1>
-          {msg ? <div className={msg[0]}>{msg[1]}</div> : null}
-          <p className="sub">
-            For <b>{target.email}</b>. Saving signs out every browser this account is
-            signed in to, and you will be asked to log in again.
-          </p>
+          <h1><AdminText text="Set a new password" /></h1>
+          {msg ? <div className={msg[0]}>{<AdminText text={msg[1]} />}</div> : null}
+          <p className="sub"><AdminText text="For" />{' '}<b>{target.email}</b><AdminText text=". Saving signs out every browser this account is signed in to, and you will be asked to log in again." /></p>
           <form action={setNewPassword}>
             <input type="hidden" name="_csrf" value={csrf} />
             <input type="hidden" name="t" value={token} />
-            <label htmlFor="pass">New password (10+ characters)</label>
+            <label htmlFor="pass"><AdminText text="New password (10+ characters)" /></label>
             <input id="pass" type="password" name="pass" required minLength={10}
                    autoComplete="new-password" autoFocus />
-            <label htmlFor="confirm">New password again</label>
+            <label htmlFor="confirm"><AdminText text="New password again" /></label>
             <input id="confirm" type="password" name="confirm" required minLength={10}
                    autoComplete="new-password" />
-            <button type="submit">Save the new password</button>
+            <button type="submit"><AdminText text="Save the new password" /></button>
           </form>
         </div>
       </div>

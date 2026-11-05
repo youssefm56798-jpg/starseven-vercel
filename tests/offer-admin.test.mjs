@@ -76,16 +76,20 @@ test('an existing code returns a field error without inserting', async () => {
 test('a concurrent code conflict is a field error; unrelated database faults propagate', async () => {
   let calls = 0;
   const conflict = Object.assign(new Error('synthetic duplicate'), { code: '23505', constraint: 'idx_offers_code' });
-  const result = await createValidatedOffer(async () => { if (++calls === 1) return []; throw conflict; }, form());
+  const conflictSql=async()=>{if(++calls===1)return [];throw conflict;};
+  conflictSql.transaction=async statements=>Promise.all(statements);
+  const result = await createValidatedOffer(conflictSql, form());
   assert.match(result.errors.code, /already exists/);
   for (const error of [Object.assign(new Error('synthetic primary-key fault'), { code: '23505', constraint: 'offers_pkey' }), new Error('synthetic unavailable')]) {
     calls = 0;
-    await assert.rejects(createValidatedOffer(async () => { if (++calls === 1) return []; throw error; }, form()), e => e === error);
+    const failureSql=async()=>{if(++calls===1)return [];throw error;};failureSql.transaction=async statements=>Promise.all(statements);
+    await assert.rejects(createValidatedOffer(failureSql, form()), e => e === error);
   }
 });
 
 test('database-normalized invalid windows return a field error with the input retained', async () => {
-  const result = await createValidatedOffer(async () => [], form({ starts_at: '2026-04-24T00:30', ends_at: '2026-04-24T01:00' }));
+  const sql=async()=>[];sql.transaction=async statements=>Promise.all(statements);
+  const result = await createValidatedOffer(sql, form({ starts_at: '2026-04-24T00:30', ends_at: '2026-04-24T01:00' }));
   assert.equal(result.ok, false);
   assert.ok(result.errors.ends_at);
   assert.equal(result.fields.starts_at, '2026-04-24T00:30');
@@ -94,11 +98,12 @@ test('database-normalized invalid windows return a field error with the input re
 test('valid offer data stays parameterized and returns the created identity', async () => {
   const attack = "synthetic'); DROP TABLE offers; --";
   const statements = [];
-  const result = await createValidatedOffer(async (strings, ...values) => {
+  const sql=async (strings, ...values) => {
     const text = strings.join('?');
     statements.push({ text, values });
     return text.includes('INSERT INTO') ? [{ id: 42 }] : [];
-  }, form({ title_en: attack }));
+  };sql.transaction=async statements=>Promise.all(statements);
+  const result = await createValidatedOffer(sql, form({ title_en: attack }));
   assert.equal(result.ok, true);
   assert.equal(result.id, 42);
   const insert = statements.find(x => x.text.includes('INSERT INTO'));
