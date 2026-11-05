@@ -67,12 +67,21 @@ function buildReport(compilation, root) {
   return { status: 'release-server-action-ids', version: 1, actions };
 }
 
+function emitReport(report, write = console.log) {
+  // Providers truncate long log events. Keep one short, allowlisted record per action.
+  const actions = report.actions.map(({ file, action, id, worker, exportedName, sourceSha256 }) =>
+    ({ file, action, id, worker, exportedName, sourceSha256 }));
+  for (const action of actions) write(JSON.stringify({ status: 'release-server-action-id', version: 1, ...action }));
+  write(JSON.stringify({ status: 'release-server-action-ids-complete', version: 1, count: actions.length,
+    digest: createHash('sha256').update(JSON.stringify(actions)).digest('hex') }));
+}
+
 class ReleaseActionMetadataPlugin {
   apply(compiler) {
     compiler.hooks.compilation.tap('ReleaseActionMetadata', compilation => {
       compilation.hooks.processAssets.tap({ name: 'ReleaseActionMetadata',
         stage: compiler.webpack.Compilation.PROCESS_ASSETS_STAGE_REPORT }, () => {
-        console.log(JSON.stringify(buildReport(compilation, path.resolve(__dirname, '..'))));
+        emitReport(buildReport(compilation, path.resolve(__dirname, '..')));
       });
     });
   }
@@ -80,3 +89,4 @@ class ReleaseActionMetadataPlugin {
 module.exports = ReleaseActionMetadataPlugin;
 module.exports.buildReport = buildReport;
 module.exports.TARGETS = TARGETS;
+module.exports.emitReport = emitReport;

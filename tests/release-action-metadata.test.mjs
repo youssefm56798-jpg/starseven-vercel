@@ -6,7 +6,7 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 import nextConfig from '../next.config.mjs';
 const require = createRequire(import.meta.url);
-const { buildReport, TARGETS } = require('../scripts/release-action-metadata.cjs');
+const { buildReport, TARGETS, emitReport } = require('../scripts/release-action-metadata.cjs');
 const root = fileURLToPath(new URL('../', import.meta.url));
 function fixture() {
   const node = {}, modules = [];
@@ -48,6 +48,22 @@ test('production concatenation retains each original page binding', () => {
   const f = fixture();
   f.modules = [{ modules: f.modules }];
   assert.equal(buildReport(f, root).actions.length, 18);
+});
+
+test('short per-action events survive provider limits and carry a complete-report digest', () => {
+  const report = buildReport(fixture(), root), lines = [];
+  report.actions[0].unexpectedSecret = 'SYNTHETIC_SECRET_MUST_NOT_LEAK';
+  emitReport(report, line => lines.push(line));
+  assert.equal(lines.length, 19);
+  assert.ok(lines.every(line => Buffer.byteLength(line) < 1024));
+  assert.doesNotMatch(lines.join('\n'), /SYNTHETIC_SECRET|unexpectedSecret|encryptionKey/);
+  const events = lines.map(line => JSON.parse(line)), last = events.pop();
+  assert.equal(last.status, 'release-server-action-ids-complete');
+  assert.equal(last.count, 18);
+  const actions = events.map(({ status, version, ...action }) => {
+    assert.equal(status, 'release-server-action-id'); assert.equal(version, 1); return action;
+  });
+  assert.equal(last.digest, createHash('sha256').update(JSON.stringify(actions)).digest('hex'));
 });
 
 test('missing manifest or action coverage stops instead of widening or guessing', () => {
