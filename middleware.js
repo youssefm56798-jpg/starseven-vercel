@@ -158,6 +158,23 @@ export function middleware(request) {
   const locked = holdingGate(request);
   if (locked) return locked;
 
+  // Fresh navigation uses the origin accepted by customer actions. Never
+  // redirect/replay an old www tab's submission or transfer its local cart/key.
+  const host = request.headers.get('host')?.split(':', 1)[0].toLowerCase() || request.nextUrl.hostname;
+  if (host === 'www.newstarseven.com') {
+    if (request.method !== 'GET' && request.method !== 'HEAD') {
+      return new NextResponse('Use https://newstarseven.com to continue.', {
+        status: 403,
+        headers: { 'Cache-Control': 'no-store' },
+      });
+    }
+    const url = request.nextUrl.clone();
+    url.protocol = 'https:';
+    url.hostname = 'newstarseven.com';
+    url.port = '';
+    return NextResponse.redirect(url, 308);
+  }
+
   if (PASS_THROUGH.test(pathname)) {
     return pathname === '/admin' || pathname.startsWith('/admin/')
       ? withCsrfSeed(request)
