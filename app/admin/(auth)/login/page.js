@@ -7,7 +7,7 @@ import {
   createSession, csrfOk, csrfToken, currentAdmin, startPendingSession,
 } from '../../../../lib/auth.js';
 import { limits } from '../../../../lib/config.js';
-import { clientIp, rateClear, rateOk, sql } from '../../../../lib/db.js';
+import { clientIp, rateClear, rateOk, sql, observeRuntimeDbBinding } from '../../../../lib/db.js';
 import { LOGIN_MESSAGES } from '../../_lib/ui.js';
 
 export const dynamic = 'force-dynamic';
@@ -131,6 +131,7 @@ async function doLogin(formData) {
 }
 
 export default async function LoginPage({ searchParams }) {
+  await observeRuntimeDbBinding();
   if (await currentAdmin()) redirect('/admin');
 
   const sp = await searchParams;
