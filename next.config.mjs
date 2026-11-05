@@ -1,4 +1,5 @@
 /** @type {import('next').NextConfig} */
+import ReleaseActionMetadataPlugin from './scripts/release-action-metadata.cjs';
 
 // Content-Security-Policy for the HTML responses.
 //
@@ -83,6 +84,10 @@ const csp = [
 ].join('; ');
 
 const nextConfig = {
+  webpack(config, { dev, isServer, nextRuntime }) {
+    if (!dev && isServer && nextRuntime === 'nodejs') config.plugins.push(new ReleaseActionMetadataPlugin());
+    return config;
+  },
   reactStrictMode: true,
   poweredByHeader: false,
   experimental: {
